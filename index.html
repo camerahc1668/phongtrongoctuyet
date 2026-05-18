@@ -409,7 +409,27 @@ input,select,textarea{font-family:inherit}
 .tca-del{background:rgba(239,68,68,.08);color:var(--danger);border-color:rgba(239,68,68,.25);flex:0 0 auto;padding:6px 10px}
 .tca-del:hover{background:rgba(239,68,68,.15)}
 
-/* ── FONT SETTINGS CSS VARS ─────────── */
+/* ── Zone Section (Sơ đồ khu) ───────── */
+.zone-section{margin-bottom:22px}
+.zone-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.zone-badge{
+  background:linear-gradient(135deg,var(--primary),var(--primary-light));
+  color:white;font-size:12px;font-weight:800;
+  padding:6px 16px;border-radius:var(--r-full);
+  box-shadow:0 3px 12px rgba(22,163,74,.3);
+  white-space:nowrap;flex-shrink:0;letter-spacing:.3px;
+}
+.floor-sub{margin-bottom:12px;padding-left:10px;border-left:3px solid rgba(22,163,74,.15)}
+.floor-sub-label{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:8px;letter-spacing:.3px;text-transform:uppercase}
+
+/* ── ROOM CODE PREVIEW ──────────────── */
+.room-code-preview{
+  background:linear-gradient(135deg,rgba(22,163,74,.08),rgba(14,165,233,.06));
+  border:2px solid rgba(22,163,74,.25);border-radius:16px;
+  padding:14px 16px;margin-bottom:14px;
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;gap:4px;
+}
 :root{
   --app-font:'Be Vietnam Pro',sans-serif;
   --app-font-size:14px;
@@ -1181,8 +1201,62 @@ textarea.fc{resize:vertical;min-height:70px}
   <div class="mhdr"><div class="mtitle" id="mRoomTitle">Thêm Phòng Mới</div><button class="mclose" onclick="closeM('mRoom')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
   <div class="mbody">
     <input type="hidden" id="rEditId">
-    <div class="frow"><div class="fg"><label class="flbl">Tên phòng <span>*</span></label><input class="fc" id="rName" placeholder="P101, A1..."></div><div class="fg"><label class="flbl">Tầng</label><input class="fc" id="rFloor" placeholder="1,2..."></div></div>
+
+    <!-- Mã phòng preview -->
+    <div class="room-code-preview" id="roomCodePreview">
+      <div style="font-size:11px;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:.5px">Mã phòng tự sinh</div>
+      <div id="roomCodeDisplay" style="font-size:32px;font-weight:900;color:var(--primary);letter-spacing:-1px;line-height:1">—</div>
+      <div id="roomCodeDesc" style="font-size:11px;color:var(--text3);margin-top:2px"></div>
+    </div>
+
+    <!-- Khu / Tầng / Số phòng -->
+    <div class="fsect">🏢 Vị Trí Phòng</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+      <!-- Khu -->
+      <div class="fg">
+        <label class="flbl">Khu <span>*</span></label>
+        <div style="display:flex;gap:4px">
+          <select class="fc" id="rZone" style="flex:1" onchange="updateRoomCode()">
+            <option value="">-- Chọn --</option>
+          </select>
+          <button class="btn btn-secondary btn-xs" onclick="openZoneManager()" title="Quản lý khu" style="padding:0 8px;flex-shrink:0">⚙️</button>
+        </div>
+      </div>
+      <!-- Tầng -->
+      <div class="fg">
+        <label class="flbl">Tầng <span>*</span></label>
+        <select class="fc" id="rFloorNum" onchange="updateRoomCode()">
+          <option value="">-- Chọn --</option>
+          <option value="0">Trệt (0)</option>
+          <option value="1">Lầu 1</option>
+          <option value="2">Lầu 2</option>
+          <option value="3">Lầu 3</option>
+          <option value="4">Lầu 4</option>
+          <option value="5">Lầu 5</option>
+        </select>
+      </div>
+      <!-- Số phòng -->
+      <div class="fg">
+        <label class="flbl">Số phòng <span>*</span></label>
+        <input class="fc" id="rNumber" type="number" min="1" max="99" placeholder="1" oninput="updateRoomCode()">
+      </div>
+    </div>
+
+    <!-- Tên phòng tùy chỉnh (ghi đè mã tự sinh) -->
+    <div class="fg" style="margin-bottom:10px">
+      <label class="flbl" style="display:flex;align-items:center;gap:6px">
+        Tên phòng tùy chỉnh
+        <span style="font-size:10px;color:var(--text3);font-weight:400">(để trống = dùng mã tự sinh)</span>
+      </label>
+      <input class="fc" id="rName" placeholder="VD: Studio, Penthouse..." oninput="updateRoomCode()">
+    </div>
+
+    <!-- Giá & Diện tích -->
+    <div class="fsect">💰 Giá & Diện Tích</div>
     <div class="frow"><div class="fg"><label class="flbl">Giá thuê (₫) <span>*</span></label><input class="fc" id="rPrice" type="number" placeholder="2500000"></div><div class="fg"><label class="flbl">Diện tích (m²)</label><input class="fc" id="rArea" type="number" placeholder="20"></div></div>
+
+    <!-- Điện nước -->
+    <div class="fsect">⚡ Điện Nước & Phí</div>
     <div class="frow"><div class="fg"><label class="flbl">Giá điện (₫/kWh)</label><input class="fc" id="rElecP" type="number" value="3500"></div><div class="fg"><label class="flbl">Giá nước (₫/m³)</label><input class="fc" id="rWaterP" type="number" value="15000"></div></div>
     <div class="frow"><div class="fg"><label class="flbl">Dịch vụ (₫)</label><input class="fc" id="rSvc" type="number" value="50000"></div><div class="fg"><label class="flbl">Internet (₫)</label><input class="fc" id="rNet" type="number" value="100000"></div></div>
     <div class="frow"><div class="fg"><label class="flbl">Rác (₫)</label><input class="fc" id="rGarb" type="number" value="20000"></div><div class="fg"><label class="flbl">Giữ xe (₫)</label><input class="fc" id="rPark" type="number" value="0"></div></div>
@@ -1190,6 +1264,32 @@ textarea.fc{resize:vertical;min-height:70px}
     <div class="fg"><label class="flbl">Ghi chú</label><textarea class="fc" id="rNote" placeholder="Tiện nghi, mô tả..."></textarea></div>
   </div>
   <div class="mfoot"><button class="btn btn-secondary" onclick="closeM('mRoom')">Hủy</button><button class="btn btn-primary" onclick="saveRoom()">Lưu phòng</button></div>
+</div></div>
+
+<!-- ═══ MODAL: QUẢN LÝ KHU ═══ -->
+<div class="overlay" id="mZoneManager"><div class="modal">
+  <div class="mhandle"></div>
+  <div class="mhdr">
+    <div class="mtitle">🏢 Quản Lý Khu</div>
+    <button class="mclose" onclick="closeM('mZoneManager')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="mbody">
+    <div style="font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.6;background:var(--bg2);padding:10px 12px;border-radius:12px">
+      💡 <b>Quy tắc đặt tên:</b> Khu A tầng 2 phòng 1 → <b>AA1</b> · Khu A tầng 1 phòng 1 → <b>A1</b><br>
+      Khu B tầng 2 phòng 3 → <b>BB3</b> · Tầng trệt (0) không lặp ký tự khu.
+    </div>
+    <!-- Thêm khu mới -->
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <input class="fc" id="newZoneInput" placeholder="Tên khu: A, B, C, Block1..." style="flex:1" maxlength="10" onkeydown="if(event.key==='Enter')addZone()">
+      <button class="btn btn-primary" onclick="addZone()" style="flex-shrink:0">+ Thêm</button>
+    </div>
+    <!-- Danh sách khu -->
+    <div id="zoneList"></div>
+  </div>
+  <div class="mfoot">
+    <button class="btn btn-secondary" onclick="closeM('mZoneManager')">Đóng</button>
+    <button class="btn btn-primary" onclick="closeM('mZoneManager');populateZoneSelect()">✅ Xong</button>
+  </div>
 </div></div>
 
 <!-- ═══ MODAL: NGƯỜI THUÊ ═══ -->
@@ -1691,15 +1791,36 @@ function renderRooms(){
   else renderRoomsList(rows);
 }
 
-/* ── Nhóm phòng theo tầng ───────────── */
+/* ── Nhóm phòng theo Khu → Tầng ──────── */
+function groupByZoneAndFloor(rooms){
+  // Map: { zone → { floor → [rooms] } }
+  const map={};
+  rooms.forEach(r=>{
+    const zone=r.zone||'—';
+    const floor=r.floorNum!==undefined?r.floorNum:(+r.floor||0);
+    if(!map[zone])map[zone]={};
+    if(!map[zone][floor])map[zone][floor]=[];
+    map[zone][floor].push(r);
+  });
+  // Sort zones, then floors within each zone
+  return Object.entries(map)
+    .sort(([a],[b])=>a.localeCompare(b))
+    .map(([zone,floors])=>({
+      zone,
+      floors:Object.entries(floors)
+        .sort(([a],[b])=>+a-+b)
+        .map(([floor,rs])=>({floor:+floor,rooms:rs}))
+    }));
+}
+
 function groupByFloor(rooms){
+  // Legacy wrapper — group by floor only (used in grid/list views)
   const floors={};
   rooms.forEach(r=>{
-    const f=r.floor||'1';
+    const f=r.floorNum!==undefined?String(r.floorNum):(r.floor||'1');
     if(!floors[f])floors[f]=[];
     floors[f].push(r);
   });
-  // Sắp xếp tầng tăng dần
   return Object.entries(floors).sort((a,b)=>(+a[0]||0)-(+b[0]||0));
 }
 
@@ -1719,7 +1840,7 @@ function getStatusListClass(status){
 
 /* ══ VIEW 1: SƠ ĐỒ TẦNG (MAP) ════════ */
 function renderRoomsMap(rows){
-  const floors=groupByFloor(rows);
+  const groups=groupByZoneAndFloor(rows);
   const legend=`
     <div class="floor-legend">
       <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div>Còn trống</div>
@@ -1728,33 +1849,45 @@ function renderRoomsMap(rows){
       <div class="legend-item"><div class="legend-dot" style="background:var(--warning)"></div>Sắp hạn</div>
     </div>`;
 
-  const html=floors.map(([floor,rooms])=>{
-    const available=rooms.filter(r=>r.status==='available').length;
-    const cells=rooms.map(room=>{
-      const t=getRoomTenant(room);
-      const inv=S.invoices.find(i=>i.roomId===room.id&&i.month===curMonth());
-      const debtAmt=inv?.debt||0;
-      const stCls=getStatusClass(room.status);
-      let avHtmlStr='';
-      if(t?.avatar) avHtmlStr=`<div class="rc-avatar-mini"><img src="${t.avatar}"></div>`;
-      else if(t) avHtmlStr=`<div class="rc-avatar-mini" style="background:${t.avatarColor||'#16a34a'}">${getInits(t.name)}</div>`;
-      else avHtmlStr=`<div style="width:20px;height:20px;border-radius:6px;background:var(--bg2);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="7" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>`;
-      return`<div class="room-cell ${stCls}" onclick="showRoomDet('${room.id}')" title="Phòng ${room.name}${t?' — '+t.name:''}${debtAmt>0?' · Nợ '+fmt(debtAmt):''}">
-        <div class="rc-status-dot"></div>
-        <div class="rc-no">${room.name}</div>
-        ${avHtmlStr}
-        ${debtAmt>0?`<div style="font-size:8px;font-weight:800;color:var(--danger);line-height:1">${Math.round(debtAmt/1000)}K</div>`:`<div class="rc-price-mini">${Math.round(room.price/1000)}K</div>`}
-      </div>`;
-    }).join('');
+  const html=groups.map(({zone,floors})=>{
+    const totalRooms=floors.reduce((s,f)=>s+f.rooms.length,0);
+    const totalEmpty=floors.reduce((s,f)=>s+f.rooms.filter(r=>r.status==='available').length,0);
 
-    return`<div class="floor-section">
-      <div class="floor-header">
-        <div class="floor-label">🏢 ${floorLabel(floor)}</div>
-        <div class="floor-line"></div>
-        <div class="floor-count">${rooms.length} phòng · ${available} trống</div>
-      </div>
-      <div class="floor-rooms-map">${cells}</div>
-    </div>`;
+    // Zone header
+    const zoneHtml=`
+      <div class="zone-section">
+        <div class="zone-header">
+          <div class="zone-badge">🏢 Khu ${zone}</div>
+          <div class="floor-line"></div>
+          <div class="floor-count">${totalRooms} phòng · ${totalEmpty} trống</div>
+        </div>
+        ${floors.map(({floor,rooms})=>{
+          const avail=rooms.filter(r=>r.status==='available').length;
+          const cells=rooms
+            .sort((a,b)=>(a.roomNum||0)-(b.roomNum||0))
+            .map(room=>{
+              const t=getRoomTenant(room);
+              const inv=S.invoices.find(i=>i.roomId===room.id&&i.month===curMonth());
+              const debtAmt=inv?.debt||0;
+              const stCls=getStatusClass(room.status);
+              let avHtmlStr='';
+              if(t?.avatar)avHtmlStr=`<div class="rc-avatar-mini"><img src="${t.avatar}"></div>`;
+              else if(t)avHtmlStr=`<div class="rc-avatar-mini" style="background:${t.avatarColor||'#16a34a'}">${getInits(t.name)}</div>`;
+              else avHtmlStr=`<div style="width:20px;height:20px;border-radius:6px;background:var(--bg2);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="7" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>`;
+              return`<div class="room-cell ${stCls}" onclick="showRoomDet('${room.id}')" title="Phòng ${room.name}${t?' — '+t.name:''}${debtAmt>0?' · Nợ '+fmt(debtAmt):''}">
+                <div class="rc-status-dot"></div>
+                <div class="rc-no">${room.name}</div>
+                ${avHtmlStr}
+                ${debtAmt>0?`<div style="font-size:8px;font-weight:800;color:var(--danger)">${Math.round(debtAmt/1000)}K</div>`:`<div class="rc-price-mini">${Math.round(room.price/1000)}K</div>`}
+              </div>`;
+            }).join('');
+          return`<div class="floor-sub">
+            <div class="floor-sub-label">${floorLabel(floor)} <span style="opacity:.6;font-weight:500">(${avail} trống)</span></div>
+            <div class="floor-rooms-map">${cells}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    return zoneHtml;
   }).join('');
 
   document.getElementById('roomGrid').innerHTML=legend+html;
@@ -1861,32 +1994,203 @@ function renderRoomsList(rows){
 
 function setRoomFilter(f){roomFilter=f;document.querySelectorAll('#roomChips .chip').forEach(c=>c.classList.toggle('active',c.dataset.f===f));renderRooms()}
 
+/* ══════════════════════════════════════════
+   PHÒNG — ZONE / FLOOR / NUMBER SYSTEM
+   Khu A + Tầng 2 + Phòng 1 → AA1
+   Khu A + Tầng 1 + Phòng 1 → A1
+   Khu A + Tầng 0(trệt) + Phòng 1 → A1
+   Quy tắc: tầng > 1 → lặp ký tự khu × tầng
+             tầng ≤ 1 → ký tự khu × 1
+══════════════════════════════════════════ */
+
+// Default zones — có thể thêm/xóa
+function getZones(){
+  if(!S.settings.zones||!S.settings.zones.length){
+    S.settings.zones=['A','B','C'];
+  }
+  return S.settings.zones;
+}
+
+// Tính mã phòng từ khu + tầng + số
+function calcRoomCode(zone,floor,num){
+  if(!zone||num==='')return'';
+  const f=+floor||0;
+  const n=+num;
+  if(!n&&n!==0)return'';
+  // Tầng > 1: lặp ký tự khu theo số tầng (A×2=AA, A×3=AAA)
+  // Tầng 0 hoặc 1: ký tự khu ×1
+  const repeat=f>=2?f:1;
+  const prefix=zone.repeat(repeat);
+  return prefix+n;
+}
+
+function updateRoomCode(){
+  const zone=document.getElementById('rZone')?.value||'';
+  const floor=document.getElementById('rFloorNum')?.value||'';
+  const num=document.getElementById('rNumber')?.value||'';
+  const custom=document.getElementById('rName')?.value?.trim()||'';
+  const code=custom||calcRoomCode(zone,floor,num);
+  const display=document.getElementById('roomCodeDisplay');
+  const desc=document.getElementById('roomCodeDesc');
+  if(display){display.textContent=code||'—';}
+  if(desc&&zone&&floor!==''&&num){
+    const f=+floor;
+    const floorLabel=f===0?'Tầng trệt':`Lầu ${f}`;
+    desc.textContent=`Khu ${zone} · ${floorLabel} · Phòng ${num}`;
+  } else if(desc){
+    desc.textContent='Chọn Khu + Tầng + Số phòng';
+  }
+}
+
+function populateZoneSelect(){
+  const zones=getZones();
+  const sel=document.getElementById('rZone');
+  if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML=`<option value="">-- Chọn khu --</option>`+
+    zones.map(z=>`<option value="${z}" ${cur===z?'selected':''}>${z}</option>`).join('');
+  if(cur)sel.value=cur;
+  updateRoomCode();
+}
+
 function openAddRoom(){
-  document.getElementById('rEditId').value='';document.getElementById('mRoomTitle').textContent='Thêm Phòng Mới';
-  ['rName','rFloor','rNote'].forEach(id=>document.getElementById(id).value='');
-  ['rPrice','rArea'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('rElecP').value='3500';document.getElementById('rWaterP').value='15000';
-  document.getElementById('rSvc').value='50000';document.getElementById('rNet').value='100000';
-  document.getElementById('rGarb').value='20000';document.getElementById('rPark').value='0';
-  document.getElementById('rElecIdx').value='0';document.getElementById('rWaterIdx').value='0';
+  document.getElementById('rEditId').value='';
+  document.getElementById('mRoomTitle').textContent='Thêm Phòng Mới';
+  // Clear fields
+  ['rName','rNote'].forEach(id=>document.getElementById(id).value='');
+  ['rPrice','rArea','rNumber'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('rZone').value='';
+  document.getElementById('rFloorNum').value='';
+  document.getElementById('rElecP').value='3500';
+  document.getElementById('rWaterP').value='15000';
+  document.getElementById('rSvc').value='50000';
+  document.getElementById('rNet').value='100000';
+  document.getElementById('rGarb').value='20000';
+  document.getElementById('rPark').value='0';
+  document.getElementById('rElecIdx').value='0';
+  document.getElementById('rWaterIdx').value='0';
+  populateZoneSelect();
+  updateRoomCode();
   openM('mRoom');
 }
+
 function openEditRoom(id){
   const r=S.rooms.find(x=>x.id===id);if(!r)return;
-  document.getElementById('rEditId').value=id;document.getElementById('mRoomTitle').textContent='Sửa Phòng '+r.name;
-  document.getElementById('rName').value=r.name;document.getElementById('rFloor').value=r.floor;document.getElementById('rPrice').value=r.price;document.getElementById('rArea').value=r.area;
-  document.getElementById('rElecP').value=r.elecPrice;document.getElementById('rWaterP').value=r.waterPrice;document.getElementById('rSvc').value=r.serviceFee;document.getElementById('rNet').value=r.internet;
-  document.getElementById('rGarb').value=r.garbage;document.getElementById('rPark').value=r.parking;document.getElementById('rElecIdx').value=r.elecIndex;document.getElementById('rWaterIdx').value=r.waterIndex;document.getElementById('rNote').value=r.note;
+  document.getElementById('rEditId').value=id;
+  document.getElementById('mRoomTitle').textContent='Sửa Phòng '+r.name;
+  populateZoneSelect();
+  // Điền zone/floor/number từ metadata hoặc parse từ tên
+  document.getElementById('rZone').value=r.zone||'';
+  document.getElementById('rFloorNum').value=r.floorNum!==undefined?String(r.floorNum):(r.floor||'');
+  document.getElementById('rNumber').value=r.roomNum||'';
+  // Nếu tên tùy chỉnh (khác mã tự sinh) thì điền vào
+  const autoCode=calcRoomCode(r.zone||'',r.floorNum||r.floor||'',r.roomNum||'');
+  document.getElementById('rName').value=(r.name!==autoCode)?r.name:'';
+  document.getElementById('rPrice').value=r.price;
+  document.getElementById('rArea').value=r.area;
+  document.getElementById('rElecP').value=r.elecPrice;
+  document.getElementById('rWaterP').value=r.waterPrice;
+  document.getElementById('rSvc').value=r.serviceFee;
+  document.getElementById('rNet').value=r.internet;
+  document.getElementById('rGarb').value=r.garbage;
+  document.getElementById('rPark').value=r.parking;
+  document.getElementById('rElecIdx').value=r.elecIndex;
+  document.getElementById('rWaterIdx').value=r.waterIndex;
+  document.getElementById('rNote').value=r.note||'';
+  updateRoomCode();
   openM('mRoom');
 }
+
 function saveRoom(){
-  const name=document.getElementById('rName').value.trim(),price=+document.getElementById('rPrice').value;
-  if(!name||!price){toast('Nhập tên phòng và giá thuê!','error');return}
+  const zone=document.getElementById('rZone').value;
+  const floorNum=document.getElementById('rFloorNum').value;
+  const roomNum=document.getElementById('rNumber').value;
+  const customName=document.getElementById('rName').value.trim();
+  const price=+document.getElementById('rPrice').value;
+
+  // Validate
+  if(!zone&&!customName){toast('Chọn Khu hoặc nhập tên phòng tùy chỉnh!','error');return}
+  if(!price){toast('Nhập giá thuê!','error');return}
+  if(zone&&floorNum===''&&!customName){toast('Chọn tầng!','error');return}
+  if(zone&&!roomNum&&!customName){toast('Nhập số phòng!','error');return}
+
+  // Tính mã phòng cuối cùng
+  const autoCode=calcRoomCode(zone,floorNum,roomNum);
+  const name=customName||autoCode;
+  if(!name){toast('Không thể tạo mã phòng!','error');return}
+
   const id=document.getElementById('rEditId').value;
-  const data={name,price,floor:document.getElementById('rFloor').value||'1',area:+document.getElementById('rArea').value||0,elecPrice:+document.getElementById('rElecP').value||3500,waterPrice:+document.getElementById('rWaterP').value||15000,serviceFee:+document.getElementById('rSvc').value||0,internet:+document.getElementById('rNet').value||0,garbage:+document.getElementById('rGarb').value||0,parking:+document.getElementById('rPark').value||0,elecIndex:+document.getElementById('rElecIdx').value||0,waterIndex:+document.getElementById('rWaterIdx').value||0,note:document.getElementById('rNote').value};
-  if(id){const idx=S.rooms.findIndex(r=>r.id===id);S.rooms[idx]={...S.rooms[idx],...data};toast('Đã cập nhật phòng '+name,'success');}
-  else{S.rooms.push({id:'R'+uid(),status:'available',tenantId:'',debt:0,...data});toast('Đã thêm phòng '+name,'success');}
+  const data={
+    name,zone,
+    floorNum:floorNum!==''?+floorNum:undefined,
+    floor:floorNum!==''?String(floorNum):'1',// backward compat
+    roomNum:+roomNum||0,
+    price,
+    area:+document.getElementById('rArea').value||0,
+    elecPrice:+document.getElementById('rElecP').value||3500,
+    waterPrice:+document.getElementById('rWaterP').value||15000,
+    serviceFee:+document.getElementById('rSvc').value||0,
+    internet:+document.getElementById('rNet').value||0,
+    garbage:+document.getElementById('rGarb').value||0,
+    parking:+document.getElementById('rPark').value||0,
+    elecIndex:+document.getElementById('rElecIdx').value||0,
+    waterIndex:+document.getElementById('rWaterIdx').value||0,
+    note:document.getElementById('rNote').value,
+  };
+
+  if(id){
+    const idx=S.rooms.findIndex(r=>r.id===id);
+    S.rooms[idx]={...S.rooms[idx],...data};
+    toast('Đã cập nhật phòng '+name,'success');
+  } else {
+    S.rooms.push({id:'R'+uid(),status:'available',tenantId:'',debt:0,...data});
+    toast('Đã thêm phòng '+name,'success');
+  }
   save();closeM('mRoom');renderRooms();
+}
+
+/* ── Zone Manager ───────────────────── */
+function openZoneManager(){
+  closeM('mRoom');
+  renderZoneList();
+  openM('mZoneManager');
+}
+
+function renderZoneList(){
+  const zones=getZones();
+  document.getElementById('zoneList').innerHTML=zones.length?zones.map((z,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border-radius:12px;margin-bottom:8px;border:1.5px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:10px;background:var(--primary-bg);border:2px solid var(--primary);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:var(--primary)">${z}</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700">Khu ${z}</div>
+        <div style="font-size:11px;color:var(--text3)">${S.rooms.filter(r=>r.zone===z).length} phòng</div>
+      </div>
+      <button class="btn btn-danger btn-xs" onclick="removeZone('${z}')" ${S.rooms.filter(r=>r.zone===z).length>0?'disabled title="Còn phòng trong khu này"':''}>🗑️</button>
+    </div>`).join('')
+    :`<div style="text-align:center;color:var(--text3);padding:20px;font-size:13px">Chưa có khu nào. Thêm khu mới bên trên.</div>`;
+}
+
+function addZone(){
+  const input=document.getElementById('newZoneInput');
+  const val=input.value.trim().toUpperCase();
+  if(!val){toast('Nhập tên khu!','error');return}
+  const zones=getZones();
+  if(zones.includes(val)){toast('Khu này đã tồn tại!','warning');return}
+  zones.push(val);
+  S.settings.zones=zones;
+  save();
+  input.value='';
+  renderZoneList();
+  toast(`✅ Đã thêm Khu ${val}!`,'success');
+}
+
+function removeZone(z){
+  const count=S.rooms.filter(r=>r.zone===z).length;
+  if(count>0){toast(`Không thể xóa — Khu ${z} còn ${count} phòng!`,'error');return}
+  if(!confirm(`Xóa Khu ${z}?`))return;
+  S.settings.zones=S.settings.zones.filter(x=>x!==z);
+  save();renderZoneList();
+  toast(`Đã xóa Khu ${z}!`,'success');
 }
 function deleteRoom(id){
   const r=S.rooms.find(x=>x.id===id);if(!r||!confirm(`Xóa phòng ${r.name}?`))return;
@@ -3622,6 +3926,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(S.contracts.length===0&&S.tenants.length>0){createDemoContracts();}
   applyDark();applyIcon();applyFontSettings();renderAll();
   updateTopbarTitle();
+  // Khởi tạo danh sách khu trong form phòng
+  populateZoneSelect();
   setTimeout(()=>toast(`Chào mừng đến ${S.settings.hotelName}! 🏠`,'success'),500);
   const dc=S.invoices.filter(i=>i.debt>0).length;
   const nc=S.contracts?.filter(c=>getContractStatus(c)==='near').length||0;

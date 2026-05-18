@@ -375,9 +375,65 @@ input,select,textarea{font-family:inherit}
 .chip:hover:not(.active){border-color:var(--primary);color:var(--primary)}
 
 /* ── TENANT CARDS ───────────────────── */
+/* ── TENANT CARD ACTION ROW ─────────── */
 .tenant-list{display:flex;flex-direction:column;gap:12px}
-.tenant-card{background:var(--surface);border-radius:var(--r-lg);border:1.5px solid var(--border);padding:14px;display:flex;gap:14px;align-items:flex-start;box-shadow:var(--shadow-sm);transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:pointer}
+.tenant-card{background:var(--surface);border-radius:var(--r-lg);border:1.5px solid var(--border);padding:14px;box-shadow:var(--shadow-sm);transition:all .3s cubic-bezier(.34,1.56,.64,1);cursor:pointer}
 .tenant-card:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:0 8px 24px rgba(22,163,74,.12)}
+/* Hàng nút ngang */
+.tc-actions{
+  display:flex;gap:5px;margin-top:12px;
+  padding-top:10px;border-top:1px solid var(--border);
+  flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
+}
+.tc-actions::-webkit-scrollbar{display:none}
+.tca-btn{
+  flex:1;min-width:0;
+  display:flex;align-items:center;justify-content:center;gap:3px;
+  padding:6px 4px;border-radius:10px;
+  font-size:11px;font-weight:700;
+  white-space:nowrap;cursor:pointer;
+  transition:all .18s;border:1.5px solid transparent;
+  letter-spacing:-.2px;
+}
+.tca-btn:active{transform:scale(.93)}
+.tca-edit{background:var(--bg2);color:var(--text2);border-color:var(--border)}
+.tca-edit:hover{background:var(--border);color:var(--text)}
+.tca-transfer{background:rgba(14,165,233,.1);color:var(--secondary);border-color:rgba(14,165,233,.3)}
+.tca-transfer:hover{background:rgba(14,165,233,.2)}
+.tca-contract{background:rgba(99,102,241,.1);color:#6366f1;border-color:rgba(99,102,241,.3)}
+.tca-contract:hover{background:rgba(99,102,241,.18)}
+.tca-ct01{background:rgba(22,163,74,.1);color:var(--primary);border-color:rgba(22,163,74,.3)}
+.tca-ct01:hover{background:rgba(22,163,74,.18)}
+.tca-checkout{background:rgba(249,115,22,.1);color:var(--warning);border-color:rgba(249,115,22,.3)}
+.tca-checkout:hover{background:rgba(249,115,22,.18)}
+.tca-del{background:rgba(239,68,68,.08);color:var(--danger);border-color:rgba(239,68,68,.25);flex:0 0 auto;padding:6px 10px}
+.tca-del:hover{background:rgba(239,68,68,.15)}
+
+/* ── FONT SETTINGS CSS VARS ─────────── */
+:root{
+  --app-font:'Be Vietnam Pro',sans-serif;
+  --app-font-size:14px;
+}
+body{font-family:var(--app-font);font-size:var(--app-font-size)}
+
+/* Font picker grid */
+.font-picker{
+  display:grid;grid-template-columns:1fr 1fr;gap:6px;
+}
+.font-opt{
+  padding:8px 10px;border-radius:10px;
+  border:1.5px solid var(--border);
+  background:var(--bg2);color:var(--text2);
+  font-size:13px;cursor:pointer;
+  transition:all .15s;text-align:left;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.font-opt:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-bg)}
+.font-opt.active{
+  border-color:var(--primary);
+  background:var(--primary-bg);
+  color:var(--primary);font-weight:700;
+}
 .t-avatar{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:white;flex-shrink:0;overflow:hidden;border:2px solid var(--border)}
 .t-avatar img{width:100%;height:100%;object-fit:cover;border-radius:14px}
 .t-name{font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px}
@@ -1003,6 +1059,57 @@ textarea.fc{resize:vertical;min-height:70px}
         </div>
       </div>
 
+      <!-- Nhóm: Kiểu chữ -->
+      <div class="stg-group">
+        <div class="stg-group-label">🔤 KIỂU CHỮ &amp; CỠ CHỮ</div>
+        <!-- Font family -->
+        <div class="stg-row" style="flex-direction:column;align-items:stretch;cursor:default;gap:10px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="stg-row-icon" style="background:rgba(99,102,241,.12);color:#6366f1">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+            </div>
+            <div class="stg-row-body">
+              <div class="stg-row-lbl">Kiểu chữ</div>
+              <div class="stg-row-val" id="stgFontName">Be Vietnam Pro</div>
+            </div>
+          </div>
+          <div class="font-picker" id="fontPicker">
+            <button class="font-opt active" data-font="'Be Vietnam Pro',sans-serif" data-name="Be Vietnam Pro" onclick="setAppFont(this)">Be Vietnam Pro</button>
+            <button class="font-opt" data-font="'Inter',sans-serif" data-name="Inter" onclick="setAppFont(this)" style="font-family:Inter,sans-serif">Inter</button>
+            <button class="font-opt" data-font="system-ui,sans-serif" data-name="System UI" onclick="setAppFont(this)" style="font-family:system-ui">System UI</button>
+            <button class="font-opt" data-font="'Roboto',sans-serif" data-name="Roboto" onclick="setAppFont(this)" style="font-family:Roboto,sans-serif">Roboto</button>
+            <button class="font-opt" data-font="'Open Sans',sans-serif" data-name="Open Sans" onclick="setAppFont(this)" style="font-family:'Open Sans',sans-serif">Open Sans</button>
+            <button class="font-opt" data-font="'Nunito',sans-serif" data-name="Nunito" onclick="setAppFont(this)" style="font-family:Nunito,sans-serif">Nunito</button>
+            <button class="font-opt" data-font="'DM Sans',sans-serif" data-name="DM Sans" onclick="setAppFont(this)" style="font-family:'DM Sans',sans-serif">DM Sans</button>
+            <button class="font-opt" data-font="'Noto Sans',sans-serif" data-name="Noto Sans" onclick="setAppFont(this)" style="font-family:'Noto Sans',sans-serif">Noto Sans</button>
+          </div>
+        </div>
+        <!-- Font size -->
+        <div class="stg-row" style="flex-direction:column;align-items:stretch;cursor:default;gap:10px;border-top:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="stg-row-icon" style="background:rgba(22,163,74,.12);color:var(--primary)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><text x="4" y="18" font-size="12" fill="currentColor" stroke="none">A</text><text x="11" y="18" font-size="7" fill="currentColor" stroke="none">A</text></svg>
+            </div>
+            <div class="stg-row-body">
+              <div class="stg-row-lbl">Cỡ chữ — <span id="stgFontSizeVal">14px</span></div>
+              <div class="stg-row-val">Kéo để thay đổi kích thước chữ toàn app</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:0 4px">
+            <span style="font-size:11px;color:var(--text3);flex-shrink:0">A</span>
+            <input type="range" id="fontSizeRange" min="12" max="18" step="1" value="14"
+              style="flex:1;accent-color:var(--primary)"
+              oninput="previewFontSize(this.value)"
+              onchange="saveFontSize(this.value)">
+            <span style="font-size:17px;color:var(--text3);flex-shrink:0">A</span>
+          </div>
+          <!-- Preview text -->
+          <div id="fontPreviewBox" style="background:var(--bg2);border-radius:10px;padding:10px 12px;font-size:var(--app-font-size);font-family:var(--app-font);color:var(--text);border:1px solid var(--border)">
+            Xin chào! Đây là văn bản mẫu để xem trước kiểu chữ và cỡ chữ của ứng dụng.
+          </div>
+        </div>
+      </div>
+
       <!-- Nhóm: Dữ liệu -->
       <div class="stg-group">
         <div class="stg-group-label">💾 DỮ LIỆU</div>
@@ -1384,8 +1491,8 @@ textarea.fc{resize:vertical;min-height:70px}
     <!-- Nút hành động -->
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
       <button class="btn btn-primary" style="flex:1" onclick="exportContractDOCX()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Tải DOCX
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Xuất PDF
       </button>
       <button class="btn btn-secondary" style="flex:1" onclick="exportContractPDF()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
@@ -1805,6 +1912,7 @@ function showRoomDet(id){
       <button class="btn btn-secondary" style="flex:1" onclick="closeM('mRoomDet');openEditRoom('${id}')">✏️ Sửa</button>
       <button class="btn btn-primary" style="flex:1" onclick="closeM('mRoomDet');openCreateInv('${id}')">💰 Thu tiền</button>
       ${t?`<button class="btn btn-info btn-sm" onclick="closeM('mRoomDet');openCreateContract('${t?.id||''}')">📄 HĐ</button>`:''}
+      ${t?`<button class="btn btn-sm" style="background:rgba(22,163,74,.12);color:var(--primary);border:1.5px solid rgba(22,163,74,.3)" onclick="closeM('mRoomDet');openCT01('${t?.id||''}')">📋 CT01</button>`:''}
       ${t?`<button class="btn btn-sm" style="background:rgba(249,115,22,.15);color:var(--warning);border:1.5px solid rgba(249,115,22,.3)" onclick="closeM('mRoomDet');openCheckout('${t?.id||''}')">📦 Dọn</button>`:''}
       <button class="btn btn-danger btn-sm" onclick="deleteRoom('${id}')">🗑️</button>
     </div>`;
@@ -1819,6 +1927,7 @@ function removeRM(idx){rms.splice(idx,1);renderRMs()}
 function renderRMs(){
   const el=document.getElementById('rmList');
   if(!rms.length){el.innerHTML=`<div style="text-align:center;padding:14px;color:var(--text3);font-size:13px;background:var(--bg2);border-radius:12px;border:1.5px dashed var(--border2)">Chưa có người ở cùng. Nhấn <strong>+ Thêm người</strong> để thêm.</div>`;return}
+  const relOpts=getRelationOptions();
   el.innerHTML=rms.map((rm,i)=>`
     <div class="rm-item" id="rmI${i}">
       <button class="rm-del" onclick="removeRM(${i})">✕</button>
@@ -1836,6 +1945,18 @@ function renderRMs(){
         <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">Ngày sinh</div><input class="fc" style="font-size:12px;padding:8px 10px" type="date" value="${rm.dob}" onchange="rms[${i}].dob=this.value"></div>
         <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">CCCD / CMND</div><input class="fc" style="font-size:12px;padding:8px 10px" placeholder="012..." value="${rm.cccd}" oninput="rms[${i}].cccd=this.value"></div>
         <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">Biển số xe</div><input class="fc" style="font-size:12px;padding:8px 10px" placeholder="51A-..." value="${rm.vehicle}" oninput="rms[${i}].vehicle=this.value"></div>
+      </div>
+      <!-- Mối quan hệ với chủ hộ -->
+      <div style="margin-bottom:8px">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">🔗 Mối quan hệ với chủ hộ *</div>
+        <div style="display:flex;gap:6px">
+          <select class="fc" style="font-size:12px;padding:8px 10px;flex:1" onchange="setRmRel(${i},this.value)">
+            <option value="">-- Chọn quan hệ --</option>
+            ${relOpts.map(r=>`<option value="${r}" ${rm.relation===r?'selected':''}>${r}</option>`).join('')}
+            <option value="__custom__" ${rm.relation&&!relOpts.includes(rm.relation)?'selected':''}>✏️ Tự ghi...</option>
+          </select>
+          ${rm.relation&&!relOpts.includes(rm.relation)?`<input class="fc" style="font-size:12px;padding:8px 10px;width:130px;flex-shrink:0" placeholder="Quan hệ..." value="${rm.relation}" oninput="rms[${i}].relation=this.value;saveCustomRel(this.value)" id="relCustom${i}">`:``}
+        </div>
       </div>
       <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px">🪪 Ảnh CCCD (người ở cùng ${i+1})</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
@@ -1865,6 +1986,394 @@ function loadRmCmnd(inp,i,side){
 }
 
 /* ══════════════════════════════════════════
+   MỐI QUAN HỆ VỚI CHỦ HỘ
+   Có sẵn + tự thêm + lưu vào localStorage
+══════════════════════════════════════════ */
+const DEFAULT_RELATIONS=[
+  'Chủ hộ','Vợ','Chồng',
+  'Con ruột','Con dâu','Con rể',
+  'Cha ruột','Mẹ ruột','Anh ruột','Chị ruột','Em ruột',
+  'Cháu ruột','Ông nội','Bà nội','Ông ngoại','Bà ngoại',
+  'Người ở thuê','Người ở nhờ','Người ở mượn',
+  'Cùng ở thuê','Cùng ở nhờ','Người giúp việc',
+];
+
+function getRelationOptions(){
+  // Merge default + custom saved
+  const custom=JSON.parse(localStorage.getItem('customRelations')||'[]');
+  const all=[...new Set([...DEFAULT_RELATIONS,...custom])];
+  return all;
+}
+
+function saveCustomRel(val){
+  if(!val||val.length<2||DEFAULT_RELATIONS.includes(val))return;
+  const custom=JSON.parse(localStorage.getItem('customRelations')||'[]');
+  if(!custom.includes(val)){
+    custom.push(val);
+    localStorage.setItem('customRelations',JSON.stringify(custom));
+  }
+}
+
+function setRmRel(i,val){
+  if(val==='__custom__'){
+    rms[i].relation='';
+    renderRMs();
+    // Focus custom input
+    setTimeout(()=>document.getElementById('relCustom'+i)?.focus(),50);
+    return;
+  }
+  rms[i].relation=val;
+  // Don't re-render to avoid losing focus
+}
+
+/* ══════════════════════════════════════════
+   XUẤT CT01 — Tờ khai thay đổi thông tin cư trú
+   Theo mẫu Thông tư 66/2023/TT-BCA
+══════════════════════════════════════════ */
+/* ══════════════════════════════════════════
+   XUẤT CT01 — Tờ khai thay đổi thông tin cư trú
+   Theo mẫu Thông tư 66/2023/TT-BCA
+══════════════════════════════════════════ */
+
+// Trích xuất Công an cấp Phường/Xã/Thị trấn từ địa chỉ (bỏ số nhà, đường)
+function extractCoQuan(addr){
+  if(!addr)return'';
+  // Tách từng phần bằng dấu phẩy
+  const parts=addr.split(',').map(s=>s.trim());
+  const result=[];
+  for(const p of parts){
+    const lower=p.toLowerCase();
+    // Lấy từ phần có phường/xã/thị trấn/quận/huyện/tp/tỉnh trở đi
+    if(/^(phường|xã|thị trấn|quận|huyện|thành phố|tp\.|tỉnh|p\.|q\.)/i.test(lower)){
+      result.push(p);
+    }
+  }
+  if(result.length===0)return addr; // fallback
+  return'Công An '+result.join(', ');
+}
+
+function openCT01(tenantId){
+  const t=S.tenants.find(x=>x.id===tenantId);
+  if(!t){toast('Không tìm thấy người thuê!','error');return}
+  const room=S.rooms.find(r=>r.id===t.roomId);
+
+  document.getElementById('ct01TenantId').value=tenantId;
+  document.getElementById('ct01Name').value=t.name||'';
+  document.getElementById('ct01Dob').value=t.dob||'';
+  document.getElementById('ct01Gender').value=t.gender||'Nữ';
+  document.getElementById('ct01Cccd').value=t.cccd||'';
+  document.getElementById('ct01Phone').value=t.phone||'';
+  document.getElementById('ct01Email').value=t.email||'';
+  document.getElementById('ct01OwnerName').value=S.settings.ownerName||'';
+  document.getElementById('ct01OwnerCccd').value=S.settings.ownerCccd||'';
+  document.getElementById('ct01OwnerRel').value='Chủ sở hữu chỗ ở';
+  document.getElementById('ct01ChuhoCccd').value=t.cccd||'';
+  document.getElementById('ct01ChuhoName').value=t.name||'';
+  document.getElementById('ct01ChuhoRel').value='Chủ hộ';
+
+  // Địa chỉ phòng trọ → extract công an cấp phường (bỏ số nhà)
+  const propAddr=S.settings.propertyAddress||S.settings.address||'';
+  const coQuan=extractCoQuan(propAddr);
+  document.getElementById('ct01ToCoQuan').value=coQuan;
+
+  // Nội dung đề nghị
+  const roomName=room?`Phòng ${room.name}, `:'';
+  document.getElementById('ct01Content').value=`Đăng ký tạm trú tại địa chỉ ${roomName}${propAddr}`;
+  document.getElementById('ct01SignDate').value=today();
+
+  // Điền bảng thành viên
+  renderCT01Members(t.roommates||[]);
+  openM('mCT01');
+}
+
+function renderCT01Members(members){
+  const tbody=document.getElementById('ct01MembersBody');
+  if(!members||!members.length){
+    tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:10px;font-size:12px;font-style:italic">Không có thành viên nào</td></tr>`;
+    return;
+  }
+  tbody.innerHTML=members.map((rm,i)=>{
+    const dob=rm.dob?new Date(rm.dob).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'}):'';
+    return`<tr>
+      <td style="text-align:center;font-weight:700;padding:6px 4px">${i+1}</td>
+      <td style="padding:6px 4px">${rm.name||''}</td>
+      <td style="text-align:center;padding:6px 4px">${dob}</td>
+      <td style="text-align:center;padding:6px 4px">${rm.gender||''}</td>
+      <td style="padding:6px 4px">${rm.cccd||''}</td>
+      <td style="padding:6px 4px">${rm.relation||''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function exportCT01(){
+  const tenantId=document.getElementById('ct01TenantId').value;
+  const t=S.tenants.find(x=>x.id===tenantId)||{};
+  const room=S.rooms.find(r=>r.id===t.roomId)||{};
+
+  const name=document.getElementById('ct01Name').value;
+  const dob=document.getElementById('ct01Dob').value;
+  const gender=document.getElementById('ct01Gender').value;
+  const cccd=(document.getElementById('ct01Cccd').value||'').padEnd(12,' ');
+  const phone=document.getElementById('ct01Phone').value;
+  const email=document.getElementById('ct01Email').value;
+  const chuhoName=document.getElementById('ct01ChuhoName').value;
+  const chuhoRel=document.getElementById('ct01ChuhoRel').value;
+  const chuhoCccd=(document.getElementById('ct01ChuhoCccd').value||'').padEnd(12,' ');
+  const content=document.getElementById('ct01Content').value;
+  const toCoQuan=document.getElementById('ct01ToCoQuan').value;
+  const ownerName=document.getElementById('ct01OwnerName').value;
+  const ownerCccd=document.getElementById('ct01OwnerCccd').value;
+  const signDate=new Date(document.getElementById('ct01SignDate').value||today());
+  const signDay=String(signDate.getDate()).padStart(2,'0');
+  const signMonth=String(signDate.getMonth()+1).padStart(2,'0');
+  const signYear=signDate.getFullYear();
+
+  // Định dạng ngày sinh
+  let dobStr='......../......../............';
+  if(dob){
+    const d=new Date(dob);
+    dobStr=`${String(d.getDate()).padStart(2,'0')} / ${String(d.getMonth()+1).padStart(2,'0')} / ${d.getFullYear()}`;
+  }
+
+  // Render 12 ô CCCD
+  function cccdCells(str){
+    return str.padEnd(12,' ').split('').slice(0,12).map(c=>
+      `<td style="width:24px;min-width:24px;height:28px;border:1px solid #000;text-align:center;vertical-align:middle;font-size:13pt;font-weight:bold;padding:0;font-family:Arial,sans-serif">${c.trim()}</td>`
+    ).join('');
+  }
+
+  // Thành viên
+  const members=t.roommates||[];
+  // Tối thiểu 7 dòng trống trong bảng thành viên
+  const memberRows=[];
+  members.forEach((rm,i)=>{
+    const d=rm.dob?new Date(rm.dob).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'}):'';
+    memberRows.push(`<tr>
+      <td style="border:1px solid #000;text-align:center;padding:5px 3px;font-size:10pt">${i+1}</td>
+      <td style="border:1px solid #000;padding:5px 6px;font-size:10pt">${rm.name||''}</td>
+      <td style="border:1px solid #000;text-align:center;padding:5px 3px;font-size:10pt">${d}</td>
+      <td style="border:1px solid #000;text-align:center;padding:5px 3px;font-size:10pt">${rm.gender||''}</td>
+      <td style="border:1px solid #000;padding:5px 3px;font-size:10pt">${rm.cccd||''}</td>
+      <td style="border:1px solid #000;padding:5px 6px;font-size:10pt">${rm.relation||''}</td>
+    </tr>`);
+  });
+  // Thêm dòng trống cho đủ 7 dòng
+  const emptyCount=Math.max(0,7-members.length);
+  for(let i=0;i<emptyCount;i++){
+    memberRows.push(`<tr>
+      <td style="border:1px solid #000;height:26px;padding:5px 3px"></td>
+      <td style="border:1px solid #000;padding:5px 3px"></td>
+      <td style="border:1px solid #000;padding:5px 3px"></td>
+      <td style="border:1px solid #000;padding:5px 3px"></td>
+      <td style="border:1px solid #000;padding:5px 3px"></td>
+      <td style="border:1px solid #000;padding:5px 3px"></td>
+    </tr>`);
+  }
+
+  // Địa điểm ký (lấy từ cài đặt)
+  const propAddr=S.settings.propertyAddress||S.settings.address||'';
+  // Lấy tên thành phố/tỉnh cuối cùng
+  const addrParts=propAddr.split(',').map(s=>s.trim());
+  const diaDiem=addrParts.length>0?addrParts[addrParts.length-1]:'Tp. Hồ Chí Minh';
+
+  const html=`<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page{size:A4 portrait;margin:2.5cm 2cm 2cm 3cm}
+  body{
+    font-family:'Times New Roman',Times,serif;
+    font-size:12pt;line-height:1.5;color:#000;
+    margin:0;padding:0;
+  }
+  table{border-collapse:collapse}
+  p{margin:0 0 6pt 0}
+  .bold{font-weight:bold}
+  .center{text-align:center}
+  .italic{font-style:italic}
+  .underline{text-decoration:underline}
+  .small{font-size:10pt}
+  .label{font-weight:bold}
+  .dots{display:inline-block;min-width:40px;border-bottom:1px dotted #000;vertical-align:bottom}
+  /* Ô CCCD box */
+  .cccd-table{border-collapse:collapse;display:inline-table}
+  .cccd-table td{border:1px solid #000;width:24px;height:28px;text-align:center;vertical-align:middle;font-size:13pt;font-weight:bold;padding:0}
+  /* Bảng thành viên */
+  .member-table{width:100%;border-collapse:collapse;table-layout:fixed}
+  .member-table th{border:1px solid #000;background:#f0f0f0;text-align:center;padding:5px 3px;font-size:9.5pt;font-weight:bold;line-height:1.3;word-break:break-word}
+  .member-table td{border:1px solid #000;padding:5px 3px;font-size:9.5pt;word-break:break-word;overflow-wrap:break-word}
+  /* Bảng ký tên (4 cột) */
+  .sig-table{width:100%;border-collapse:collapse;margin-top:12pt}
+  .sig-table td{border:none;vertical-align:top;padding:4px 6px;font-size:10.5pt;width:25%}
+  .sig-title{font-weight:bold;text-align:center;font-size:10.5pt;line-height:1.3}
+  .sig-sub{font-size:9.5pt;font-style:italic;text-align:center}
+  .sig-space{height:65pt}
+  .sig-name{font-weight:bold;text-align:center;font-size:10.5pt;margin-top:4pt}
+  /* Header 2 cột */
+  .header-table{width:100%;border-collapse:collapse;margin-bottom:0}
+  .header-table td{border:none;vertical-align:top;padding:0}
+  /* Gạch ngang CHXHCNVN */
+  .sep-line{border-top:1px solid #000;width:60%;margin:2pt auto 6pt;display:block}
+  /* Chú thích */
+  .note{font-size:9pt;line-height:1.4;margin-top:10pt;border-top:1px solid #ccc;padding-top:6pt}
+  .note p{margin:2pt 0}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<table class="header-table">
+  <tr>
+    <td style="width:48%;font-size:9.5pt;line-height:1.4">
+      Mẫu CT01 ban hành kèm theo Thông tư số 66/2023/TT-BCA<br>
+      ngày 17/11/2023 của Bộ trưởng Bộ Công an
+    </td>
+    <td style="width:4%"></td>
+    <td style="width:48%;text-align:center">
+      <div class="bold" style="font-size:12pt">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+      <div style="font-size:11pt">Độc lập – Tự do – Hạnh phúc</div>
+      <div class="sep-line"></div>
+    </td>
+  </tr>
+</table>
+
+<!-- TIÊU ĐỀ -->
+<p style="text-align:center;font-size:14pt;font-weight:bold;margin:12pt 0 4pt;letter-spacing:0.5pt">
+  TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ
+</p>
+
+<!-- KÍNH GỬI -->
+<p><span class="bold">Kính gửi<sup>(1)</sup>:</span> ${toCoQuan}</p>
+
+<p style="margin-top:8pt"><span class="bold">1. Họ, chữ đệm và tên:</span> ${name}</p>
+
+<p><span class="bold">2. Ngày, tháng, năm sinh:</span>
+  &nbsp;${dobStr}&nbsp;&nbsp;
+  <span class="bold">3. Giới tính:</span> ${gender}
+</p>
+
+<p><span class="bold">4. Số định danh cá nhân:</span></p>
+<div style="margin-left:16pt;margin-bottom:8pt">
+  <table class="cccd-table"><tr>${cccdCells(cccd)}</tr></table>
+</div>
+
+<p>
+  <span class="bold">5. Số điện thoại liên hệ:</span> ${phone||'..............................'}
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <span class="bold">6. Email:</span> ${email||'........................................'}
+</p>
+
+<p>
+  <span class="bold">7. Họ, chữ đệm và tên chủ hộ:</span> ${chuhoName}
+  &nbsp;&nbsp;&nbsp;
+  <span class="bold">8. Mối quan hệ với chủ hộ:</span> ${chuhoRel}
+</p>
+
+<p><span class="bold">9. Số định danh cá nhân của chủ hộ:</span></p>
+<div style="margin-left:16pt;margin-bottom:8pt">
+  <table class="cccd-table"><tr>${cccdCells(chuhoCccd)}</tr></table>
+</div>
+
+<p><span class="bold">10. Nội dung đề nghị<sup>(2)</sup>:</span> ${content}</p>
+
+<p style="margin-top:8pt"><span class="bold">11. Những thành viên trong hộ gia đình cùng thay đổi:</span></p>
+
+<table class="member-table" style="margin-top:4pt;table-layout:fixed;width:100%">
+  <colgroup>
+    <col style="width:6%">
+    <col style="width:26%">
+    <col style="width:15%">
+    <col style="width:8%">
+    <col style="width:21%">
+    <col style="width:24%">
+  </colgroup>
+  <thead>
+    <tr>
+      <th style="text-align:center;word-break:keep-all">TT</th>
+      <th style="text-align:center">Họ, chữ đệm và tên</th>
+      <th style="text-align:center">Ngày, tháng,<br>năm sinh</th>
+      <th style="text-align:center">Giới<br>tính</th>
+      <th style="text-align:center">Số định danh<br>cá nhân</th>
+      <th style="text-align:center">Mối quan hệ<br>với chủ hộ</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${memberRows.join('\n')}
+  </tbody>
+</table>
+
+<!-- KÝ TÊN (4 cột theo mẫu gốc) -->
+<table class="sig-table" style="margin-top:16pt">
+  <tr>
+    <td>
+      <div style="font-size:10pt">${diaDiem}, ngày ...... tháng ...... năm ......</div>
+      <div class="sig-title">Ý KIẾN CỦA CHỦ HỘ<sup>(3)</sup></div>
+      <div class="sig-sub">(Ký, ghi rõ họ tên)</div>
+      <div class="sig-space"></div>
+      <div class="sig-name"></div>
+    </td>
+    <td>
+      <div style="font-size:10pt">${diaDiem}, ngày ${signDay} tháng ${signMonth} năm ${signYear}</div>
+      <div class="sig-title">Ý KIẾN CỦA CHỦ SỞ HỮU<br>CHỖ Ở HỢP PHÁP<sup>(4)</sup></div>
+      ${ownerName?`<div class="sig-sub"><sup>(7)</sup> Họ và tên: ${ownerName}</div>`:'<div class="sig-sub"><sup>(7)</sup> Họ và tên: ..................</div>'}
+      ${ownerCccd?`<div class="sig-sub"><sup>(7)</sup> Số ĐDCN: ${ownerCccd}</div>`:'<div class="sig-sub"><sup>(7)</sup> Số ĐDCN: ..................</div>'}
+      <div class="sig-space"></div>
+      <div class="sig-name">${ownerName}</div>
+    </td>
+    <td>
+      <div style="font-size:10pt">${diaDiem}, ngày ...... tháng ...... năm ......</div>
+      <div class="sig-title">Ý KIẾN CỦA CHA, MẸ<br>HOẶC NGƯỜI GIÁM HỘ<sup>(5)</sup></div>
+      <div class="sig-sub"><sup>(7)</sup> Họ và tên: ..................</div>
+      <div class="sig-sub"><sup>(7)</sup> Số ĐDCN: ..................</div>
+      <div class="sig-space"></div>
+      <div class="sig-name"></div>
+    </td>
+    <td>
+      <div style="font-size:10pt">${diaDiem}, ngày ${signDay} tháng ${signMonth} năm ${signYear}</div>
+      <div class="sig-title">NGƯỜI KÊ KHAI<sup>(6)</sup></div>
+      <div class="sig-sub">(Ký, ghi rõ họ tên)</div>
+      <div class="sig-space"></div>
+      <div class="sig-name">${name}</div>
+    </td>
+  </tr>
+</table>
+
+<!-- CHÚ THÍCH -->
+<div class="note">
+  <p><strong>Chú thích:</strong></p>
+  <p>(1) Cơ quan đăng ký cư trú.</p>
+  <p>(2) Ghi rõ ràng, cụ thể nội dung đề nghị. Ví dụ: đăng ký thường trú; đăng ký tạm trú; tách hộ; xác nhận thông tin về cư trú...</p>
+  <p>(3) Áp dụng đối với các trường hợp quy định tại khoản 2, khoản 3, khoản 5, khoản 6 Điều 20; khoản 1 Điều 25; điểm a khoản 1 Điều 26 Luật Cư trú. Việc lấy ý kiến của chủ hộ được thực hiện theo các phương thức sau: a) Chủ hộ ghi rõ nội dung đồng ý và ký, ghi rõ họ tên vào Tờ khai. b) Chủ hộ xác nhận nội dung đồng ý thông qua ứng dụng VNeID hoặc các dịch vụ công trực tuyến khác. c) Chủ hộ có văn bản riêng ghi rõ nội dung đồng ý (văn bản này không phải công chứng, chứng thực).</p>
+  <p>(4) Áp dụng đối với các trường hợp quy định tại khoản 2, khoản 3, khoản 4, khoản 5, khoản 6 Điều 20; khoản 1 Điều 25; điểm a khoản 1 Điều 26 Luật Cư trú.</p>
+  <p>(5) Áp dụng đối với trường hợp người chưa thành niên, người hạn chế hành vi dân sự, người không đủ năng lực hành vi dân sự có thay đổi thông tin về cư trú.</p>
+  <p>(6) Trường hợp nộp trực tiếp người kê khai ký, ghi rõ họ, chữ đệm và tên vào Tờ khai. Trường hợp nộp qua cổng dịch vụ công hoặc ứng dụng VNeID thì người kê khai không phải ký vào mục này.</p>
+  <p>(7) Chỉ kê khai thông tin khi công dân đề nghị xác nhận nội dung đồng ý thông qua ứng dụng VNeID.</p>
+</div>
+
+</body>
+</html>`;
+
+  // Mở cửa sổ mới để in/lưu PDF
+  const printWin=window.open('','_blank','width=900,height=700');
+  if(!printWin){toast('Vui lòng cho phép popup để xuất PDF!','error');return;}
+  printWin.document.write(html);
+  printWin.document.close();
+  // Tự động gọi print sau khi load xong
+  printWin.onload=function(){
+    setTimeout(()=>{
+      printWin.focus();
+      printWin.print();
+    },400);
+  };
+  toast('✅ Đang mở cửa sổ in CT01 — chọn "Save as PDF"!','success');
+}
+
+function printCT01(){exportCT01();}
+
+/* ══════════════════════════════════════════
    TENANTS
 ══════════════════════════════════════════ */
 function renderTenants(){
@@ -1876,26 +2385,30 @@ function renderTenants(){
     const room=S.rooms.find(r=>r.id===t.roomId),inv=S.invoices.find(i=>i.tenantId===t.id&&i.month===curMonth()),rmCnt=t.roommates?.length||0;
     const av=t.avatar?`<div class="t-avatar"><img src="${t.avatar}" alt="${t.name}"></div>`:`<div class="t-avatar" style="background:linear-gradient(135deg,${t.avatarColor},${t.avatarColor}99)">${getInits(t.name)}</div>`;
     return `<div class="tenant-card" onclick="showTenantDet('${t.id}')">
-      ${av}
-      <div style="flex:1;min-width:0">
-        <div class="t-name">${t.name}</div>
-        <div class="t-meta">
-          <div class="t-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07"/></svg>${t.phone}</div>
-          ${room?`<div class="t-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Phòng ${room.name}</div>`:''}
-        </div>
-        <div class="t-badges">
-          ${t.gender?`<span class="t-badge" style="background:${t.gender==='Nam'?'rgba(14,165,233,.12)':'rgba(236,72,153,.12)'};color:${t.gender==='Nam'?'var(--secondary)':'#ec4899'}">${t.gender}</span>`:''}
-          ${room?`<span class="t-badge" style="background:rgba(22,163,74,.12);color:var(--primary)">Đang thuê</span>`:`<span class="t-badge" style="background:var(--bg2);color:var(--text3)">Chưa có phòng</span>`}
-          ${rmCnt>0?`<span class="t-badge" style="background:rgba(99,102,241,.12);color:var(--info)">+${rmCnt} người cùng</span>`:''}
-          ${inv?.debt>0?`<span class="t-badge" style="background:rgba(239,68,68,.12);color:var(--danger)">Nợ ${fmt(inv.debt)}</span>`:''}
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        ${av}
+        <div style="flex:1;min-width:0">
+          <div class="t-name">${t.name}</div>
+          <div class="t-meta">
+            <div class="t-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07"/></svg>${t.phone}</div>
+            ${room?`<div class="t-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Phòng ${room.name}</div>`:''}
+          </div>
+          <div class="t-badges">
+            ${t.gender?`<span class="t-badge" style="background:${t.gender==='Nam'?'rgba(14,165,233,.12)':'rgba(236,72,153,.12)'};color:${t.gender==='Nam'?'var(--secondary)':'#ec4899'}">${t.gender}</span>`:''}
+            ${room?`<span class="t-badge" style="background:rgba(22,163,74,.12);color:var(--primary)">Đang thuê</span>`:`<span class="t-badge" style="background:var(--bg2);color:var(--text3)">Chưa có phòng</span>`}
+            ${rmCnt>0?`<span class="t-badge" style="background:rgba(99,102,241,.12);color:var(--info)">+${rmCnt} người cùng</span>`:''}
+            ${inv?.debt>0?`<span class="t-badge" style="background:rgba(239,68,68,.12);color:var(--danger)">Nợ ${fmt(inv.debt)}</span>`:''}
+          </div>
         </div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-        <button class="btn btn-secondary btn-xs" onclick="event.stopPropagation();openEditTenant('${t.id}')">✏️</button>
-        ${room?`<button class="btn btn-info btn-xs" onclick="event.stopPropagation();openTransfer('${t.id}')" title="Chuyển phòng">🔄</button>`:''}
-        <button class="btn btn-xs" style="background:rgba(99,102,241,.15);color:var(--info);border:1px solid rgba(99,102,241,.3)" onclick="event.stopPropagation();openCreateContract('${t.id}')" title="Tạo hợp đồng">📄</button>
-        ${room?`<button class="btn btn-xs" style="background:rgba(249,115,22,.15);color:var(--warning);border:1px solid rgba(249,115,22,.3)" onclick="event.stopPropagation();openCheckout('${t.id}')" title="Dọn đi">📦</button>`:''}
-        <button class="btn btn-danger btn-xs" onclick="event.stopPropagation();delTenant('${t.id}')">🗑️</button>
+      <!-- Hàng nút hành động ngang -->
+      <div class="tc-actions" onclick="event.stopPropagation()">
+        <button class="tca-btn tca-edit" onclick="openEditTenant('${t.id}')">✏️ Sửa</button>
+        ${room?`<button class="tca-btn tca-transfer" onclick="openTransfer('${t.id}')">🔄 Chuyển</button>`:''}
+        <button class="tca-btn tca-contract" onclick="openCreateContract('${t.id}')">📄 HĐ</button>
+        <button class="tca-btn tca-ct01" onclick="openCT01('${t.id}')">📋 CT01</button>
+        ${room?`<button class="tca-btn tca-checkout" onclick="openCheckout('${t.id}')">📦 Dọn</button>`:''}
+        <button class="tca-btn tca-del" onclick="delTenant('${t.id}')">🗑️</button>
       </div>
     </div>`;
   }).join('');
@@ -1979,6 +2492,7 @@ function showTenantDet(id){
       <button class="btn btn-secondary" style="flex:1" onclick="closeM('mTenantDet');openEditTenant('${id}')">✏️ Sửa</button>
       ${room?`<button class="btn btn-info" style="flex:1" onclick="closeM('mTenantDet');openTransfer('${id}')">🔄 Chuyển phòng</button>`:''}
       <button class="btn" style="flex:1;background:rgba(99,102,241,.15);color:var(--info);border:1.5px solid rgba(99,102,241,.3)" onclick="closeM('mTenantDet');openCreateContract('${id}')">📄 Tạo HĐ</button>
+      <button class="btn" style="flex:1;background:rgba(22,163,74,.12);color:var(--primary);border:1.5px solid rgba(22,163,74,.3)" onclick="closeM('mTenantDet');openCT01('${id}')">📋 CT01</button>
       ${room?`<button class="btn" style="flex:1;background:rgba(249,115,22,.15);color:var(--warning);border:1.5px solid rgba(249,115,22,.3)" onclick="closeM('mTenantDet');openCheckout('${id}')">📦 Dọn đi</button>`:''}
       <button class="btn btn-danger btn-sm" onclick="delTenant('${id}');closeM('mTenantDet')">🗑️</button>
     </div>`;
@@ -2399,7 +2913,16 @@ function editSetting(key){
   document.getElementById('setVal').value=S.settings[key]||'';
   openM('mSetting');
 }
-function saveSetting(){const k=document.getElementById('setKey').value,v=document.getElementById('setVal').value.trim();if(!v){toast('Nhập giá trị!','error');return}S.settings[k]=v;const el=document.getElementById('stg'+k[0].toUpperCase()+k.slice(1));if(el)el.textContent=v;save();closeM('mSetting');toast('Đã cập nhật!','success')}
+function saveSetting(){
+  const k=document.getElementById('setKey').value;
+  const v=document.getElementById('setVal').value.trim();
+  if(!v){toast('Nhập giá trị!','error');return}
+  S.settings[k]=v;
+  save();
+  renderSettings();// cập nhật toàn bộ settings UI + topbar
+  closeM('mSetting');
+  toast('✅ Đã cập nhật!','success');
+}
 
 /* ── MODALS ─────────────────────────────── */
 function openM(id){document.getElementById(id)?.classList.add('open');document.body.style.overflow='hidden'}
@@ -2667,15 +3190,13 @@ ${ct.extraTerms?`<p><b>5. Điều khoản bổ sung</b></p><p>${ct.extraTerms}</
 </table>
 <p style="text-align:center;font-size:10pt;color:#666;font-style:italic;margin-top:20px">*(Hợp đồng này được lập thành 02 bản, mỗi bên giữ 01 bản có giá trị pháp lý như nhau)*</p>
 </body></html>`;
-  const blob=new Blob(['\ufeff',htmlContent],{type:'application/msword'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  const fname=`HopDong_${(ct.roomName||'phong').replace(/\s+/g,'')}_${(ct.tenantName||'khach').replace(/\s+/g,'_')}_${ct.startDate||'2025'}.doc`;
-  a.download=fname;
-  document.body.appendChild(a);a.click();
-  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1500);
-  toast('✅ Đã tải file hợp đồng .doc!','success');
+  // Xuất PDF qua print window
+  const printWin=window.open('','_blank','width=900,height=700');
+  if(!printWin){toast('Vui lòng cho phép popup để xuất PDF!','error');return;}
+  printWin.document.write(htmlContent);
+  printWin.document.close();
+  printWin.onload=function(){setTimeout(()=>{printWin.focus();printWin.print();},400);};
+  toast('✅ Đang mở cửa sổ in hợp đồng — chọn "Save as PDF"!','success');
 }
 
 /* ── exportContractPDF() ─── In hợp đồng ── */
@@ -2819,7 +3340,7 @@ function showContractDet(id){
     </div>
     ${ct.extraTerms?`<div class="card card-body mb-3"><div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px">📝 Điều khoản bổ sung</div><div style="font-size:13px;color:var(--text2)">${ct.extraTerms}</div></div>`:''}
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-primary" style="flex:1" onclick="closeM('mContractDet');redownloadContract('${id}')">📥 Tải DOCX</button>
+      <button class="btn btn-primary" style="flex:1" onclick="closeM('mContractDet');redownloadContract('${id}')">📥 Xuất PDF</button>
       <button class="btn btn-secondary" style="flex:1" onclick="closeM('mContractDet');printContract('${id}')">🖨️ In</button>
       ${ct.status!=='cancelled'?`<button class="btn btn-danger btn-sm" onclick="cancelContract('${id}');closeM('mContractDet')">🚫 Hủy</button>`:''}
     </div>`;
@@ -2963,6 +3484,75 @@ function restoreArchived(id){
   toast(`✅ Đã khôi phục "${a.name}" vào danh sách người thuê!`,'success');
 }
 
+/* ══════════════════════════════════════════
+   FONT SETTINGS — Kiểu chữ & Cỡ chữ
+══════════════════════════════════════════ */
+const GOOGLE_FONTS=['Inter','Roboto','Open Sans','Nunito','DM Sans','Noto Sans'];
+
+function loadGoogleFonts(){
+  const existing=document.getElementById('googleFontsLink');
+  if(existing)return;
+  const link=document.createElement('link');
+  link.id='googleFontsLink';
+  link.rel='stylesheet';
+  link.href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&family=Open+Sans:wght@400;600;700&family=Nunito:wght@400;600;700;800&family=DM+Sans:wght@400;500;600;700&family=Noto+Sans:wght@400;600;700&display=swap';
+  document.head.appendChild(link);
+}
+
+function setAppFont(btn){
+  const font=btn.dataset.font;
+  const name=btn.dataset.name;
+  document.documentElement.style.setProperty('--app-font',font);
+  S.settings.appFont=font;
+  S.settings.appFontName=name;
+  save();
+  // Update UI
+  document.querySelectorAll('.font-opt').forEach(b=>b.classList.toggle('active',b===btn));
+  const el=document.getElementById('stgFontName');
+  if(el)el.textContent=name;
+  updateFontPreview();
+}
+
+function previewFontSize(val){
+  document.documentElement.style.setProperty('--app-font-size',val+'px');
+  const el=document.getElementById('stgFontSizeVal');
+  if(el)el.textContent=val+'px';
+  updateFontPreview();
+}
+
+function saveFontSize(val){
+  S.settings.appFontSize=val+'px';
+  save();
+}
+
+function updateFontPreview(){
+  const box=document.getElementById('fontPreviewBox');
+  if(box){
+    box.style.fontFamily=getComputedStyle(document.documentElement).getPropertyValue('--app-font');
+    box.style.fontSize=getComputedStyle(document.documentElement).getPropertyValue('--app-font-size');
+  }
+}
+
+function applyFontSettings(){
+  loadGoogleFonts();
+  const font=S.settings.appFont;
+  const size=S.settings.appFontSize;
+  if(font)document.documentElement.style.setProperty('--app-font',font);
+  if(size)document.documentElement.style.setProperty('--app-font-size',size);
+  // Sync range slider
+  const slider=document.getElementById('fontSizeRange');
+  if(slider&&size)slider.value=parseInt(size)||14;
+  const sizeLabel=document.getElementById('stgFontSizeVal');
+  if(sizeLabel)sizeLabel.textContent=size||'14px';
+  const fontName=document.getElementById('stgFontName');
+  if(fontName)fontName.textContent=S.settings.appFontName||'Be Vietnam Pro';
+  // Highlight active font button
+  const curFont=font||"'Be Vietnam Pro',sans-serif";
+  document.querySelectorAll('.font-opt').forEach(b=>{
+    b.classList.toggle('active',b.dataset.font===curFont);
+  });
+}
+
 /* ── RENDER ALL ─────────────────────────── */
 function renderAll(){renderDash();renderRooms();renderTenants();renderPayment();renderDebt();renderSettings();}
 function renderSettings(){
@@ -2992,8 +3582,33 @@ function renderSettings(){
   });
   // Dark toggle
   const t=document.getElementById('darkToggle');if(t)t.classList.toggle('on',s.darkMode);
+  // Sync topbar title with hotel name
+  updateTopbarTitle();
+  // Font settings
+  applyFontSettings();
   // Áp dụng icon (nếu hàm đã được định nghĩa trong script sau)
   if(typeof applyIcon==='function')applyIcon();
+}
+
+// Cập nhật tiêu đề topbar theo tên nhà trọ
+function updateTopbarTitle(){
+  const el=document.getElementById('topbarTitle');
+  if(!el)return;
+  const name=S.settings.hotelName||'';
+  if(!name||name==='Nhà Trọ Xanh'){
+    // Giữ mặc định có style
+    el.innerHTML='Phòng<span style="color:var(--primary)">Trọ</span> Pro';
+    return;
+  }
+  // Hiển thị tên nhà trọ — tô màu chữ đầu tiên của mỗi từ
+  const words=name.trim().split(/\s+/);
+  if(words.length===1){
+    el.innerHTML=`<span style="color:var(--primary)">${name}</span>`;
+  } else {
+    // Hiển thị tối đa 20 ký tự, từ đầu màu primary
+    const display=name.length>22?name.slice(0,20)+'…':name;
+    el.innerHTML=`<span style="color:var(--primary)">${words[0]}</span> ${words.slice(1).join(' ')}`;
+  }
 }
 
 /* ── INIT ───────────────────────────────── */
@@ -3005,7 +3620,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   cleanupArchived();
   // Tạo dữ liệu demo hợp đồng nếu chưa có
   if(S.contracts.length===0&&S.tenants.length>0){createDemoContracts();}
-  applyDark();applyIcon();renderAll();
+  applyDark();applyIcon();applyFontSettings();renderAll();
+  updateTopbarTitle();
   setTimeout(()=>toast(`Chào mừng đến ${S.settings.hotelName}! 🏠`,'success'),500);
   const dc=S.invoices.filter(i=>i.debt>0).length;
   const nc=S.contracts?.filter(c=>getContractStatus(c)==='near').length||0;
@@ -3532,5 +4148,73 @@ function cleanupArchived(){
   if(S.archived.length<before){save();}
 }
 </script>
+
+<!-- ═══ MODAL: XUẤT CT01 ═══ -->
+<div class="overlay" id="mCT01"><div class="modal">
+  <div class="mhandle"></div>
+  <div class="mhdr">
+    <div class="mtitle">📋 Tờ Khai CT01</div>
+    <button class="mclose" onclick="closeM('mCT01')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="mbody">
+    <input type="hidden" id="ct01TenantId">
+    <div style="background:rgba(22,163,74,.08);border:1.5px solid rgba(22,163,74,.25);border-radius:14px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--primary)">
+      📋 Mẫu CT01 theo Thông tư 66/2023/TT-BCA — Kiểm tra thông tin trước khi xuất.
+    </div>
+    <div class="fsect">🏛️ Thông Tin Nộp</div>
+    <div class="fg"><label class="flbl">Kính gửi (Cơ quan đăng ký cư trú)</label><input class="fc" id="ct01ToCoQuan" placeholder="Công An Phường/Xã..."></div>
+    <div class="fsect">👤 Người Kê Khai</div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Họ và tên *</label><input class="fc" id="ct01Name" placeholder="Nguyễn Văn A"></div>
+      <div class="fg"><label class="flbl">Giới tính</label><select class="fc" id="ct01Gender"><option>Nam</option><option>Nữ</option><option>Khác</option></select></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Ngày sinh</label><input class="fc" id="ct01Dob" type="date"></div>
+      <div class="fg"><label class="flbl">Số điện thoại</label><input class="fc" id="ct01Phone" type="tel" placeholder="09..."></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Số CCCD/CMND *</label><input class="fc" id="ct01Cccd" placeholder="012345678901" maxlength="12"></div>
+      <div class="fg"><label class="flbl">Email</label><input class="fc" id="ct01Email" type="email" placeholder="..."></div>
+    </div>
+    <div class="fsect">🏠 Chủ Hộ</div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Họ tên chủ hộ</label><input class="fc" id="ct01ChuhoName"></div>
+      <div class="fg"><label class="flbl">Quan hệ với chủ hộ</label><input class="fc" id="ct01ChuhoRel" placeholder="Chủ hộ / Con ruột..."></div>
+    </div>
+    <div class="fg"><label class="flbl">CCCD chủ hộ</label><input class="fc" id="ct01ChuhoCccd" maxlength="12"></div>
+    <div class="fsect">🔑 Chủ Sở Hữu Chỗ Ở</div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Họ tên chủ sở hữu</label><input class="fc" id="ct01OwnerName"></div>
+      <div class="fg"><label class="flbl">CCCD chủ sở hữu</label><input class="fc" id="ct01OwnerCccd" maxlength="12"></div>
+    </div>
+    <div class="fg"><label class="flbl">Quan hệ</label><input class="fc" id="ct01OwnerRel" value="Chủ sở hữu chỗ ở"></div>
+    <div class="fsect">📝 Nội Dung Đề Nghị</div>
+    <div class="fg"><label class="flbl">Nội dung đề nghị</label><textarea class="fc" id="ct01Content" rows="2" placeholder="Đăng ký tạm trú tại địa chỉ..."></textarea></div>
+    <div class="fg"><label class="flbl">Ngày ký khai</label><input class="fc" id="ct01SignDate" type="date"></div>
+    <div class="fsect">👥 Thành Viên Cùng Thay Đổi</div>
+    <div style="overflow-x:auto;border-radius:12px;border:1.5px solid var(--border)">
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead><tr style="background:var(--bg2)">
+          <th style="padding:7px 5px;border-bottom:1.5px solid var(--border);text-align:center;width:28px">TT</th>
+          <th style="padding:7px 5px;border-bottom:1.5px solid var(--border)">Họ và tên</th>
+          <th style="padding:7px 5px;border-bottom:1.5px solid var(--border);text-align:center;width:88px">Ngày sinh</th>
+          <th style="padding:7px 5px;border-bottom:1.5px solid var(--border);text-align:center;width:52px">GT</th>
+          <th style="padding:7px 5px;border-bottom:1.5px solid var(--border);width:108px">CCCD</th>
+          <th style="padding:7px 5px;border-bottom:1.5px solid var(--border)">Quan hệ</th>
+        </tr></thead>
+        <tbody id="ct01MembersBody"></tbody>
+      </table>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px">💡 Thành viên từ danh sách Người ở cùng. Chỉnh quan hệ trong form người thuê.</div>
+  </div>
+  <div class="mfoot">
+    <button class="btn btn-secondary" onclick="closeM('mCT01')">Hủy</button>
+    <button class="btn btn-primary" onclick="exportCT01()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Xuất PDF / In CT01
+    </button>
+  </div>
+</div></div>
+
 </body>
 </html>

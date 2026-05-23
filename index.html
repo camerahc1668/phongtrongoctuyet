@@ -11,6 +11,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 <script src="https://unpkg.com/pizzip@3.1.6/dist/pizzip.js"></script>
 <script src="https://unpkg.com/docxtemplater@3.44.0/build/docxtemplater.js"></script>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
 :root{
   --primary:#16a34a;--primary-light:#22c55e;--primary-dark:#15803d;--primary-bg:#f0fdf4;
@@ -23,7 +26,7 @@
   --shadow-lg:0 20px 40px -4px rgba(0,0,0,.12);
   --shadow-primary:0 8px 25px rgba(22,163,74,.3);
   --r-sm:8px;--r:14px;--r-lg:20px;--r-xl:28px;--r-full:999px;
-  --topbar-h:60px;--nav-h:72px;--ease:.25s cubic-bezier(.4,0,.2,1);
+  --topbar-h:0px;--nav-h:0px;--ease:.25s cubic-bezier(.4,0,.2,1);
 }
 [data-theme="dark"]{
   --bg:#0f172a;--bg2:#1e293b;--surface:#1e293b;--border:#334155;--border2:#475569;
@@ -33,23 +36,23 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{font-size:16px;-webkit-text-size-adjust:100%}
-body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background var(--ease),color var(--ease)}
+body{font-family:var(--app-font,'Be Vietnam Pro',sans-serif);font-size:var(--app-font-size,14px);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background var(--ease),color var(--ease)}
 img{max-width:100%}
 button{cursor:pointer;border:none;background:none;font-family:inherit}
 input,select,textarea{font-family:inherit}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}
-#app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+#app{display:flex;flex-direction:column;height:100dvh;min-height:100vh;overflow:hidden}
 
 /* ── TOPBAR ─────────────────────────── */
-.topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--topbar-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:0 16px;box-shadow:var(--shadow-sm)}
-.topbar-logo{display:flex;align-items:center;gap:10px;flex:1}
-.topbar-logo-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--primary),var(--primary-light));border-radius:11px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(22,163,74,.3);flex-shrink:0}
-.topbar-logo-icon svg{width:22px;height:22px;fill:white}
-.topbar-title{font-size:17px;font-weight:800;color:var(--text);letter-spacing:-.3px}
+.topbar{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--topbar-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;padding:0 12px;box-shadow:var(--shadow-sm)}
+.topbar-logo{display:flex;align-items:center;gap:8px;flex:1;min-width:0;overflow:hidden}
+.topbar-logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--primary),var(--primary-light));border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(22,163,74,.3);flex-shrink:0}
+.topbar-logo-icon svg{width:20px;height:20px;fill:white}
+.topbar-title{font-size:16px;font-weight:800;color:var(--text);letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .topbar-title span{color:var(--primary)}
-.topbar-actions{display:flex;align-items:center;gap:8px}
-.topbar-btn{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:all var(--ease);position:relative}
+.topbar-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.topbar-btn{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--text2);transition:all var(--ease);position:relative;flex-shrink:0}
 .topbar-btn:hover{background:var(--bg2);color:var(--primary)}
 .topbar-btn svg{width:20px;height:20px}
 .badge{position:absolute;top:4px;right:4px;width:16px;height:16px;background:var(--danger);border-radius:50%;font-size:9px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center}
@@ -57,17 +60,18 @@ input,select,textarea{font-family:inherit}
 /* ── MAIN ───────────────────────────── */
 .main{
   flex:1;
-  margin-top:var(--topbar-h);
-  margin-bottom:var(--nav-h);
+  margin-top:0;
+  margin-bottom:0;
   overflow-y:auto;
   overflow-x:hidden;
   -webkit-overflow-scrolling:touch;
 }
 /* Inner content wrapper — giới hạn chiều rộng đồng bộ */
 #mainContent{
-  max-width:540px;
+  max-width:1180px;
   margin:0 auto;
   width:100%;
+  min-height:100vh;
 }
 
 /* ── BOTTOM NAV ─────────────────────── */
@@ -80,12 +84,54 @@ input,select,textarea{font-family:inherit}
 .nav-item span{font-size:9.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 
 /* ── PAGES ──────────────────────────── */
-.page{display:none;padding:14px 16px 32px;animation:pgFade .3s ease;width:100%}
+.page{display:none;padding:16px;animation:pgFade .3s ease;width:100%;max-width:1040px;margin:0 auto}
+#pg-menu{max-width:none;padding:0}
 .page.active{display:block}
 @keyframes pgFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px}
 .page-title{font-size:21px;font-weight:800;color:var(--text);letter-spacing:-.5px;line-height:1.2}
 .page-subtitle{font-size:12px;color:var(--text3);margin-top:2px}
+
+/* MAIN MENU */
+.home-menu{position:relative;min-height:100vh;padding:22px 16px 38px;background:linear-gradient(180deg,rgba(22,163,74,.08),transparent 34%),linear-gradient(135deg,var(--bg),var(--bg2));overflow:hidden}
+.home-menu::before{content:'';position:absolute;inset:0 0 auto 0;height:210px;background:linear-gradient(135deg,rgba(22,163,74,.14),rgba(14,165,233,.12) 55%,rgba(245,158,11,.1));border-bottom:1px solid rgba(148,163,184,.16);pointer-events:none}
+.home-menu-header{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;min-height:98px;margin-bottom:18px}
+.home-logo{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;min-width:0}
+.home-logo-mark{width:62px;height:62px;border-radius:20px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;color:white;box-shadow:0 18px 34px rgba(22,163,74,.3);overflow:hidden;transition:transform var(--ease),box-shadow var(--ease)}
+.home-logo-mark:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 24px 42px rgba(14,165,233,.28)}
+.home-logo-mark svg{width:34px;height:34px;fill:white}
+.home-logo-mark img{width:100%;height:100%;object-fit:cover}
+.home-logo-title{font-size:20px;font-weight:900;color:var(--text);line-height:1.15;max-width:320px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-logo-title span{color:var(--primary)}
+.home-actions{position:absolute;right:0;top:8px;display:flex;align-items:center;gap:8px}
+.home-action-btn{width:40px;height:40px;border-radius:12px;background:var(--surface);border:1px solid var(--border);box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center;color:var(--text2);position:relative;transition:all var(--ease)}
+.home-action-btn:hover{color:var(--primary);border-color:var(--primary);transform:translateY(-1px)}
+.home-action-btn svg{width:20px;height:20px}
+.home-summary{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:0 auto 18px;max-width:980px}
+.home-summary-item{background:var(--surface);background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid var(--border);border-radius:16px;padding:14px;box-shadow:var(--shadow-sm);backdrop-filter:blur(10px);transition:transform var(--ease),box-shadow var(--ease),border-color var(--ease)}
+.home-summary-item:hover{transform:translateY(-4px);box-shadow:var(--shadow-md);border-color:rgba(22,163,74,.35)}
+.home-summary-val{font-size:22px;font-weight:900;color:var(--text);line-height:1;overflow-wrap:anywhere}
+.home-summary-lbl{font-size:11px;font-weight:700;color:var(--text3);margin-top:6px;text-transform:uppercase}
+.home-grid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;max-width:980px;margin:0 auto}
+.menu-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:17px;text-align:left;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:13px;min-height:104px;color:var(--text);transition:transform var(--ease),box-shadow var(--ease),border-color var(--ease),background var(--ease);position:relative;overflow:hidden}
+.menu-card::before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:var(--primary);opacity:.7;transition:width var(--ease),opacity var(--ease)}
+.menu-card:hover{transform:translateY(-6px);box-shadow:0 18px 38px rgba(15,23,42,.16);border-color:var(--primary);background:linear-gradient(135deg,var(--surface),var(--primary-bg))}
+.menu-card:hover::before{width:7px;opacity:1}
+.menu-card:hover .menu-card-icon{transform:scale(1.08);box-shadow:0 10px 22px rgba(15,23,42,.12)}
+.menu-card>span:last-child{min-width:0;display:flex;flex-direction:column}
+.menu-card-icon{width:50px;height:50px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform var(--ease),box-shadow var(--ease)}
+.menu-card-icon svg{width:25px;height:25px}
+.menu-card-title{font-size:16px;font-weight:900;color:var(--text);line-height:1.2;overflow-wrap:anywhere}
+.menu-card-sub{font-size:12px;color:var(--text3);margin-top:5px;line-height:1.35;overflow-wrap:anywhere}
+.menu-card.green .menu-card-icon{background:rgba(22,163,74,.12);color:var(--primary)}
+.menu-card.blue .menu-card-icon{background:rgba(14,165,233,.12);color:var(--secondary)}
+.menu-card.purple .menu-card-icon{background:rgba(99,102,241,.12);color:var(--info)}
+.menu-card.orange .menu-card-icon{background:rgba(249,115,22,.12);color:var(--warning)}
+.menu-card.red .menu-card-icon{background:rgba(239,68,68,.12);color:var(--danger)}
+.menu-card.teal .menu-card-icon{background:rgba(16,185,129,.12);color:var(--success)}
+.home-fab{position:fixed;left:18px;bottom:18px;z-index:150;width:48px;height:48px;border-radius:16px;background:var(--primary);color:white;box-shadow:var(--shadow-primary);display:none;align-items:center;justify-content:center}
+.home-fab svg{width:24px;height:24px}
+.home-fab.show{display:flex}
 
 /* ── CARDS ──────────────────────────── */
 .card{background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden}
@@ -344,6 +390,25 @@ input,select,textarea{font-family:inherit}
 .rc-stat-val{font-size:11.5px;font-weight:800;color:var(--text);margin-top:1px}
 .rc-btns{display:flex;gap:5px}
 .rc-btns .btn{flex:1;font-size:11px;padding:7px 4px;border-radius:10px;font-weight:700}
+.room-cover{height:96px;margin:-10px -9px 10px;border-radius:18px;overflow:hidden;background:var(--bg2);position:relative}
+.room-cover img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s ease}
+.room-card:hover .room-cover img{transform:scale(1.06)}
+.room-photo-count{position:absolute;left:8px;bottom:8px;padding:3px 8px;border-radius:999px;background:rgba(15,23,42,.72);color:white;font-size:10px;font-weight:800}
+.room-list-thumb{width:48px;height:48px;border-radius:12px;overflow:hidden;flex-shrink:0;background:var(--bg2);border:1px solid var(--border)}
+.room-list-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.room-photo-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.room-photo-box{border:2px dashed var(--border2);border-radius:16px;aspect-ratio:16/10;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;transition:all var(--ease)}
+.room-photo-box:hover{border-color:var(--primary);background:var(--primary-bg)}
+.room-photo-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.room-photo-box.has-img img{display:block}
+.room-photo-box svg{width:24px;height:24px;color:var(--text3)}
+.room-photo-lbl{font-size:11px;font-weight:700;color:var(--text3);text-align:center;margin-top:5px}
+.room-photo-box.has-img .room-photo-lbl,.room-photo-box.has-img svg{display:none}
+.room-photo-remove{position:absolute;right:7px;top:7px;width:26px;height:26px;border-radius:999px;background:rgba(15,23,42,.74);color:white;display:none;align-items:center;justify-content:center;font-size:16px;font-weight:800;z-index:2}
+.room-photo-box.has-img .room-photo-remove{display:flex}
+.room-gallery{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.room-gallery-item{border-radius:16px;overflow:hidden;border:1px solid var(--border);background:var(--bg2);aspect-ratio:16/10}
+.room-gallery-item img{width:100%;height:100%;object-fit:cover;display:block}
 
 /* ── BUTTONS ────────────────────────── */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 20px;border-radius:var(--r-full);font-size:14px;font-weight:700;transition:all var(--ease);position:relative;overflow:hidden;white-space:nowrap;cursor:pointer}
@@ -512,6 +577,7 @@ body{font-family:var(--app-font);font-size:var(--app-font-size)}
 .overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
 .overlay.open{opacity:1;pointer-events:all}
 .modal{background:var(--surface);border-radius:24px 24px 0 0;width:100%;max-width:540px;max-height:93vh;overflow-y:auto;transform:translateY(100%);transition:transform .35s cubic-bezier(.34,1.56,.64,1);box-shadow:0 -20px 60px rgba(0,0,0,.2);padding-bottom:env(safe-area-inset-bottom)}
+.guide-modal{max-width:760px!important}
 .overlay.open .modal{transform:translateY(0)}
 .mhandle{width:44px;height:5px;background:var(--border2);border-radius:10px;margin:12px auto}
 .mhdr{padding:4px 20px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
@@ -522,6 +588,35 @@ body{font-family:var(--app-font);font-size:var(--app-font-size)}
 .mbody{padding:18px 20px}
 .mfoot{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px}
 .mfoot .btn{flex:1}
+
+/* QUICK GUIDE */
+.guide-hero{background:linear-gradient(135deg,rgba(22,163,74,.12),rgba(14,165,233,.1));border:1.5px solid rgba(22,163,74,.22);border-radius:18px;padding:14px;margin-bottom:14px}
+.guide-title{font-size:18px;font-weight:900;color:var(--text);letter-spacing:-.3px}
+.guide-sub{font-size:12px;color:var(--text2);margin-top:4px;line-height:1.55}
+.guide-section-title{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.7px;color:var(--primary);margin:16px 0 9px}
+.guide-flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.guide-step{position:relative;background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:12px;min-height:118px;box-shadow:var(--shadow-sm)}
+.guide-step::after{content:'→';position:absolute;right:-10px;top:50%;transform:translateY(-50%);font-weight:900;color:var(--primary);background:var(--surface);border:1px solid var(--border);border-radius:999px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;z-index:1}
+.guide-step:nth-child(4n)::after,.guide-step:last-child::after{display:none}
+.guide-icon{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;margin-bottom:9px}
+.guide-icon svg{width:22px;height:22px}
+.guide-step-name{font-size:13px;font-weight:900;color:var(--text);line-height:1.25}
+.guide-step-note{font-size:11px;color:var(--text3);line-height:1.45;margin-top:5px}
+.guide-menu-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.guide-menu-item{display:flex;align-items:center;gap:9px;background:var(--bg2);border:1px solid var(--border);border-radius:13px;padding:9px;min-width:0}
+.guide-menu-item .guide-icon{width:34px;height:34px;border-radius:11px;margin:0;flex-shrink:0}
+.guide-menu-text{min-width:0}
+.guide-menu-name{font-size:12px;font-weight:900;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.guide-menu-note{font-size:10.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.guide-tips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.guide-tip{background:var(--primary-bg);border:1px solid rgba(22,163,74,.22);border-radius:14px;padding:10px;font-size:11.5px;line-height:1.5;color:var(--text2)}
+.guide-tip strong{display:block;color:var(--primary);font-size:12px;margin-bottom:3px}
+.g-green{background:rgba(22,163,74,.12);color:var(--primary)}
+.g-blue{background:rgba(14,165,233,.12);color:var(--secondary)}
+.g-orange{background:rgba(249,115,22,.12);color:var(--warning)}
+.g-red{background:rgba(239,68,68,.12);color:var(--danger)}
+.g-purple{background:rgba(99,102,241,.12);color:var(--info)}
+.g-teal{background:rgba(16,185,129,.12);color:var(--success)}
 
 /* ── FORM ───────────────────────────── */
 .fg{margin-bottom:14px}
@@ -630,7 +725,7 @@ textarea.fc{resize:vertical;min-height:70px}
 .rpt-tab.active{background:var(--primary);border-color:var(--primary);color:white}
 
 /* ── TOAST ──────────────────────────── */
-.toast-box{position:fixed;top:calc(var(--topbar-h) + 10px);right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:calc(100vw - 32px)}
+.toast-box{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;max-width:calc(100vw - 32px)}
 .toast{background:var(--text);color:var(--text-inv);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:10px;font-size:13.5px;font-weight:600;box-shadow:var(--shadow-lg);animation:tIn .3s cubic-bezier(.34,1.56,.64,1);max-width:340px}
 .toast.success{background:var(--success)}.toast.error{background:var(--danger)}.toast.warning{background:var(--warning)}.toast.info{background:var(--info)}
 .toast svg{width:18px;height:18px;flex-shrink:0}
@@ -671,25 +766,53 @@ textarea.fc{resize:vertical;min-height:70px}
 
 /* ── RESPONSIVE ─────────────────────── */
 @media(min-width:480px){
-  .stat-grid{grid-template-columns:1fr 1fr 1fr}
-  .room-grid{grid-template-columns:1fr 1fr 1fr}
-  #mainContent{padding:0 4px}
+  .stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .room-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #mainContent{padding:0 6px}
 }
 @media(min-width:560px){
   .main{background:var(--bg2)}
   #mainContent{
-    max-width:540px;
+    max-width:1180px;
     background:var(--bg);
-    min-height:calc(100vh - var(--topbar-h) - var(--nav-h));
-    box-shadow:0 0 40px rgba(0,0,0,.06);
+    min-height:100vh;
+    box-shadow:none;
   }
-  .topbar{max-width:540px;left:50%;right:auto;transform:translateX(-50%);border-left:1px solid var(--border);border-right:1px solid var(--border)}
-  .bottom-nav{max-width:540px;left:50%;right:auto;transform:translateX(-50%);border-left:1px solid var(--border);border-right:1px solid var(--border);border-radius:24px 24px 0 0}
   .modal{max-width:520px !important;margin:0 auto}
 }
 @media(min-width:768px){
-  .stat-grid{grid-template-columns:repeat(4,1fr)}
-  #mainContent{max-width:540px}
+  .page{padding:20px}
+  .stat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .room-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .tenant-list,.inv-list,#debtList,#contractList,#archivedList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+  .tenant-list>*,
+  .inv-list>*,
+  #debtList>*,
+  #contractList>*,
+  #archivedList>*{margin-bottom:0}
+  #mainContent{max-width:1180px}
+}
+@media(min-width:1024px){
+  .page{padding:24px}
+  .stat-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .floor-rooms-map{grid-template-columns:repeat(auto-fill,minmax(86px,1fr))}
+}
+@media(max-width:760px){
+  .home-summary{grid-template-columns:repeat(2,1fr)}
+  .home-grid{grid-template-columns:1fr}
+  .home-menu-header{justify-content:flex-start;padding-right:104px}
+  .home-logo{align-items:flex-start;text-align:left}
+  .home-logo-title{max-width:calc(100vw - 150px)}
+}
+@media(max-width:420px){
+  .home-menu{padding-left:12px;padding-right:12px}
+  .home-summary{gap:8px}
+  .home-summary-item{padding:10px}
+  .menu-card{min-height:88px;padding:13px}
+  .menu-card-icon{width:44px;height:44px;border-radius:14px}
+  .page{padding:12px}
+  .page-header{align-items:flex-start;flex-direction:column}
+  .page-header .btn{width:100%}
 }
 
 /* ── UTILS ──────────────────────────── */
@@ -704,9 +827,34 @@ textarea.fc{resize:vertical;min-height:70px}
 .stat-grid,.room-grid,.filter-chips,.ct-filter-row,
 .search-bar,.stg-group,.stg-profile-card,
 .debt-card,.pay-card{width:100%}
+.tenant-list .empty,.inv-list .empty,#debtList .empty,#contractList .empty,#archivedList .empty{grid-column:1/-1}
 /* frow — 2 cột đồng đều */
-.frow{display:flex;gap:12px}
+.frow{display:flex;gap:12px;flex-wrap:wrap}
 .frow .fg{flex:1;min-width:0}
+.fg{min-width:0}
+.btn,.chip,.rvt-btn,.font-opt{min-width:0;white-space:normal;line-height:1.25}
+.btn svg{flex-shrink:0}
+.fc{min-width:0}
+.card,.stat-card,.tenant-card,.inv-card,.debt-card,.contract-card,.stg-row{min-width:0}
+html[data-font-size-mode="compact"] .menu-card{min-height:94px}
+html[data-font-size-mode="large"] .page{max-width:1120px}
+html[data-font-size-mode="large"] .menu-card{min-height:116px;padding:18px}
+html[data-font-size-mode="large"] .menu-card-icon{width:54px;height:54px}
+html[data-font-size-mode="large"] .home-summary-item{padding:16px}
+html[data-font-size-mode="large"] .btn{min-height:38px}
+html[data-font-size-mode="large"] .fc{min-height:44px}
+html[data-font-size-mode="large"] .chip{padding-top:8px;padding-bottom:8px}
+@media(max-width:640px){
+  .frow{flex-direction:column;gap:10px}
+  .frow .fg{width:100%}
+  .filter-chips,.ct-filter-row{padding-bottom:6px}
+  .modal{width:100%;max-height:92vh}
+  .mbody{padding:16px}
+  .guide-flow{grid-template-columns:1fr 1fr}
+  .guide-step:nth-child(4n)::after{display:flex}
+  .guide-step:nth-child(2n)::after,.guide-step:last-child::after{display:none}
+  .guide-menu-grid,.guide-tips{grid-template-columns:1fr}
+}
 /* Section header form */
 .fsect{font-size:11px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.6px;margin:16px 0 10px;padding-bottom:8px;border-bottom:2px solid rgba(22,163,74,.15);display:flex;align-items:center;gap:6px}
 
@@ -803,29 +951,38 @@ textarea.fc{resize:vertical;min-height:70px}
 <body>
 <div id="app">
 
-  <!-- TOPBAR -->
-  <header class="topbar">
-    <div class="topbar-logo">
-      <div class="topbar-logo-icon" id="headerLogo" onclick="switchTab('settings')" style="cursor:pointer" title="Đổi icon">
-        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-      </div>
-      <div><div class="topbar-title" id="topbarTitle">Phòng<span>Trọ</span> Pro</div></div>
-    </div>
-    <div class="topbar-actions">
-      <button class="topbar-btn" onclick="showNotif()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        <span class="badge" id="notifBadge">3</span>
-      </button>
-      <button class="topbar-btn" onclick="toggleDark()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      </button>
-    </div>
-  </header>
-
   <main class="main" id="mainContent">
 
+    <!-- MAIN MENU -->
+    <div class="page active" id="pg-menu">
+      <div class="home-menu">
+        <div class="home-menu-header">
+          <div class="home-logo">
+            <button class="home-logo-mark" id="homeLogo" onclick="switchTab('settings')" title="Đổi logo">
+              <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            </button>
+            <div class="home-logo-title" id="homeLogoTitle">Phòng<span>Trọ</span> Pro</div>
+          </div>
+          <div class="home-actions">
+            <button class="home-action-btn" onclick="openM('mGuide')" title="Hướng dẫn sử dụng">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 1 1 5.8 1c-.8 1.2-2.9 1.5-2.9 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </button>
+            <button class="home-action-btn" onclick="showNotif()" title="Thông báo">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span class="badge" id="notifBadge">3</span>
+            </button>
+            <button class="home-action-btn" onclick="toggleDark()" title="Bật/tắt sáng tối">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="home-summary" id="homeSummary"></div>
+        <div class="home-grid" id="homeMenuGrid"></div>
+      </div>
+    </div>
+
     <!-- ══ DASHBOARD ══ -->
-    <div class="page active" id="pg-dashboard">
+    <div class="page" id="pg-dashboard">
       <div class="page-header">
         <div><div class="page-title">Tổng Quan</div><div class="page-subtitle" id="dashDate"></div></div>
         <button class="btn btn-primary btn-sm" onclick="refreshDash()">
@@ -1133,6 +1290,16 @@ textarea.fc{resize:vertical;min-height:70px}
       <!-- Nhóm: Dữ liệu -->
       <div class="stg-group">
         <div class="stg-group-label">💾 DỮ LIỆU</div>
+        <div class="stg-row" onclick="toggleFirebasePanel()">
+          <div class="stg-row-icon" style="background:rgba(249,115,22,.12);color:#f97316">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="stg-row-body">
+            <div class="stg-row-lbl">Firebase Sync</div>
+            <div class="stg-row-val" id="fbSettingRow">Đồng bộ nhiều thiết bị real-time</div>
+          </div>
+          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
         <div class="stg-row" onclick="backupData()">
           <div class="stg-row-icon" style="background:rgba(22,163,74,.12);color:#16a34a">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1179,21 +1346,58 @@ textarea.fc{resize:vertical;min-height:70px}
 
   </main>
 
-  <!-- BOTTOM NAV -->
-  <nav class="bottom-nav">
-    <button class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')"><div class="npill"></div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Tổng quan</span></button>
-    <button class="nav-item" data-tab="rooms" onclick="switchTab('rooms')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Phòng trọ</span></button>
-    <button class="nav-item" data-tab="tenants" onclick="switchTab('tenants')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>Người thuê</span></button>
-    <button class="nav-item" data-tab="payment" onclick="switchTab('payment')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg><span>Thu tiền</span></button>
-    <button class="nav-item" data-tab="debt" onclick="switchTab('debt')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span>Công nợ</span></button>
-    <button class="nav-item" data-tab="report" onclick="switchTab('report')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span>Báo cáo</span></button>
-    <button class="nav-item" data-tab="contracts" onclick="switchTab('contracts')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span>Hợp đồng</span></button>
-    <button class="nav-item" data-tab="archived" onclick="switchTab('archived')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg><span>Lịch sử</span></button>
-    <button class="nav-item" data-tab="settings" onclick="switchTab('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span>Cài đặt</span></button>
-  </nav>
+  <button class="home-fab" id="homeBtn" onclick="switchTab('menu')" title="Về màn hình chính">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></svg>
+  </button>
 </div>
 
 <div class="toast-box" id="toastBox"></div>
+
+<!-- QUICK GUIDE -->
+<div class="overlay" id="mGuide"><div class="modal guide-modal">
+  <div class="mhandle"></div>
+  <div class="mhdr">
+    <div class="mtitle">Sơ đồ sử dụng nhanh</div>
+    <button class="mclose" onclick="closeM('mGuide')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="mbody">
+    <div class="guide-hero">
+      <div class="guide-title">Nhìn theo luồng này là dùng được</div>
+      <div class="guide-sub">Thiết lập nhà trọ một lần, thêm phòng và người thuê, rồi mỗi tháng chỉ cần tạo phiếu thu, thu tiền, theo dõi công nợ và xuất báo cáo.</div>
+    </div>
+    <div class="guide-section-title">Luồng làm việc chính</div>
+    <div class="guide-flow">
+      <div class="guide-step"><div class="guide-icon g-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1"/></svg></div><div class="guide-step-name">1. Cài đặt</div><div class="guide-step-note">Tên nhà trọ, chủ trọ, logo, font, Firebase.</div></div>
+      <div class="guide-step"><div class="guide-icon g-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11H3z"/><path d="M9 22V12h6v10"/></svg></div><div class="guide-step-name">2. Tạo phòng</div><div class="guide-step-note">Khu, tầng, giá thuê, điện nước, 2 ảnh phòng.</div></div>
+      <div class="guide-step"><div class="guide-icon g-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div><div class="guide-step-name">3. Thêm khách</div><div class="guide-step-note">Hồ sơ, CCCD, người ở cùng, gán phòng.</div></div>
+      <div class="guide-step"><div class="guide-icon g-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6v20h12V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8"/></svg></div><div class="guide-step-name">4. Hợp đồng</div><div class="guide-step-note">Tạo hợp đồng, theo dõi sắp hết hạn, in CT01.</div></div>
+      <div class="guide-step"><div class="guide-icon g-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg></div><div class="guide-step-name">5. Thu tiền</div><div class="guide-step-note">Nhập chỉ số mới, tạo hóa đơn, ghi thanh toán.</div></div>
+      <div class="guide-step"><div class="guide-icon g-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></div><div class="guide-step-name">6. Công nợ</div><div class="guide-step-note">Xem ai còn nợ, bấm Thu nợ để xử lý ngay.</div></div>
+      <div class="guide-step"><div class="guide-icon g-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l3-3 4 4 5-8"/></svg></div><div class="guide-step-name">7. Báo cáo</div><div class="guide-step-note">Xem tháng/quý/năm, xuất Excel khi cần.</div></div>
+      <div class="guide-step"><div class="guide-icon g-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div><div class="guide-step-name">8. Đồng bộ</div><div class="guide-step-note">Kết nối Firebase để dùng chung nhiều thiết bị.</div></div>
+    </div>
+    <div class="guide-section-title">9 nút trên màn hình chính</div>
+    <div class="guide-menu-grid">
+      <div class="guide-menu-item"><div class="guide-icon g-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div><div class="guide-menu-text"><div class="guide-menu-name">Tổng quan</div><div class="guide-menu-note">Xem nhanh tình hình</div></div></div>
+      <div class="guide-menu-item"><div class="guide-icon g-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11H3z"/></svg></div><div class="guide-menu-text"><div class="guide-menu-name">Phòng</div><div class="guide-menu-note">Sơ đồ, ảnh, giá</div></div></div>
+      <div class="guide-menu-item"><div class="guide-icon g-teal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/></svg></div><div class="guide-menu-text"><div class="guide-menu-name">Người thuê</div><div class="guide-menu-note">Hồ sơ khách</div></div></div>
+      <div class="guide-menu-item"><div class="guide-icon g-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/></svg></div><div class="guide-menu-text"><div class="guide-menu-name">Thu tiền</div><div class="guide-menu-note">Tạo phiếu thu</div></div></div>
+      <div class="guide-menu-item"><div class="guide-icon g-red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/></svg></div><div class="guide-menu-text"><div class="guide-menu-name">Công nợ</div><div class="guide-menu-note">Theo dõi nợ</div></div></div>
+      <div class="guide-menu-item"><div class="guide-icon g-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-7"/></svg></div><div class="guide-menu-text"><div class="guide-menu-name">Báo cáo</div><div class="guide-menu-note">Thống kê, Excel</div></div></div>
+      <div class="guide-menu-item"><div class="guide-icon g-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6v20h12V8z"/><path d="M14 2v6h6"/></svg></div><div class="guide-menu-text"><div class="guide-menu-name">Hợp đồng</div><div class="guide-menu-note">Tạo, in, theo dõi</div></div></div>
+      <div class="guide-menu-item"><div class="guide-icon g-blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="22" height="5"/><path d="M3 8v13h18V8"/></svg></div><div class="guide-menu-text"><div class="guide-menu-name">Lịch sử</div><div class="guide-menu-note">Khách đã dọn đi</div></div></div>
+      <div class="guide-menu-item"><div class="guide-icon g-purple"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1"/></svg></div><div class="guide-menu-text"><div class="guide-menu-name">Cài đặt</div><div class="guide-menu-note">Logo, font, sync</div></div></div>
+    </div>
+    <div class="guide-section-title">Mẹo nhớ nhanh</div>
+    <div class="guide-tips">
+      <div class="guide-tip"><strong>Phòng trước, khách sau</strong>Luôn tạo phòng trước rồi mới gán người thuê vào phòng.</div>
+      <div class="guide-tip"><strong>Thu tiền theo tháng</strong>Mỗi tháng tạo hóa đơn, nhập điện nước mới, rồi bấm thanh toán.</div>
+      <div class="guide-tip"><strong>Công nợ tự lên danh sách</strong>Hóa đơn chưa trả đủ sẽ tự xuất hiện ở mục Công nợ.</div>
+      <div class="guide-tip"><strong>Đồng bộ nhiều máy</strong>Cài Firebase một lần, bật real-time sync để dữ liệu đi theo thiết bị.</div>
+    </div>
+  </div>
+  <div class="mfoot"><button class="btn btn-primary" onclick="closeM('mGuide')">Đã hiểu</button></div>
+</div></div>
 
 <!-- ═══ MODAL: PHÒNG ═══ -->
 <div class="overlay" id="mRoom"><div class="modal">
@@ -1261,6 +1465,23 @@ textarea.fc{resize:vertical;min-height:70px}
     <div class="frow"><div class="fg"><label class="flbl">Dịch vụ (₫)</label><input class="fc" id="rSvc" type="number" value="50000"></div><div class="fg"><label class="flbl">Internet (₫)</label><input class="fc" id="rNet" type="number" value="100000"></div></div>
     <div class="frow"><div class="fg"><label class="flbl">Rác (₫)</label><input class="fc" id="rGarb" type="number" value="20000"></div><div class="fg"><label class="flbl">Giữ xe (₫)</label><input class="fc" id="rPark" type="number" value="0"></div></div>
     <div class="frow"><div class="fg"><label class="flbl">CS Điện hiện tại</label><input class="fc" id="rElecIdx" type="number" value="0"></div><div class="fg"><label class="flbl">CS Nước hiện tại</label><input class="fc" id="rWaterIdx" type="number" value="0"></div></div>
+    <div class="fsect">Ảnh phòng</div>
+    <div class="room-photo-row">
+      <div class="room-photo-box" id="rPhotoBox0" onclick="document.getElementById('rPhoto0').click()">
+        <button type="button" class="room-photo-remove" onclick="clearRoomPhoto(0,event)">×</button>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M3 16l5-5 3 3 4-5 6 7"/></svg>
+        <div class="room-photo-lbl">Ảnh 1<br>Nhấn để chọn</div>
+        <img id="rPhotoPrev0" alt="">
+      </div>
+      <div class="room-photo-box" id="rPhotoBox1" onclick="document.getElementById('rPhoto1').click()">
+        <button type="button" class="room-photo-remove" onclick="clearRoomPhoto(1,event)">×</button>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h10M7 14h6"/></svg>
+        <div class="room-photo-lbl">Ảnh 2<br>Nhấn để chọn</div>
+        <img id="rPhotoPrev1" alt="">
+      </div>
+    </div>
+    <input type="file" id="rPhoto0" accept="image/*" style="display:none" onchange="prevRoomPhoto(this,0)">
+    <input type="file" id="rPhoto1" accept="image/*" style="display:none" onchange="prevRoomPhoto(this,1)">
     <div class="fg"><label class="flbl">Ghi chú</label><textarea class="fc" id="rNote" placeholder="Tiện nghi, mô tả..."></textarea></div>
   </div>
   <div class="mfoot"><button class="btn btn-secondary" onclick="closeM('mRoom')">Hủy</button><button class="btn btn-primary" onclick="saveRoom()">Lưu phòng</button></div>
@@ -1630,6 +1851,7 @@ const COLORS=['#16a34a','#22c55e','#0ea5e9','#f59e0b','#ef4444','#6366f1','#10b9
 let S={rooms:[],tenants:[],invoices:[],payments:[],contracts:[],archived:[],settings:{hotelName:'Nhà Trọ Xanh',address:'123 Lê Văn Sỹ, Q.3, TP.HCM',phone:'0901 234 567',darkMode:false}};
 let roomFilter='all',period='month',payMethod='cash',tfPayMethod='cash',contractFilter='all';
 let roomView='map';// kiểu xem phòng: map | grid | list
+let roomPhotoUrls=['',''];
 let avUrl='',cmndFUrl='',cmndBUrl='';
 let rms=[];// roommate list being edited
 let cRev,cOcc,cRpt,cUtil;
@@ -1666,7 +1888,12 @@ function createDemo(){
 }
 
 /* ── STORAGE ───────────────────────────── */
-function save(){try{localStorage.setItem('pt3',JSON.stringify(S));}catch(e){}}
+function save(){
+  try{localStorage.setItem('pt3',JSON.stringify(S));}catch(e){}
+  if(typeof scheduleFirebasePush==='function'&&typeof fbConnected!=='undefined'&&fbConnected&&fbAutoSync&&!window.fbApplyingRemote){
+    scheduleFirebasePush();
+  }
+}
 function load(){try{const s=localStorage.getItem('pt3');if(s){const parsed=JSON.parse(s);S={...S,...parsed};if(!S.contracts)S.contracts=[];if(!S.archived)S.archived=[];return true;}}catch(e){}return false;}
 function resetDemo(){if(!confirm('Reset về dữ liệu mẫu?'))return;const d=createDemo();S.rooms=d.rooms;S.tenants=d.tenants;S.invoices=d.invoices;S.payments=d.payments;save();renderAll();toast('Đã reset dữ liệu demo!','success')}
 function backupData(){const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='phongtro_'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('Đã sao lưu!','success')}
@@ -1699,12 +1926,46 @@ function switchTab(tab){
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('pg-'+tab)?.classList.add('active');
   document.querySelector(`.nav-item[data-tab="${tab}"]`)?.classList.add('active');
+  const homeBtn=document.getElementById('homeBtn');
+  if(homeBtn)homeBtn.classList.toggle('show',tab!=='menu');
+  if(tab==='menu')renderHomeMenu();
   if(tab==='dashboard')renderDash();if(tab==='rooms')renderRooms();
   if(tab==='tenants')renderTenants();if(tab==='payment')renderPayment();
   if(tab==='debt')renderDebt();if(tab==='report')renderReport();
   if(tab==='contracts')renderContracts();
   if(tab==='archived')renderArchived();
   document.getElementById('mainContent').scrollTo(0,0);
+}
+
+function renderHomeMenu(){
+  const total=S.rooms.length;
+  const rented=S.rooms.filter(r=>r.status!=='available').length;
+  const debt=S.invoices.reduce((sum,i)=>sum+Number(i.debt||0),0);
+  const monthPaid=S.invoices.filter(i=>i.month===curMonth()).reduce((sum,i)=>sum+Number(i.paid||0),0);
+  const summary=document.getElementById('homeSummary');
+  if(summary){
+    summary.innerHTML=[
+      ['Phòng',total],
+      ['Đang thuê',rented],
+      ['Thu tháng này',fmtN(monthPaid)],
+      ['Công nợ',fmtN(debt)]
+    ].map(([label,value])=>`<div class="home-summary-item"><div class="home-summary-val">${value}</div><div class="home-summary-lbl">${label}</div></div>`).join('');
+  }
+  const menus=[
+    {tab:'dashboard',cls:'green',title:'Tổng quan',sub:'Thống kê doanh thu và lấp đầy',svg:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'},
+    {tab:'rooms',cls:'blue',title:'Phòng',sub:'Sơ đồ tầng, giá thuê, trạng thái',svg:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>'},
+    {tab:'tenants',cls:'purple',title:'Người thuê',sub:'Hồ sơ, người ở cùng, giấy tờ',svg:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'},
+    {tab:'payment',cls:'orange',title:'Thu tiền',sub:'Tạo phiếu thu, in hóa đơn',svg:'<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>'},
+    {tab:'debt',cls:'red',title:'Công nợ',sub:'Theo dõi phòng chưa thanh toán',svg:'<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'},
+    {tab:'report',cls:'teal',title:'Báo cáo',sub:'Doanh thu, điện nước, Excel',svg:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'},
+    {tab:'contracts',cls:'green',title:'Hợp đồng',sub:'Tạo và theo dõi hợp đồng thuê',svg:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>'},
+    {tab:'archived',cls:'blue',title:'Lịch sử',sub:'Khách đã dọn đi, hồ sơ cũ',svg:'<polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>'},
+    {tab:'settings',cls:'orange',title:'Cài đặt',sub:'Logo, giao diện, Firebase sync',svg:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'}
+  ];
+  const grid=document.getElementById('homeMenuGrid');
+  if(grid){
+    grid.innerHTML=menus.map(m=>`<button class="menu-card ${m.cls}" onclick="switchTab('${m.tab}')"><span class="menu-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${m.svg}</svg></span><span><span class="menu-card-title">${m.title}</span><span class="menu-card-sub">${m.sub}</span></span></button>`).join('');
+  }
 }
 
 /* ── DARK MODE ─────────────────────────── */
@@ -1838,6 +2099,21 @@ function getStatusListClass(status){
   return{available:'rli-available',rented:'rli-rented',debt:'rli-debt',due:'rli-due'}[status]||'rli-available';
 }
 
+function getRoomPhotos(room){
+  return (room?.photos||room?.images||[]).filter(Boolean).slice(0,2);
+}
+
+function renderRoomCover(room){
+  const photos=getRoomPhotos(room);
+  if(!photos.length)return'';
+  return`<div class="room-cover"><img src="${photos[0]}" alt="Ảnh phòng ${room.name}"><div class="room-photo-count">${photos.length} ảnh</div></div>`;
+}
+
+function renderRoomThumb(room){
+  const photos=getRoomPhotos(room);
+  return photos.length?`<div class="room-list-thumb"><img src="${photos[0]}" alt="Ảnh phòng ${room.name}"></div>`:'';
+}
+
 /* ══ VIEW 1: SƠ ĐỒ TẦNG (MAP) ════════ */
 function renderRoomsMap(rows){
   const groups=groupByZoneAndFloor(rows);
@@ -1912,6 +2188,7 @@ function renderRoomsGrid(rows){
       return`<div class="room-card ${stCls}" onclick="showRoomDet('${room.id}')">
         <span class="rc-badge ${bdCls}">${{available:'🟢 Trống',rented:'🔵 Thuê',debt:'🔴 Nợ',due:'🟡 Hạn'}[room.status]}</span>
         <div class="rc-inner">
+          ${renderRoomCover(room)}
           <div class="rc-room-no">${room.name}</div>
           <div class="rc-floor">Tầng ${room.floor} · ${room.area}m²</div>
           <div class="rc-price">${fmt(room.price)}<span>/tháng</span></div>
@@ -1963,6 +2240,7 @@ function renderRoomsList(rows){
       else if(t)avStr=`<div class="rc-avatar" style="width:36px;height:36px;border-radius:10px;font-size:12px;background:${t.avatarColor||'#16a34a'}">${getInits(t.name)}</div>`;
       return`<div class="room-list-item ${liCls}" onclick="showRoomDet('${room.id}')">
         <div class="rli-no">${statusIcon} ${room.name}</div>
+        ${renderRoomThumb(room)}
         ${t?`<div style="width:36px;height:36px;border-radius:10px;overflow:hidden;flex-shrink:0">${avStr}</div>`:''}
         <div class="rli-info">
           <div class="rli-tenant">${t?t.name:'— Chưa có khách'}</div>
@@ -2053,6 +2331,66 @@ function populateZoneSelect(){
   updateRoomCode();
 }
 
+function setRoomPhotoPreview(index,url){
+  const box=document.getElementById('rPhotoBox'+index);
+  const img=document.getElementById('rPhotoPrev'+index);
+  if(!box||!img)return;
+  if(url){
+    img.src=url;
+    box.classList.add('has-img');
+  }else{
+    img.removeAttribute('src');
+    box.classList.remove('has-img');
+  }
+}
+
+function setRoomPhotos(photos=[]){
+  roomPhotoUrls=[photos[0]||'',photos[1]||''];
+  setRoomPhotoPreview(0,roomPhotoUrls[0]);
+  setRoomPhotoPreview(1,roomPhotoUrls[1]);
+  ['rPhoto0','rPhoto1'].forEach(id=>{const input=document.getElementById(id);if(input)input.value='';});
+}
+
+function clearRoomPhoto(index,event){
+  if(event){event.preventDefault();event.stopPropagation();}
+  roomPhotoUrls[index]='';
+  setRoomPhotoPreview(index,'');
+  const input=document.getElementById('rPhoto'+index);
+  if(input)input.value='';
+}
+
+function resizeImageDataUrl(file,maxSize=1200,quality=.78){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        const scale=Math.min(1,maxSize/Math.max(img.width,img.height));
+        const canvas=document.createElement('canvas');
+        canvas.width=Math.max(1,Math.round(img.width*scale));
+        canvas.height=Math.max(1,Math.round(img.height*scale));
+        const ctx=canvas.getContext('2d');
+        ctx.drawImage(img,0,0,canvas.width,canvas.height);
+        resolve(canvas.toDataURL('image/jpeg',quality));
+      };
+      img.onerror=reject;
+      img.src=e.target.result;
+    };
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function prevRoomPhoto(inp,index){
+  const f=inp.files[0];if(!f)return;
+  try{
+    roomPhotoUrls[index]=await resizeImageDataUrl(f);
+    setRoomPhotoPreview(index,roomPhotoUrls[index]);
+  }catch(e){
+    toast('Không đọc được ảnh phòng!','error');
+  }
+}
+
 function openAddRoom(){
   document.getElementById('rEditId').value='';
   document.getElementById('mRoomTitle').textContent='Thêm Phòng Mới';
@@ -2070,6 +2408,7 @@ function openAddRoom(){
   document.getElementById('rElecIdx').value='0';
   document.getElementById('rWaterIdx').value='0';
   populateZoneSelect();
+  setRoomPhotos([]);
   updateRoomCode();
   openM('mRoom');
 }
@@ -2097,6 +2436,7 @@ function openEditRoom(id){
   document.getElementById('rElecIdx').value=r.elecIndex;
   document.getElementById('rWaterIdx').value=r.waterIndex;
   document.getElementById('rNote').value=r.note||'';
+  setRoomPhotos(getRoomPhotos(r));
   updateRoomCode();
   openM('mRoom');
 }
@@ -2135,6 +2475,7 @@ function saveRoom(){
     parking:+document.getElementById('rPark').value||0,
     elecIndex:+document.getElementById('rElecIdx').value||0,
     waterIndex:+document.getElementById('rWaterIdx').value||0,
+    photos:roomPhotoUrls.filter(Boolean).slice(0,2),
     note:document.getElementById('rNote').value,
   };
 
@@ -2204,11 +2545,14 @@ function showRoomDet(id){
   const stBg={available:'rgba(16,185,129,.12)',rented:'rgba(14,165,233,.12)',debt:'rgba(239,68,68,.12)',due:'rgba(249,115,22,.12)'}[room.status];
   const stClr={available:'var(--success)',rented:'var(--secondary)',debt:'var(--danger)',due:'var(--warning)'}[room.status];
   const rmHtml=t?.roommates?.length?`<div style="font-size:13px;font-weight:700;color:var(--info);margin:14px 0 8px">👥 Người ở cùng (${t.roommates.length})</div>${t.roommates.map(rm=>`<div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--bg2);border-radius:12px;margin-bottom:6px">${rm.avatar?`<img src="${rm.avatar}" style="width:38px;height:38px;border-radius:11px;object-fit:cover;">`:`<div style="width:38px;height:38px;border-radius:11px;background:var(--secondary);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:white">${getInits(rm.name)}</div>`}<div style="flex:1"><div style="font-size:13px;font-weight:700">${rm.name}</div><div style="font-size:11px;color:var(--text3)">${rm.phone} · ${rm.gender}</div></div></div>`).join('')}`:'';
+  const roomPhotos=getRoomPhotos(room);
+  const roomGallery=roomPhotos.length?`<div class="room-gallery">${roomPhotos.map((src,i)=>`<div class="room-gallery-item"><img src="${src}" alt="Ảnh phòng ${room.name} ${i+1}"></div>`).join('')}</div>`:'';
   document.getElementById('mRoomDetBody').innerHTML=`
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
       ${t?avHtml(t,56,18):`<div style="width:56px;height:56px;border-radius:16px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:26px">🏠</div>`}
       <div><div style="font-size:22px;font-weight:900">${room.name}</div><span style="padding:3px 12px;border-radius:99px;background:${stBg};color:${stClr};font-size:11px;font-weight:700;margin-top:4px;display:inline-block">${stLbl(room.status)}</span></div>
     </div>
+    ${roomGallery}
     <div class="card card-body mb-3"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${iR('Giá thuê',fmt(room.price))}${iR('Diện tích',room.area+' m²')}${iR('Tầng',room.floor)}${iR('Giá điện',fmtN(room.elecPrice)+' ₫/kWh')}${iR('Giá nước',fmtN(room.waterPrice)+' ₫/m³')}${iR('Internet',fmt(room.internet))}${iR('Dịch vụ',fmt(room.serviceFee))}${iR('Rác',fmt(room.garbage))}${iR('Giữ xe',fmt(room.parking))}${iR('CS Điện/Nước',fmtN(room.elecIndex)+' / '+fmtN(room.waterIndex))}</div></div>
     ${t?`<div class="card card-body mb-3" style="background:var(--primary-bg);border-color:var(--primary)"><div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px">👤 Người thuê chính</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${iR('Họ tên',t.name)}${iR('SĐT',t.phone)}${iR('CCCD',t.cccd)}${iR('Vào ở',t.moveIn)}${iR('Cọc',fmt(t.deposit))}${iR('Số người',t.people)}</div>${rmHtml}</div>`:''}
     ${invs.length?`<div style="font-size:14px;font-weight:700;margin-bottom:10px">📄 Hóa đơn gần đây</div>${invs.map(inv=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:13px;font-weight:600">${getMonthName(inv.month)}</div><div style="font-size:11px;color:${inv.status==='paid'?'var(--success)':inv.status==='partial'?'var(--warning)':'var(--danger)'}">${{paid:'✅ Đã trả',partial:'⚠️ Trả 1 phần',unpaid:'❌ Chưa trả'}[inv.status]}</div></div><div style="text-align:right"><div style="font-weight:800">${fmt(inv.total)}</div>${inv.debt>0?`<div style="font-size:11px;color:var(--danger)">Nợ ${fmt(inv.debt)}</div>`:''}</div></div>`).join('')}`:'<div style="text-align:center;color:var(--text3);font-size:13px;padding:12px">Chưa có hóa đơn</div>'}
@@ -3810,15 +4154,18 @@ function setAppFont(btn){
   S.settings.appFont=font;
   S.settings.appFontName=name;
   save();
+  applyFontBalance(S.settings.appFontSize);
   // Update UI
   document.querySelectorAll('.font-opt').forEach(b=>b.classList.toggle('active',b===btn));
   const el=document.getElementById('stgFontName');
   if(el)el.textContent=name;
   updateFontPreview();
+  renderHomeMenu();
 }
 
 function previewFontSize(val){
   document.documentElement.style.setProperty('--app-font-size',val+'px');
+  applyFontBalance(val+'px');
   const el=document.getElementById('stgFontSizeVal');
   if(el)el.textContent=val+'px';
   updateFontPreview();
@@ -3826,7 +4173,9 @@ function previewFontSize(val){
 
 function saveFontSize(val){
   S.settings.appFontSize=val+'px';
+  applyFontBalance(S.settings.appFontSize);
   save();
+  renderHomeMenu();
 }
 
 function updateFontPreview(){
@@ -3843,6 +4192,7 @@ function applyFontSettings(){
   const size=S.settings.appFontSize;
   if(font)document.documentElement.style.setProperty('--app-font',font);
   if(size)document.documentElement.style.setProperty('--app-font-size',size);
+  applyFontBalance(size);
   // Sync range slider
   const slider=document.getElementById('fontSizeRange');
   if(slider&&size)slider.value=parseInt(size)||14;
@@ -3855,10 +4205,17 @@ function applyFontSettings(){
   document.querySelectorAll('.font-opt').forEach(b=>{
     b.classList.toggle('active',b.dataset.font===curFont);
   });
+  updateFontPreview();
+}
+
+function applyFontBalance(size){
+  const px=parseInt(size||S.settings.appFontSize||'14',10)||14;
+  const mode=px>=17?'large':px<=13?'compact':'normal';
+  document.documentElement.dataset.fontSizeMode=mode;
 }
 
 /* ── RENDER ALL ─────────────────────────── */
-function renderAll(){renderDash();renderRooms();renderTenants();renderPayment();renderDebt();renderSettings();}
+function renderAll(){renderHomeMenu();renderDash();renderRooms();renderTenants();renderPayment();renderDebt();renderReport();renderContracts();renderArchived();renderSettings();}
 function renderSettings(){
   const s=S.settings;
   // Profile card
@@ -3886,7 +4243,7 @@ function renderSettings(){
   });
   // Dark toggle
   const t=document.getElementById('darkToggle');if(t)t.classList.toggle('on',s.darkMode);
-  // Sync topbar title with hotel name
+  // Sync menu logo title with hotel name
   updateTopbarTitle();
   // Font settings
   applyFontSettings();
@@ -3894,9 +4251,9 @@ function renderSettings(){
   if(typeof applyIcon==='function')applyIcon();
 }
 
-// Cập nhật tiêu đề topbar theo tên nhà trọ
+// Cập nhật tiêu đề logo trên menu theo tên nhà trọ
 function updateTopbarTitle(){
-  const el=document.getElementById('topbarTitle');
+  const el=document.getElementById('homeLogoTitle');
   if(!el)return;
   const name=S.settings.hotelName||'';
   if(!name||name==='Nhà Trọ Xanh'){
@@ -3928,6 +4285,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   updateTopbarTitle();
   // Khởi tạo danh sách khu trong form phòng
   populateZoneSelect();
+  // Tự động kết nối lại Firebase nếu đã có config
+  setTimeout(()=>autoReconnectFirebase(), 800);
   setTimeout(()=>toast(`Chào mừng đến ${S.settings.hotelName}! 🏠`,'success'),500);
   const dc=S.invoices.filter(i=>i.debt>0).length;
   const nc=S.contracts?.filter(c=>getContractStatus(c)==='near').length||0;
@@ -4138,13 +4497,13 @@ function applyIcon(){
     else preview.textContent=icon;
   }
 
-  // 3. Topbar header logo
-  const headerLogo=document.getElementById('headerLogo');
+  // 3. Main menu logo
+  const headerLogo=document.getElementById('homeLogo');
   if(headerLogo){
     if(isImg){
-      headerLogo.innerHTML=`<img src="${icon}" style="width:32px;height:32px;border-radius:9px;object-fit:cover;display:block">`;
+      headerLogo.innerHTML=`<img src="${icon}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">`;
     } else if(isEmoji){
-      headerLogo.innerHTML=`<span style="font-size:26px;line-height:1;display:block">${icon}</span>`;
+      headerLogo.innerHTML=`<span style="font-size:30px;line-height:1;display:block">${icon}</span>`;
     }
   }
 
@@ -4521,6 +4880,313 @@ function cleanupArchived(){
     </button>
   </div>
 </div></div>
+
+<!-- ═══ FIREBASE SYNC PANEL ═══ -->
+<div class="overlay" id="mFirebase"><div class="modal">
+  <div class="mhandle"></div>
+  <div class="mhdr">
+    <div class="mtitle">🔥 Firebase Sync</div>
+    <button class="mclose" onclick="closeM('mFirebase')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="mbody">
+    <div class="fb-status-bar">
+      <div class="fb-status-dot" id="fbStatusDot"></div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700" id="fbStatusText">Chưa kết nối</div>
+        <div style="font-size:11px;color:var(--text3)" id="fbStatusSub">Nhập Firebase config để bắt đầu đồng bộ</div>
+      </div>
+      <div id="fbLastSync" style="font-size:10px;color:var(--text3);text-align:right"></div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:16px">
+      <button class="chip active" id="fbTabConfig" onclick="fbTab('config')">⚙️ Cấu hình</button>
+      <button class="chip" id="fbTabSync" onclick="fbTab('sync')">🔄 Đồng bộ</button>
+      <button class="chip" id="fbTabGuide" onclick="fbTab('guide')">📖 Hướng dẫn</button>
+    </div>
+    <div id="fbPanelConfig">
+      <div style="font-size:12px;background:var(--bg2);padding:10px 12px;border-radius:12px;margin-bottom:12px;line-height:1.7;color:var(--text2)">🔐 Lấy config: <b>Firebase Console → Project Settings → SDK setup &amp; configuration</b></div>
+      <div class="fg"><label class="flbl">API Key *</label><input class="fc" id="fbApiKey" placeholder="AIzaSy..."></div>
+      <div class="fg"><label class="flbl">Auth Domain</label><input class="fc" id="fbAuthDomain" placeholder="your-app.firebaseapp.com"></div>
+      <div class="fg"><label class="flbl">Database URL *</label><input class="fc" id="fbDbUrl" placeholder="https://your-app-default-rtdb.firebaseio.com"></div>
+      <div class="fg"><label class="flbl">Project ID *</label><input class="fc" id="fbProjectId" placeholder="your-project-id"></div>
+      <div class="fg"><label class="flbl">App ID</label><input class="fc" id="fbAppId" placeholder="1:123:web:abc..."></div>
+      <div class="fg"><label class="flbl">Tên thiết bị này</label><input class="fc" id="fbDeviceName" placeholder="Điện thoại / Máy tính văn phòng..."></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg2);border-radius:12px;border:1.5px solid var(--border);margin-top:8px">
+        <div><div style="font-size:13px;font-weight:700">Tự động sync real-time</div><div style="font-size:11px;color:var(--text3)">Nhận thay đổi từ thiết bị khác ngay lập tức</div></div>
+        <div class="toggle" id="fbAutoToggle" onclick="toggleFbAuto()"></div>
+      </div>
+    </div>
+    <div id="fbPanelSync" style="display:none">
+      <div class="fb-sync-stats" id="fbSyncStats">
+        <div class="fb-sync-item"><div class="fb-sync-icon">🏠</div><div class="fb-sync-val" id="fbCountRooms">—</div><div class="fb-sync-lbl">Phòng</div></div>
+        <div class="fb-sync-item"><div class="fb-sync-icon">👥</div><div class="fb-sync-val" id="fbCountTenants">—</div><div class="fb-sync-lbl">Người thuê</div></div>
+        <div class="fb-sync-item"><div class="fb-sync-icon">💰</div><div class="fb-sync-val" id="fbCountInvoices">—</div><div class="fb-sync-lbl">Hóa đơn</div></div>
+        <div class="fb-sync-item"><div class="fb-sync-icon">📄</div><div class="fb-sync-val" id="fbCountContracts">—</div><div class="fb-sync-lbl">HĐ</div></div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;margin:10px 0 6px">Nhật ký đồng bộ</div>
+      <div id="fbSyncLog" style="background:var(--bg2);border-radius:12px;padding:10px;font-size:11px;font-family:monospace;max-height:150px;overflow-y:auto;color:var(--text2);border:1.5px solid var(--border)"><div style="color:var(--text3)">Chưa có lịch sử...</div></div>
+    </div>
+    <div id="fbPanelGuide" style="display:none">
+      <div style="font-size:13px;line-height:1.8;color:var(--text2)">
+        <div style="font-weight:800;color:var(--primary);margin-bottom:10px">📋 Tạo Firebase Realtime Database miễn phí:</div>
+        <div style="background:var(--bg2);border-radius:12px;padding:14px;margin-bottom:10px">
+          <p><b>1.</b> Vào <a href="https://console.firebase.google.com" target="_blank" style="color:var(--primary);font-weight:700">console.firebase.google.com</a></p>
+          <p><b>2.</b> Click <b>"Add project"</b> → đặt tên → tạo project</p>
+          <p><b>3.</b> Vào <b>Build → Realtime Database</b> → <b>Create database</b></p>
+          <p><b>4.</b> Chọn <b>"Start in test mode"</b> (cho phép đọc/ghi tự do)</p>
+          <p><b>5.</b> Vào <b>Project Settings (⚙️) → General → Add app → Web (&#60;/&#62;)</b></p>
+          <p><b>6.</b> Copy toàn bộ <code>firebaseConfig</code> rồi dán từng trường vào tab Cấu hình</p>
+        </div>
+        <div style="background:rgba(14,165,233,.08);border:1.5px solid rgba(14,165,233,.25);border-radius:12px;padding:10px 12px;font-size:12px;margin-bottom:8px">
+          💡 <b>Miễn phí mãi mãi:</b> 1GB lưu trữ · 10GB/tháng bandwidth · Đủ dùng cho vài chục phòng trọ
+        </div>
+        <div style="background:rgba(239,68,68,.08);border:1.5px solid rgba(239,68,68,.2);border-radius:12px;padding:10px 12px;font-size:12px">
+          ⚠️ <b>Bảo mật:</b> Sau khi test, vào <b>Database → Rules</b> để giới hạn quyền truy cập. Không chia sẻ file HTML có API key ra công cộng.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mfoot" id="fbFooter">
+    <button class="btn btn-secondary" onclick="closeM('mFirebase')">Đóng</button>
+    <button class="btn btn-primary" onclick="connectFirebase()" id="fbConnectBtn">🔥 Kết nối Firebase</button>
+  </div>
+</div></div>
+
+<style>
+.fb-status-bar{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--bg2);border-radius:14px;border:1.5px solid var(--border);margin-bottom:14px}
+.fb-status-dot{width:12px;height:12px;border-radius:50%;background:var(--border);flex-shrink:0;transition:all .3s}
+.fb-status-dot.connected{background:var(--success);box-shadow:0 0 0 4px rgba(16,185,129,.2);animation:fbPulse 2s infinite}
+.fb-status-dot.syncing{background:var(--warning);animation:fbPulse .6s infinite}
+.fb-status-dot.error{background:var(--danger)}
+@keyframes fbPulse{0%,100%{opacity:1}50%{opacity:.35}}
+.fb-sync-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.fb-sync-item{background:var(--bg2);border-radius:12px;padding:10px 6px;text-align:center;border:1.5px solid var(--border)}
+.fb-sync-icon{font-size:18px;line-height:1;margin-bottom:4px}
+.fb-sync-val{font-size:18px;font-weight:900;color:var(--primary);line-height:1.2}
+.fb-sync-lbl{font-size:10px;color:var(--text3);font-weight:600;margin-top:2px}
+.fb-active-dot{position:absolute;top:5px;right:5px;width:9px;height:9px;border-radius:50%;background:var(--success);border:2px solid var(--surface)}
+</style>
+
+<script>
+/* ══ FIREBASE SYNC MODULE ══ */
+let fbApp=null,fbDb=null,fbConnected=false,fbAutoSync=false,fbListener=null,fbSaveTimer=null;
+window.fbApplyingRemote=false;
+const FB_PATH='phongtro_data';
+
+function fbTab(tab){
+  ['config','sync','guide'].forEach(t=>{
+    const p=document.getElementById('fbPanel'+t[0].toUpperCase()+t.slice(1));
+    const b=document.getElementById('fbTab'+t[0].toUpperCase()+t.slice(1));
+    if(p)p.style.display=t===tab?'block':'none';
+    if(b)b.classList.toggle('active',t===tab);
+  });
+  if(tab==='sync')updateFbSyncStats();
+}
+
+function toggleFirebasePanel(){loadFbConfig();openM('mFirebase');}
+
+function loadFbConfig(){
+  const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
+  const map={fbApiKey:'apiKey',fbAuthDomain:'authDomain',fbDbUrl:'databaseURL',fbProjectId:'projectId',fbAppId:'appId',fbDeviceName:'deviceName'};
+  Object.entries(map).forEach(([elId,key])=>{const el=document.getElementById(elId);if(el)el.value=cfg[key]||'';});
+  fbAutoSync=!!cfg.autoSync;
+  const tog=document.getElementById('fbAutoToggle');if(tog)tog.classList.toggle('on',fbAutoSync);
+  if(fbConnected)updateFbStatus('connected');
+  updateFbSyncStats();
+}
+
+function toggleFbAuto(){
+  fbAutoSync=!fbAutoSync;
+  document.getElementById('fbAutoToggle')?.classList.toggle('on',fbAutoSync);
+  const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
+  cfg.autoSync=fbAutoSync;localStorage.setItem('fbConfig',JSON.stringify(cfg));
+  if(fbConnected){
+    if(fbAutoSync){startFbListener();scheduleFirebasePush();}
+    else stopFbListener();
+  }
+}
+
+async function connectFirebase(){
+  const apiKey=document.getElementById('fbApiKey').value.trim();
+  const dbUrl=document.getElementById('fbDbUrl').value.trim();
+  const projectId=document.getElementById('fbProjectId').value.trim();
+  if(!apiKey||!dbUrl||!projectId){toast('Nhập đủ API Key, Database URL và Project ID!','error');return;}
+  const btn=document.getElementById('fbConnectBtn');
+  if(btn){btn.textContent='⏳ Đang kết nối...';btn.disabled=true;}
+  try{
+    const cfg={apiKey,authDomain:document.getElementById('fbAuthDomain').value.trim()||projectId+'.firebaseapp.com',databaseURL:dbUrl,projectId,appId:document.getElementById('fbAppId').value.trim(),storageBucket:projectId+'.appspot.com',deviceName:document.getElementById('fbDeviceName').value.trim()||'Thiết bị chính',autoSync:fbAutoSync};
+    localStorage.setItem('fbConfig',JSON.stringify(cfg));
+    if(fbApp){try{fbApp.delete();}catch(e){}}
+    const appName='pt_'+Date.now();
+    fbApp=firebase.initializeApp(cfg,appName);
+    fbDb=fbApp.database();
+    await fbDb.ref('.info/connected').once('value');
+    fbConnected=true;
+    fbAddLog('✅ Kết nối Firebase thành công!');
+    updateFbStatus('connected');
+    const syncBtn=document.getElementById('fbSyncBtn');
+    if(syncBtn)syncBtn.style.display='flex';
+    addFbActiveDot();
+    if(fbAutoSync){startFbListener();scheduleFirebasePush();}
+    updateFbSyncStats();fbTab('sync');
+    toast('🔥 Firebase đã kết nối!','success');
+  }catch(e){
+    fbConnected=false;updateFbStatus('error');
+    fbAddLog('❌ Lỗi kết nối: '+e.message);
+    if(btn){btn.textContent='🔥 Kết nối Firebase';btn.disabled=false;}
+    toast('Lỗi: '+e.message,'error');
+  }
+}
+
+function addFbActiveDot(){
+  const btn=document.getElementById('fbSyncBtn');
+  if(btn&&!btn.querySelector('.fb-active-dot')){const d=document.createElement('span');d.className='fb-active-dot';btn.appendChild(d);}
+}
+
+function disconnectFirebase(){
+  stopFbListener();
+  if(fbSaveTimer){clearTimeout(fbSaveTimer);fbSaveTimer=null;}
+  if(fbApp){try{fbApp.delete();}catch(e){}}
+  fbApp=null;fbDb=null;fbConnected=false;
+  updateFbStatus('disconnected');
+  const btn=document.getElementById('fbSyncBtn');if(btn)btn.style.display='none';
+  document.querySelector('.fb-active-dot')?.remove();
+  fbAddLog('🔌 Đã ngắt kết nối.');
+  toast('Đã ngắt kết nối Firebase','warning');
+}
+
+function scheduleFirebasePush(){
+  if(!fbConnected||!fbDb||!fbAutoSync)return;
+  if(fbSaveTimer)clearTimeout(fbSaveTimer);
+  fbSaveTimer=setTimeout(()=>pushFirebaseSilently(),700);
+}
+
+async function pushFirebaseSilently(){
+  if(!fbConnected||!fbDb)return;
+  try{
+    const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
+    await fbDb.ref(FB_PATH).set({rooms:S.rooms,tenants:S.tenants,invoices:S.invoices,payments:S.payments,contracts:S.contracts||[],archived:S.archived||[],settings:S.settings,syncedAt:new Date().toISOString(),deviceName:cfg.deviceName||'?'});
+    const now=new Date().toLocaleTimeString('vi-VN');
+    const el=document.getElementById('fbLastSync');if(el)el.innerHTML='↗️ '+now;
+    fbAddLog('↗️ Auto sync lên Firebase lúc '+now);
+    updateFbStatus('connected');updateFbSyncStats();
+  }catch(e){
+    updateFbStatus('error');
+    fbAddLog('❌ Auto sync lỗi: '+e.message);
+  }
+}
+
+async function syncToFirebase(){
+  if(!fbConnected||!fbDb){toast('Chưa kết nối Firebase!','error');return;}
+  updateFbStatus('syncing');
+  try{
+    const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
+    await fbDb.ref(FB_PATH).set({rooms:S.rooms,tenants:S.tenants,invoices:S.invoices,payments:S.payments,contracts:S.contracts||[],archived:S.archived||[],settings:S.settings,syncedAt:new Date().toISOString(),deviceName:cfg.deviceName||'?'});
+    const now=new Date().toLocaleTimeString('vi-VN');
+    const el=document.getElementById('fbLastSync');if(el)el.innerHTML='⬆️ '+now;
+    fbAddLog('⬆️ Đẩy lên thành công lúc '+now);
+    updateFbStatus('connected');updateFbSyncStats();
+    toast('✅ Đồng bộ lên Firebase thành công!','success');
+  }catch(e){updateFbStatus('error');fbAddLog('❌ Lỗi đẩy dữ liệu: '+e.message);toast('Lỗi: '+e.message,'error');}
+}
+
+async function syncFromFirebase(){
+  if(!fbConnected||!fbDb){toast('Chưa kết nối Firebase!','error');return;}
+  updateFbStatus('syncing');
+  try{
+    const snap=await fbDb.ref(FB_PATH).once('value');
+    const data=snap.val();
+    if(!data){toast('Firebase chưa có dữ liệu. Hãy đẩy lên trước!','warning');updateFbStatus('connected');return;}
+    const t2=data.syncedAt?new Date(data.syncedAt).toLocaleString('vi-VN'):'';
+    if(!confirm(`Tải dữ liệu từ Firebase về?
+Sẽ ghi đè dữ liệu local hiện tại.
+Nguồn: ${(data.deviceName||'?')} · ${t2}`)){updateFbStatus('connected');return;}
+    window.fbApplyingRemote=true;
+    if(data.rooms)S.rooms=data.rooms;if(data.tenants)S.tenants=data.tenants;
+    if(data.invoices)S.invoices=data.invoices;if(data.payments)S.payments=data.payments;
+    if(data.contracts)S.contracts=data.contracts;if(data.archived)S.archived=data.archived;
+    if(data.settings)S.settings={...S.settings,...data.settings};
+    save();window.fbApplyingRemote=false;renderAll();
+    const now=new Date().toLocaleTimeString('vi-VN');
+    const el=document.getElementById('fbLastSync');if(el)el.innerHTML='⬇️ '+now;
+    fbAddLog('⬇️ Tải về thành công lúc '+now);
+    updateFbStatus('connected');updateFbSyncStats();
+    toast('✅ Đã tải dữ liệu từ Firebase!','success');
+  }catch(e){window.fbApplyingRemote=false;updateFbStatus('error');fbAddLog('❌ Lỗi tải: '+e.message);toast('Lỗi: '+e.message,'error');}
+}
+
+function startFbListener(){
+  if(!fbDb)return;stopFbListener();
+  const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
+  fbListener=fbDb.ref(FB_PATH).on('value',snap=>{
+    const data=snap.val();if(!data)return;
+    if(data.deviceName&&data.deviceName===cfg.deviceName)return;
+    window.fbApplyingRemote=true;
+    if(data.rooms)S.rooms=data.rooms;if(data.tenants)S.tenants=data.tenants;
+    if(data.invoices)S.invoices=data.invoices;if(data.payments)S.payments=data.payments;
+    if(data.contracts)S.contracts=data.contracts;if(data.archived)S.archived=data.archived;
+    if(data.settings)S.settings={...S.settings,...data.settings};
+    save();window.fbApplyingRemote=false;renderAll();
+    const now=new Date().toLocaleTimeString('vi-VN');
+    fbAddLog("🔄 Real-time từ \""+(data.deviceName||'?')+'": '+now);
+    const el=document.getElementById('fbLastSync');if(el)el.innerHTML='🔄 '+now;
+    updateFbSyncStats();
+    toast('🔄 Nhận cập nhật từ '+(data.deviceName||'thiết bị khác')+'!','info');
+  });
+}
+
+function stopFbListener(){
+  if(fbDb&&fbListener){fbDb.ref(FB_PATH).off('value',fbListener);fbListener=null;}
+}
+
+function updateFbStatus(state){
+  const dot=document.getElementById('fbStatusDot');
+  const txt=document.getElementById('fbStatusText');
+  const sub=document.getElementById('fbStatusSub');
+  const footer=document.getElementById('fbFooter');
+  if(!dot)return;
+  const M={connected:{d:'connected',t:'🔥 Đã kết nối Firebase',s:'Sẵn sàng đồng bộ dữ liệu'},syncing:{d:'syncing',t:'⏳ Đang đồng bộ...',s:'Vui lòng đợi...'},error:{d:'error',t:'❌ Lỗi kết nối',s:'Kiểm tra lại config Firebase'},disconnected:{d:'',t:'⭕ Chưa kết nối',s:'Nhập Firebase config để bắt đầu'}};
+  const st=M[state]||M.disconnected;
+  dot.className='fb-status-dot'+(st.d?' '+st.d:'');
+  if(txt)txt.textContent=st.t;if(sub)sub.textContent=st.s;
+  if(footer){
+    if(state==='connected'||state==='syncing'){
+      footer.innerHTML=`<button class="btn btn-secondary btn-sm" onclick="disconnectFirebase()">🔌 Ngắt kết nối</button><button class="btn btn-info btn-sm" onclick="syncFromFirebase()">⬇️ Tải về</button><button class="btn btn-primary" onclick="syncToFirebase()">⬆️ Đẩy lên</button>`;
+    } else {
+      footer.innerHTML=`<button class="btn btn-secondary" onclick="closeM('mFirebase')">Đóng</button><button class="btn btn-primary" onclick="connectFirebase()" id="fbConnectBtn">🔥 Kết nối Firebase</button>`;
+    }
+  }
+}
+
+function updateFbSyncStats(){
+  const m={fbCountRooms:S.rooms.length,fbCountTenants:S.tenants.length,fbCountInvoices:S.invoices.length,fbCountContracts:(S.contracts||[]).length};
+  Object.entries(m).forEach(([id,val])=>{const el=document.getElementById(id);if(el)el.textContent=val;});
+}
+
+function fbAddLog(msg){
+  const log=document.getElementById('fbSyncLog');if(!log)return;
+  const now=new Date().toLocaleTimeString('vi-VN');
+  const div=document.createElement('div');
+  div.innerHTML='<span style="color:var(--text3)">['+now+']</span> '+msg;
+  log.prepend(div);
+  while(log.children.length>50)log.removeChild(log.lastChild);
+}
+
+function autoReconnectFirebase(){
+  const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
+  if(!cfg.apiKey||!cfg.databaseURL)return;
+  const syncBtn=document.getElementById('fbSyncBtn');
+  if(syncBtn)syncBtn.style.display='flex';
+  try{
+    if(fbApp)return;
+    fbApp=firebase.initializeApp(cfg,'pt_auto_'+Date.now());
+    fbDb=fbApp.database();fbConnected=true;
+    addFbActiveDot();
+    updateFbStatus('connected');
+    if(cfg.autoSync){fbAutoSync=true;startFbListener();}
+    fbAddLog('♻️ Tự kết nối lại Firebase thành công');
+  }catch(e){fbAddLog('⚠️ Auto-reconnect thất bại: '+e.message);}
+}
+</script>
 
 </body>
 </html>

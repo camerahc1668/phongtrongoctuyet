@@ -999,9 +999,12 @@ html[data-font-size-mode="large"] .chip{padding-top:8px;padding-bottom:8px}
     <div class="page" id="pg-rooms">
       <div class="page-header">
         <div><div class="page-title">Phòng Trọ</div><div class="page-subtitle" id="roomsSub"></div></div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn btn-secondary btn-sm" onclick="refreshAndSort()" title="Cập nhật &amp; sắp xếp lại"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Cập nhật</button>
         <button class="btn btn-primary btn-sm" onclick="openAddRoom()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Thêm
         </button>
+        </div>
       </div>
       <!-- Tìm kiếm -->
       <div class="search-bar"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="search" placeholder="Tìm phòng, người thuê..." id="roomSearch" oninput="renderRooms()"></div>
@@ -1036,9 +1039,12 @@ html[data-font-size-mode="large"] .chip{padding-top:8px;padding-bottom:8px}
     <div class="page" id="pg-tenants">
       <div class="page-header">
         <div><div class="page-title">Người Thuê</div><div class="page-subtitle" id="tenantsSub"></div></div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn btn-secondary btn-sm" onclick="refreshAndSort()" title="Cập nhật &amp; sắp xếp lại"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Cập nhật</button>
         <button class="btn btn-primary btn-sm" onclick="openAddTenant()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Thêm
         </button>
+        </div>
       </div>
       <div class="search-bar"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="search" placeholder="Tìm tên, SĐT, CCCD..." id="tenantSearch" oninput="renderTenants()"></div>
       <div class="tenant-list" id="tenantList"></div>
@@ -1297,6 +1303,16 @@ html[data-font-size-mode="large"] .chip{padding-top:8px;padding-bottom:8px}
           <div class="stg-row-body">
             <div class="stg-row-lbl">Firebase Sync</div>
             <div class="stg-row-val" id="fbSettingRow">Đồng bộ nhiều thiết bị real-time</div>
+          </div>
+          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="stg-row" onclick="refreshAndSort()">
+          <div class="stg-row-icon" style="background:rgba(14,165,233,.12);color:#0ea5e9">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </div>
+          <div class="stg-row-body">
+            <div class="stg-row-lbl">Cập nhật &amp; sắp xếp lại</div>
+            <div class="stg-row-val">Phòng, người thuê, liên kết dữ liệu</div>
           </div>
           <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
@@ -4904,10 +4920,13 @@ function cleanupArchived(){
     </div>
     <div id="fbPanelConfig">
       <div style="font-size:12px;background:var(--bg2);padding:10px 12px;border-radius:12px;margin-bottom:12px;line-height:1.7;color:var(--text2)">🔐 Lấy config: <b>Firebase Console → Project Settings → SDK setup &amp; configuration</b></div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="btn btn-secondary btn-xs" onclick="resetFbDefault()" type="button">↺ Dùng cấu hình mặc định</button></div>
       <div class="fg"><label class="flbl">API Key *</label><input class="fc" id="fbApiKey" placeholder="AIzaSy..."></div>
       <div class="fg"><label class="flbl">Auth Domain</label><input class="fc" id="fbAuthDomain" placeholder="your-app.firebaseapp.com"></div>
       <div class="fg"><label class="flbl">Database URL *</label><input class="fc" id="fbDbUrl" placeholder="https://your-app-default-rtdb.firebaseio.com"></div>
       <div class="fg"><label class="flbl">Project ID *</label><input class="fc" id="fbProjectId" placeholder="your-project-id"></div>
+      <div class="fg"><label class="flbl">Storage Bucket</label><input class="fc" id="fbStorageBucket" placeholder="your-app.firebasestorage.app"></div>
+      <div class="fg"><label class="flbl">Messaging Sender ID</label><input class="fc" id="fbSenderId" placeholder="123456789"></div>
       <div class="fg"><label class="flbl">App ID</label><input class="fc" id="fbAppId" placeholder="1:123:web:abc..."></div>
       <div class="fg"><label class="flbl">Tên thiết bị này</label><input class="fc" id="fbDeviceName" placeholder="Điện thoại / Máy tính văn phòng..."></div>
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--bg2);border-radius:12px;border:1.5px solid var(--border);margin-top:8px">
@@ -4967,10 +4986,76 @@ function cleanupArchived(){
 </style>
 
 <script>
+/* ══ CẬP NHẬT & SẮP XẾP LẠI ══ */
+function _natCmp(a,b){return String(a??'').localeCompare(String(b??''),'vi',{numeric:true,sensitivity:'base'});}
+function refreshAndSort(silent){
+  let fixed=0;
+  // 1) Liên kết lại phòng ↔ người thuê
+  const tIds=new Set(S.tenants.map(t=>t.id));
+  S.rooms.forEach(r=>{
+    if(r.tenantId&&!tIds.has(r.tenantId)){r.tenantId=null;if(r.status!=='available')r.status='available';fixed++;}
+  });
+  S.tenants.forEach(t=>{
+    const room=S.rooms.find(r=>r.id===t.roomId);
+    if(room){
+      if(room.tenantId!==t.id){room.tenantId=t.id;fixed++;}
+      if(room.status==='available'){room.status='rented';fixed++;}
+    }
+  });
+  S.rooms.forEach(r=>{
+    if(!r.tenantId&&r.status==='rented'){r.status='available';fixed++;}
+  });
+  // 2) Sắp xếp phòng: Khu → Tầng → Số phòng → Tên
+  const zones=(S.settings.zones||[]);
+  S.rooms.sort((a,b)=>{
+    const za=zones.indexOf(a.zone),zb=zones.indexOf(b.zone);
+    if((za<0?999:za)!==(zb<0?999:zb))return(za<0?999:za)-(zb<0?999:zb);
+    const fa=+(a.floorNum??a.floor??0)||0,fb=+(b.floorNum??b.floor??0)||0;
+    if(fa!==fb)return fa-fb;
+    if((a.roomNum||0)!==(b.roomNum||0))return(a.roomNum||0)-(b.roomNum||0);
+    return _natCmp(a.name,b.name);
+  });
+  // 3) Sắp xếp người thuê theo phòng đang ở (chưa có phòng xuống cuối), rồi theo tên
+  const rIdx=new Map(S.rooms.map((r,i)=>[r.id,i]));
+  S.tenants.sort((a,b)=>{
+    const ia=rIdx.has(a.roomId)?rIdx.get(a.roomId):1e6,ib=rIdx.has(b.roomId)?rIdx.get(b.roomId):1e6;
+    return ia!==ib?ia-ib:_natCmp(a.name,b.name);
+  });
+  // 4) Lưu + vẽ lại toàn bộ + đẩy Firebase nếu đang bật auto sync
+  save();renderAll();
+  if(typeof updateFbSyncStats==='function')updateFbSyncStats();
+  if(!silent)toast(fixed?`✅ Đã cập nhật & sắp xếp lại (sửa ${fixed} liên kết)`:'✅ Đã cập nhật & sắp xếp lại','success');
+}
+
 /* ══ FIREBASE SYNC MODULE ══ */
 let fbApp=null,fbDb=null,fbConnected=false,fbAutoSync=false,fbListener=null,fbSaveTimer=null;
 window.fbApplyingRemote=false;
 const FB_PATH='phongtro_data';
+/* Cấu hình mặc định — có thể sửa trong Cài đặt → Firebase Sync (lưu vào localStorage) */
+const DEFAULT_FB_CONFIG={
+  apiKey:"AIzaSyBMvvndb-aVsp3U2ycMVfHjTt-rlh_X6kE",
+  authDomain:"phongtrongoctuyet.firebaseapp.com",
+  databaseURL:"https://phongtrongoctuyet-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"phongtrongoctuyet",
+  storageBucket:"phongtrongoctuyet.firebasestorage.app",
+  messagingSenderId:"668120317580",
+  appId:"1:668120317580:web:f183a005bb5308970185a9"
+};
+function getFbCfg(){
+  try{const c=JSON.parse(localStorage.getItem('fbConfig')||'null');if(c&&c.apiKey)return c;}catch(e){}
+  return {...DEFAULT_FB_CONFIG,deviceName:'Thiết bị chính',autoSync:false};
+}
+function getFbDeviceId(){
+  let id=localStorage.getItem('fbDeviceId');
+  if(!id){id='dv_'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem('fbDeviceId',id);}
+  return id;
+}
+function resetFbDefault(){
+  if(!confirm('Điền lại cấu hình Firebase mặc định?'))return;
+  localStorage.removeItem('fbConfig');
+  loadFbConfig();
+  toast('Đã điền cấu hình mặc định — bấm "Kết nối Firebase"','info');
+}
 
 function fbTab(tab){
   ['config','sync','guide'].forEach(t=>{
@@ -4985,8 +5070,8 @@ function fbTab(tab){
 function toggleFirebasePanel(){loadFbConfig();openM('mFirebase');}
 
 function loadFbConfig(){
-  const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
-  const map={fbApiKey:'apiKey',fbAuthDomain:'authDomain',fbDbUrl:'databaseURL',fbProjectId:'projectId',fbAppId:'appId',fbDeviceName:'deviceName'};
+  const cfg=getFbCfg();
+  const map={fbApiKey:'apiKey',fbAuthDomain:'authDomain',fbDbUrl:'databaseURL',fbProjectId:'projectId',fbStorageBucket:'storageBucket',fbSenderId:'messagingSenderId',fbAppId:'appId',fbDeviceName:'deviceName'};
   Object.entries(map).forEach(([elId,key])=>{const el=document.getElementById(elId);if(el)el.value=cfg[key]||'';});
   fbAutoSync=!!cfg.autoSync;
   const tog=document.getElementById('fbAutoToggle');if(tog)tog.classList.toggle('on',fbAutoSync);
@@ -5013,7 +5098,7 @@ async function connectFirebase(){
   const btn=document.getElementById('fbConnectBtn');
   if(btn){btn.textContent='⏳ Đang kết nối...';btn.disabled=true;}
   try{
-    const cfg={apiKey,authDomain:document.getElementById('fbAuthDomain').value.trim()||projectId+'.firebaseapp.com',databaseURL:dbUrl,projectId,appId:document.getElementById('fbAppId').value.trim(),storageBucket:projectId+'.appspot.com',deviceName:document.getElementById('fbDeviceName').value.trim()||'Thiết bị chính',autoSync:fbAutoSync};
+    const cfg={apiKey,authDomain:document.getElementById('fbAuthDomain').value.trim()||projectId+'.firebaseapp.com',databaseURL:dbUrl,projectId,appId:document.getElementById('fbAppId').value.trim(),storageBucket:document.getElementById('fbStorageBucket').value.trim()||projectId+'.firebasestorage.app',messagingSenderId:document.getElementById('fbSenderId').value.trim(),deviceName:document.getElementById('fbDeviceName').value.trim()||'Thiết bị chính',autoSync:fbAutoSync};
     localStorage.setItem('fbConfig',JSON.stringify(cfg));
     if(fbApp){try{fbApp.delete();}catch(e){}}
     const appName='pt_'+Date.now();
@@ -5064,7 +5149,7 @@ async function pushFirebaseSilently(){
   if(!fbConnected||!fbDb)return;
   try{
     const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
-    await fbDb.ref(FB_PATH).set({rooms:S.rooms,tenants:S.tenants,invoices:S.invoices,payments:S.payments,contracts:S.contracts||[],archived:S.archived||[],settings:S.settings,syncedAt:new Date().toISOString(),deviceName:cfg.deviceName||'?'});
+    await fbDb.ref(FB_PATH).set({rooms:S.rooms,tenants:S.tenants,invoices:S.invoices,payments:S.payments,contracts:S.contracts||[],archived:S.archived||[],settings:S.settings,syncedAt:new Date().toISOString(),deviceName:cfg.deviceName||'?',deviceId:getFbDeviceId()});
     const now=new Date().toLocaleTimeString('vi-VN');
     const el=document.getElementById('fbLastSync');if(el)el.innerHTML='↗️ '+now;
     fbAddLog('↗️ Auto sync lên Firebase lúc '+now);
@@ -5080,7 +5165,7 @@ async function syncToFirebase(){
   updateFbStatus('syncing');
   try{
     const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
-    await fbDb.ref(FB_PATH).set({rooms:S.rooms,tenants:S.tenants,invoices:S.invoices,payments:S.payments,contracts:S.contracts||[],archived:S.archived||[],settings:S.settings,syncedAt:new Date().toISOString(),deviceName:cfg.deviceName||'?'});
+    await fbDb.ref(FB_PATH).set({rooms:S.rooms,tenants:S.tenants,invoices:S.invoices,payments:S.payments,contracts:S.contracts||[],archived:S.archived||[],settings:S.settings,syncedAt:new Date().toISOString(),deviceName:cfg.deviceName||'?',deviceId:getFbDeviceId()});
     const now=new Date().toLocaleTimeString('vi-VN');
     const el=document.getElementById('fbLastSync');if(el)el.innerHTML='⬆️ '+now;
     fbAddLog('⬆️ Đẩy lên thành công lúc '+now);
@@ -5119,7 +5204,7 @@ function startFbListener(){
   const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
   fbListener=fbDb.ref(FB_PATH).on('value',snap=>{
     const data=snap.val();if(!data)return;
-    if(data.deviceName&&data.deviceName===cfg.deviceName)return;
+    if(data.deviceId?data.deviceId===getFbDeviceId():(data.deviceName&&data.deviceName===cfg.deviceName))return;
     window.fbApplyingRemote=true;
     if(data.rooms)S.rooms=data.rooms;if(data.tenants)S.tenants=data.tenants;
     if(data.invoices)S.invoices=data.invoices;if(data.payments)S.payments=data.payments;
@@ -5148,6 +5233,8 @@ function updateFbStatus(state){
   const st=M[state]||M.disconnected;
   dot.className='fb-status-dot'+(st.d?' '+st.d:'');
   if(txt)txt.textContent=st.t;if(sub)sub.textContent=st.s;
+  const row=document.getElementById('fbSettingRow');
+  if(row)row.textContent={connected:'🟢 Đã kết nối',syncing:'⏳ Đang đồng bộ...',error:'🔴 Lỗi kết nối'}[state]||'Đồng bộ nhiều thiết bị real-time';
   if(footer){
     if(state==='connected'||state==='syncing'){
       footer.innerHTML=`<button class="btn btn-secondary btn-sm" onclick="disconnectFirebase()">🔌 Ngắt kết nối</button><button class="btn btn-info btn-sm" onclick="syncFromFirebase()">⬇️ Tải về</button><button class="btn btn-primary" onclick="syncToFirebase()">⬆️ Đẩy lên</button>`;
@@ -5172,7 +5259,7 @@ function fbAddLog(msg){
 }
 
 function autoReconnectFirebase(){
-  const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
+  const cfg=getFbCfg();
   if(!cfg.apiKey||!cfg.databaseURL)return;
   const syncBtn=document.getElementById('fbSyncBtn');
   if(syncBtn)syncBtn.style.display='flex';

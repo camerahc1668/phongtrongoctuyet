@@ -1,5 +1,5 @@
 /* Service Worker — PhòngTrọ Pro. Đổi VERSION mỗi khi cập nhật index.html để máy khách tải bản mới. */
-const VERSION='pt-v2-1';
+const VERSION='pt-v3-1';
 const CORE=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 const CDN=['cdn.jsdelivr.net','cdnjs.cloudflare.com','unpkg.com','www.gstatic.com','fonts.googleapis.com','fonts.gstatic.com'];
 

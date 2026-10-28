@@ -1092,6 +1092,7 @@ html[data-font-size-mode="large"] .chip{padding-top:8px;padding-bottom:8px}
       <div class="page-header"><div><div class="page-title">Báo Cáo</div></div><button class="btn btn-secondary btn-sm" onclick="exportExcel()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Excel</button></div>
       <div class="rpt-tabs"><button class="rpt-tab active" data-p="month" onclick="setPeriod('month')">Tháng</button><button class="rpt-tab" data-p="quarter" onclick="setPeriod('quarter')">Quý</button><button class="rpt-tab" data-p="year" onclick="setPeriod('year')">Năm</button></div>
       <div class="stat-grid mb-3" id="rptStats"></div>
+      <div class="section"><div class="section-title mb-2">💹 Lãi / Lỗ (6 tháng)</div><div class="card card-body" id="plBox"></div></div>
       <div class="section"><div class="section-title mb-2">📈 Doanh Thu</div><div class="card"><div class="chart-wrap"><canvas id="chartRpt"></canvas></div></div></div>
       <div class="section"><div class="section-title mb-2">💡 Điện Nước</div><div class="card"><div class="chart-wrap"><canvas id="chartUtil"></canvas></div></div></div>
     </div>
@@ -1118,6 +1119,28 @@ html[data-font-size-mode="large"] .chip{padding-top:8px;padding-bottom:8px}
       </div>
       <!-- Danh sách hợp đồng -->
       <div id="contractList"></div>
+    </div>
+
+    <!-- ══ SỰ CỐ & SỬA CHỮA ══ -->
+    <div class="page" id="pg-maint">
+      <div class="page-header">
+        <div><div class="page-title">Sự Cố &amp; Sửa Chữa</div><div class="page-subtitle" id="maintSub">Theo dõi yêu cầu sửa chữa</div></div>
+        <button class="btn btn-primary btn-sm" onclick="editInc()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Báo sự cố</button>
+      </div>
+      <div class="stat-grid mb-3" id="maintStats"></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="maintChips"></div>
+      <div id="maintList"></div>
+    </div>
+
+    <!-- ══ CHI PHÍ ══ -->
+    <div class="page" id="pg-expense">
+      <div class="page-header">
+        <div><div class="page-title">Chi Phí</div><div class="page-subtitle" id="expSub">Chi tiêu vận hành</div></div>
+        <button class="btn btn-primary btn-sm" onclick="editExp()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Thêm</button>
+      </div>
+      <div class="fg"><input class="fc" type="month" id="expMonthIn" onchange="setExpMonth(this.value)" aria-label="Chọn tháng"></div>
+      <div id="expSummary"></div>
+      <div id="expList"></div>
     </div>
 
     <!-- ══ LỊCH SỬ (ARCHIVED) ══ -->
@@ -1312,6 +1335,27 @@ html[data-font-size-mode="large"] .chip{padding-top:8px;padding-bottom:8px}
             <div class="stg-row-lbl">Firebase Sync</div>
             <div class="stg-row-val" id="fbSettingRow">Đồng bộ nhiều thiết bị real-time</div>
           </div>
+          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="stg-row" onclick="openProps()">
+          <div class="stg-row-icon" style="background:rgba(59,130,246,.12);color:#3b82f6">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <div class="stg-row-body"><div class="stg-row-lbl">Nhà trọ đang quản lý</div><div class="stg-row-val" id="propSettingRow">—</div></div>
+          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="stg-row" onclick="openElecTier()">
+          <div class="stg-row-icon" style="background:rgba(245,158,11,.14);color:#f59e0b">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+          </div>
+          <div class="stg-row-body"><div class="stg-row-lbl">Giá điện bậc thang</div><div class="stg-row-val" id="elecSettingRow">—</div></div>
+          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="stg-row" onclick="openLateFee()">
+          <div class="stg-row-icon" style="background:rgba(239,68,68,.12);color:#ef4444">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="stg-row-body"><div class="stg-row-lbl">Phí trễ hạn</div><div class="stg-row-val" id="lateSettingRow">—</div></div>
           <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
         <div class="stg-row" onclick="openBank()">
@@ -1948,8 +1992,10 @@ function createDemo(){
 }
 
 /* ── STORAGE ───────────────────────────── */
+const PT_CUR=()=>localStorage.getItem('ptCurProp')||'main';
+const PT_KEY=()=>PT_CUR()==='main'?'pt3':'pt3_'+PT_CUR();
 function save(){
-  try{localStorage.setItem('pt3',JSON.stringify(S));window.__saveFailed=false;}
+  try{localStorage.setItem(PT_KEY(),JSON.stringify(S));window.__saveFailed=false;}
   catch(e){
     if(!window.__saveFailed){window.__saveFailed=true;
       const quota=e&&(e.name==='QuotaExceededError'||e.code===22||e.code===1014);
@@ -1959,7 +2005,7 @@ function save(){
     scheduleFirebasePush();
   }
 }
-function load(){try{const s=localStorage.getItem('pt3');if(s){const parsed=JSON.parse(s);S={...S,...parsed};if(!S.contracts)S.contracts=[];if(!S.archived)S.archived=[];return true;}}catch(e){window.__loadError=true;try{localStorage.setItem('pt3_corrupt_backup',localStorage.getItem('pt3')||'');}catch(_){}}return false;}
+function load(){try{const s=localStorage.getItem(PT_KEY());if(s){const parsed=JSON.parse(s);S={...S,...parsed};if(!S.contracts)S.contracts=[];if(!S.archived)S.archived=[];return true;}}catch(e){window.__loadError=true;try{localStorage.setItem('pt3_corrupt_backup',localStorage.getItem(PT_KEY())||'');}catch(_){}}return false;}
 function resetDemo(){if(!confirm('Reset về dữ liệu mẫu?'))return;const d=createDemo();S.rooms=d.rooms;S.tenants=d.tenants;S.invoices=d.invoices;S.payments=d.payments;save();renderAll();toast('Đã reset dữ liệu demo!','success')}
 function backupData(){const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='phongtro_'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('Đã sao lưu!','success')}
 function restoreData(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(d.rooms&&d.tenants){S={...S,...d};save();renderAll();toast('Khôi phục thành công!','success');}}catch{toast('File không hợp lệ!','error');}};r.readAsText(f);inp.value='';}
@@ -2000,6 +2046,7 @@ function switchTab(tab){
   if(tab==='debt')renderDebt();if(tab==='report')renderReport();
   if(tab==='contracts')renderContracts();
   if(tab==='archived')renderArchived();
+  if(tab==='maint')renderMaint();if(tab==='expense')renderExpenses();
   document.getElementById('mainContent').scrollTo(0,0);
 }
 
@@ -2026,6 +2073,8 @@ function renderHomeMenu(){
     {tab:'report',cls:'teal',title:'Báo cáo',sub:'Doanh thu, điện nước, Excel',svg:'<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>'},
     {tab:'contracts',cls:'green',title:'Hợp đồng',sub:'Tạo và theo dõi hợp đồng thuê',svg:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>'},
     {tab:'archived',cls:'blue',title:'Lịch sử',sub:'Khách đã dọn đi, hồ sơ cũ',svg:'<polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>'},
+    {tab:'maint',cls:'red',title:'Sự cố & sửa chữa',sub:'Theo dõi, chi phí, ảnh',svg:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>'},
+    {tab:'expense',cls:'teal',title:'Chi phí',sub:'Chi tiêu, lãi/lỗ theo tháng',svg:'<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>'},
     {tab:'settings',cls:'orange',title:'Cài đặt',sub:'Logo, giao diện, Firebase sync',svg:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'}
   ];
   const grid=document.getElementById('homeMenuGrid');
@@ -2075,7 +2124,7 @@ function renderCharts(){
   // Revenue chart
   const ctx1=document.getElementById('chartRev');if(!ctx1)return;if(cRev)cRev.destroy();
   const now=new Date(),lbs=[],dta=[];
-  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);lbs.push(`T${d.getMonth()+1}`);const m=`${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}`;dta.push(S.invoices.filter(x=>x.month===m).reduce((s,x)=>s+x.paid,0)||(15e6+Math.random()*8e6));}
+  for(let i=5;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);lbs.push(`T${d.getMonth()+1}`);const m=`${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}`;dta.push(S.invoices.filter(x=>x.month===m).reduce((s,x)=>s+x.paid,0)||0);}
   const dk=S.settings.darkMode,tc=dk?'#94a3b8':'#64748b',gc=dk?'rgba(255,255,255,.05)':'rgba(0,0,0,.05)';
   cRev=new Chart(ctx1,{type:'bar',data:{labels:lbs,datasets:[{label:'Doanh thu',data:dta,backgroundColor:'rgba(22,163,74,.15)',borderColor:'#16a34a',borderWidth:2.5,borderRadius:8,borderSkipped:false}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmt(c.raw)}}},scales:{y:{ticks:{callback:v=>fmtN(v/1e6)+'M',color:tc},grid:{color:gc}},x:{ticks:{color:tc},grid:{display:false}}}}});
   // Occupancy chart
@@ -3329,7 +3378,7 @@ function calcTF(){
   const waterNew=+document.getElementById('tfWaterNew').value||0;
   const elecUsed=Math.max(0,elecNew-elecOld);
   const waterUsed=Math.max(0,waterNew-waterOld);
-  const elecFee=Math.round(elecUsed*elecPrice);
+  const elecFee=Math.round(elecCost({elecPrice},elecUsed));
   const waterFee=Math.round(waterUsed*waterPrice);
 
   const extra=+document.getElementById('tfExtra').value||0;
@@ -3486,7 +3535,7 @@ function renderPayment(){
     const sl={paid:'Đã thanh toán',partial:'Trả một phần',unpaid:'Chưa thanh toán'}[inv.status];
     return `<div class="inv-card">
       <div class="inv-hdr"><div><div class="inv-room">Phòng ${esc(room?.name||'?')}</div><div class="inv-month">${esc(t?.name||'—')} · ${getMonthName(inv.month)}</div></div><span style="padding:4px 12px;border-radius:99px;background:${sc}18;color:${sc};font-size:11px;font-weight:700">${sl}</span></div>
-      <div class="inv-body">${pR('Tiền phòng',fmt(inv.roomFee))}${pR('Tiền điện',fmt(inv.elecFee))}${pR('Tiền nước',fmt(inv.waterFee))}${inv.internet?pR('Internet',fmt(inv.internet)):''}${inv.serviceFee?pR('Dịch vụ',fmt(inv.serviceFee)):''}${inv.garbage?pR('Rác',fmt(inv.garbage)):''}${inv.parking?pR('Giữ xe',fmt(inv.parking)):''}${inv.extra?pR('Phụ thu',fmt(inv.extra)):''}${inv.discount?pR('Giảm giá','- '+fmt(inv.discount)):''}${inv.note?`<div style="font-size:11px;color:var(--text3);padding:4px 0">📝 ${esc(inv.note)}</div>`:''}</div>
+      <div class="inv-body">${pR('Tiền phòng',fmt(inv.roomFee))}${pR('Tiền điện',fmt(inv.elecFee))}${pR('Tiền nước',fmt(inv.waterFee))}${inv.internet?pR('Internet',fmt(inv.internet)):''}${inv.serviceFee?pR('Dịch vụ',fmt(inv.serviceFee)):''}${inv.garbage?pR('Rác',fmt(inv.garbage)):''}${inv.parking?pR('Giữ xe',fmt(inv.parking)):''}${inv.extra?pR('Phụ thu',fmt(inv.extra)):''}${inv.lateFee?pR('Phí trễ hạn',fmt(inv.lateFee)):''}${inv.discount?pR('Giảm giá','- '+fmt(inv.discount)):''}${inv.note?`<div style="font-size:11px;color:var(--text3);padding:4px 0">📝 ${esc(inv.note)}</div>`:''}</div>
       <div class="inv-total"><div class="inv-total-lbl">Tổng cộng</div><div class="inv-total-val">${fmt(inv.total)}</div></div>
       ${inv.debt>0?`<div style="padding:6px 16px;background:rgba(239,68,68,.08);font-size:12px;color:var(--danger);font-weight:700">⚠️ Còn nợ: ${fmt(inv.debt)}</div>`:''}
       ${photosHtml(inv)}<div class="inv-foot">
@@ -3518,9 +3567,9 @@ function calcInv(){
   const eo=+document.getElementById('invEO').value||0,en=+document.getElementById('invEN').value||0;
   const wo=+document.getElementById('invWO').value||0,wn=+document.getElementById('invWN').value||0;
   const extra=+document.getElementById('invExtra').value||0,disc=+document.getElementById('invDisc').value||0;
-  const eu=Math.max(0,en-eo),wu=Math.max(0,wn-wo),ef=eu*room.elecPrice,wf=wu*room.waterPrice;
+  const eu=Math.max(0,en-eo),wu=Math.max(0,wn-wo),ef=elecCost(room,eu),wf=wu*room.waterPrice;
   const total=room.price+ef+wf+room.serviceFee+room.internet+room.garbage+room.parking+extra-disc;
-  document.getElementById('invPreview').innerHTML=`<div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px">📋 Chi tiết</div>${pR('Tiền phòng',fmt(room.price))}${pR(`Điện (${eu}kWh × ${fmtN(room.elecPrice)}₫)`,fmt(ef))}${pR(`Nước (${wu}m³ × ${fmtN(room.waterPrice)}₫)`,fmt(wf))}${room.serviceFee?pR('Dịch vụ',fmt(room.serviceFee)):''}${room.internet?pR('Internet',fmt(room.internet)):''}${room.garbage?pR('Rác',fmt(room.garbage)):''}${room.parking?pR('Giữ xe',fmt(room.parking)):''}${extra?pR('Phụ thu',fmt(extra)):''}${disc?pR('Giảm giá','- '+fmt(disc)):''}<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:900;color:var(--primary);padding-top:8px;border-top:2px solid var(--primary);margin-top:8px"><span>TỔNG</span><span>${fmt(total)}</span></div>`;
+  document.getElementById('invPreview').innerHTML=`<div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px">📋 Chi tiết</div>${pR('Tiền phòng',fmt(room.price))}${pR(elecLabel(room,eu),fmt(ef))}${pR(`Nước (${wu}m³ × ${fmtN(room.waterPrice)}₫)`,fmt(wf))}${room.serviceFee?pR('Dịch vụ',fmt(room.serviceFee)):''}${room.internet?pR('Internet',fmt(room.internet)):''}${room.garbage?pR('Rác',fmt(room.garbage)):''}${room.parking?pR('Giữ xe',fmt(room.parking)):''}${extra?pR('Phụ thu',fmt(extra)):''}${disc?pR('Giảm giá','- '+fmt(disc)):''}<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:900;color:var(--primary);padding-top:8px;border-top:2px solid var(--primary);margin-top:8px"><span>TỔNG</span><span>${fmt(total)}</span></div>`;
 }
 function saveInv(){
   const roomId=document.getElementById('invRoom').value,month=document.getElementById('invMonth').value;
@@ -3535,7 +3584,7 @@ function saveInv(){
     const what=[eReset?`điện (${en} < ${eo})`:'',wReset?`nước (${wn} < ${wo})`:''].filter(Boolean).join(' và ');
     if(!confirm(`⚠️ Chỉ số mới nhỏ hơn chỉ số cũ: ${what}.\n\nNếu công tơ đã được thay/quay vòng, bấm OK để tính tiêu thụ từ 0 đến chỉ số mới.\nNếu nhập nhầm, bấm Hủy để sửa lại.`))return;
   }
-  const eu=eReset?en:en-eo,wu=wReset?wn:wn-wo,ef=eu*(room?.elecPrice||3500),wf=wu*(room?.waterPrice||15000);
+  const eu=eReset?en:en-eo,wu=wReset?wn:wn-wo,ef=elecCost(room||{elecPrice:3500},eu),wf=wu*(room?.waterPrice||15000);
   if(eu>1500||wu>150){if(!confirm(`Mức tiêu thụ bất thường (điện ${eu} kWh, nước ${wu} m³). Vẫn tạo hóa đơn?`))return;}
   const total=(room?.price||0)+ef+wf+(room?.serviceFee||0)+(room?.internet||0)+(room?.garbage||0)+(room?.parking||0)+extra-disc;
   if(total<0){toast('Giảm giá lớn hơn tổng tiền — hóa đơn bị âm!','error');return}
@@ -3567,7 +3616,7 @@ function delInv(id){if(!confirm('Xóa hóa đơn này?'))return;S.invoices=S.inv
 function printInv(invId){
   const inv=S.invoices.find(i=>i.id===invId);if(!inv)return;
   const room=S.rooms.find(r=>r.id===inv.roomId),t=S.tenants.find(x=>x.id===inv.tenantId);
-  document.getElementById('printInv').innerHTML=`<div class="logo-name">${esc(S.settings.hotelName)}</div><div style="text-align:center;font-size:12px;color:#666">${esc(S.settings.address)} · ĐT: ${esc(S.settings.phone)}</div><hr class="divider"><div style="text-align:center;font-size:17px;font-weight:800;margin:10px 0">PHIẾU THU TIỀN PHÒNG</div><hr class="divider"><div class="pr"><span>Phòng:</span><strong>${esc(room?.name)}</strong></div><div class="pr"><span>Người thuê:</span><strong>${esc(t?.name||'—')}</strong></div><div class="pr"><span>Tháng:</span><strong>${getMonthName(inv.month)}</strong></div><div class="pr"><span>Ngày in:</span><strong>${new Date().toLocaleDateString('vi-VN')}</strong></div><hr class="divider"><div class="pr"><span>Tiền phòng:</span><span>${fmt(inv.roomFee)}</span></div><div class="pr"><span>Điện (${meterUse(inv,'elec')} kWh):</span><span>${fmt(inv.elecFee)}</span></div><div class="pr"><span>Nước (${meterUse(inv,'water')} m³):</span><span>${fmt(inv.waterFee)}</span></div>${inv.internet?`<div class="pr"><span>Internet:</span><span>${fmt(inv.internet)}</span></div>`:''}${inv.serviceFee?`<div class="pr"><span>Dịch vụ:</span><span>${fmt(inv.serviceFee)}</span></div>`:''}${inv.garbage?`<div class="pr"><span>Rác:</span><span>${fmt(inv.garbage)}</span></div>`:''}${inv.extra?`<div class="pr"><span>Phụ thu:</span><span>${fmt(inv.extra)}</span></div>`:''}${inv.discount?`<div class="pr"><span>Giảm giá:</span><span>- ${fmt(inv.discount)}</span></div>`:''}<div class="ptotal"><span>TỔNG CỘNG</span><span>${fmt(inv.total)}</span></div>${inv.debt>0?`<div class="pr" style="color:red"><span>Còn nợ:</span><span>${fmt(inv.debt)}</span></div>`:'<div style="color:green;text-align:center;font-weight:700;padding:8px">✅ Đã thanh toán đủ</div>'}${printQrHtml(inv)}<hr class="divider"><div style="text-align:center;font-size:11px;color:#999">Xin cảm ơn quý khách!<br>${esc(S.settings.hotelName)}</div>`;
+  document.getElementById('printInv').innerHTML=`<div class="logo-name">${esc(S.settings.hotelName)}</div><div style="text-align:center;font-size:12px;color:#666">${esc(S.settings.address)} · ĐT: ${esc(S.settings.phone)}</div><hr class="divider"><div style="text-align:center;font-size:17px;font-weight:800;margin:10px 0">PHIẾU THU TIỀN PHÒNG</div><hr class="divider"><div class="pr"><span>Phòng:</span><strong>${esc(room?.name)}</strong></div><div class="pr"><span>Người thuê:</span><strong>${esc(t?.name||'—')}</strong></div><div class="pr"><span>Tháng:</span><strong>${getMonthName(inv.month)}</strong></div><div class="pr"><span>Ngày in:</span><strong>${new Date().toLocaleDateString('vi-VN')}</strong></div><hr class="divider"><div class="pr"><span>Tiền phòng:</span><span>${fmt(inv.roomFee)}</span></div><div class="pr"><span>Điện (${meterUse(inv,'elec')} kWh):</span><span>${fmt(inv.elecFee)}</span></div><div class="pr"><span>Nước (${meterUse(inv,'water')} m³):</span><span>${fmt(inv.waterFee)}</span></div>${inv.internet?`<div class="pr"><span>Internet:</span><span>${fmt(inv.internet)}</span></div>`:''}${inv.serviceFee?`<div class="pr"><span>Dịch vụ:</span><span>${fmt(inv.serviceFee)}</span></div>`:''}${inv.garbage?`<div class="pr"><span>Rác:</span><span>${fmt(inv.garbage)}</span></div>`:''}${inv.extra?`<div class="pr"><span>Phụ thu:</span><span>${fmt(inv.extra)}</span></div>`:''}${inv.lateFee?`<div class="pr"><span>Phí trễ hạn:</span><span>${fmt(inv.lateFee)}</span></div>`:''}${inv.discount?`<div class="pr"><span>Giảm giá:</span><span>- ${fmt(inv.discount)}</span></div>`:''}<div class="ptotal"><span>TỔNG CỘNG</span><span>${fmt(inv.total)}</span></div>${inv.debt>0?`<div class="pr" style="color:red"><span>Còn nợ:</span><span>${fmt(inv.debt)}</span></div>`:'<div style="color:green;text-align:center;font-weight:700;padding:8px">✅ Đã thanh toán đủ</div>'}${printQrHtml(inv)}<hr class="divider"><div style="text-align:center;font-size:11px;color:#999">Xin cảm ơn quý khách!<br>${esc(S.settings.hotelName)}</div>`;
   printWhenReady();
 }
 
@@ -3583,7 +3632,7 @@ function renderDebt(){
     const room=S.rooms.find(r=>r.id===inv.roomId),t=S.tenants.find(x=>x.id===inv.tenantId);
     const days=Math.floor((Date.now()-new Date(inv.createdAt).getTime())/86400000),high=days>30;
     const av=avHtml(t,40,18);
-    return `<div class="debt-card ${high?'':'warn'}"><div style="display:flex;align-items:center;gap:10px;flex:1">${av}<div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:700">${esc(t?.name||'—')}</div><div style="font-size:12px;color:var(--text3)">Phòng ${esc(room?.name||'?')} · ${getMonthName(inv.month)}</div><div style="font-size:11px;color:var(--warning);font-weight:700;margin-top:4px">${days>0?`⏰ Quá hạn ${days} ngày`:'📅 Tháng này'}</div></div></div><div style="text-align:right"><div style="font-size:18px;font-weight:900;color:var(--danger)">${fmt(inv.debt)}</div><div style="font-size:11px;color:var(--text3)">/${fmt(inv.total)}</div><div style="display:flex;gap:6px;justify-content:flex-end;margin-top:4px"><button class="btn btn-secondary btn-xs" onclick="sendInv('${inv.id}','remind')">🔔 Nhắc</button><button class="btn btn-danger btn-xs" onclick="openPay('${inv.id}')">Thu nợ</button></div></div></div>`;
+    return `<div class="debt-card ${high?'':'warn'}"><div style="display:flex;align-items:center;gap:10px;flex:1">${av}<div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:700">${esc(t?.name||'—')}</div><div style="font-size:12px;color:var(--text3)">Phòng ${esc(room?.name||'?')} · ${getMonthName(inv.month)}</div><div style="font-size:11px;color:var(--warning);font-weight:700;margin-top:4px">${days>0?`⏰ Quá hạn ${days} ngày`:'📅 Tháng này'}</div></div></div><div style="text-align:right"><div style="font-size:18px;font-weight:900;color:var(--danger)">${fmt(inv.debt)}</div><div style="font-size:11px;color:var(--text3)">/${fmt(inv.total)}</div>${lateHint(inv)}<div style="display:flex;gap:6px;justify-content:flex-end;margin-top:4px"><button class="btn btn-secondary btn-xs" onclick="sendInv('${inv.id}','remind')">🔔 Nhắc</button><button class="btn btn-danger btn-xs" onclick="openPay('${inv.id}')">Thu nợ</button></div></div></div>`;
   }).join('');
 }
 
@@ -3593,15 +3642,15 @@ function renderDebt(){
 function renderReport(){
   const now=new Date(),months=[],lbs=[];
   for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push(`${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}`);lbs.push(`T${d.getMonth()+1}/${d.getFullYear().toString().slice(2)}`);}
-  const rev=months.map(m=>S.invoices.filter(i=>i.month===m).reduce((s,i)=>s+i.paid,0)||(15e6+Math.random()*8e6));
-  const dbt=months.map(m=>S.invoices.filter(i=>i.month===m).reduce((s,i)=>s+i.debt,0)||Math.random()*3e6);
-  const elec=months.map(m=>S.invoices.filter(i=>i.month===m).reduce((s,i)=>s+i.elecFee,0)||Math.random()*2e6);
-  const water=months.map(m=>S.invoices.filter(i=>i.month===m).reduce((s,i)=>s+i.waterFee,0)||Math.random()*5e5);
+  const rev=months.map(m=>S.invoices.filter(i=>i.month===m).reduce((s,i)=>s+i.paid,0)||0);
+  const dbt=months.map(m=>S.invoices.filter(i=>i.month===m).reduce((s,i)=>s+i.debt,0)||0);
+  const elec=months.map(m=>S.invoices.filter(i=>i.month===m).reduce((s,i)=>s+i.elecFee,0)||0);
+  const water=months.map(m=>S.invoices.filter(i=>i.month===m).reduce((s,i)=>s+i.waterFee,0)||0);
   const tRev=rev.reduce((s,v)=>s+v,0),tDbt=dbt.reduce((s,v)=>s+v,0),rent=S.rooms.filter(r=>r.status!=='available').length;
   document.getElementById('rptStats').innerHTML=`
     <div class="stat-card green"><div class="stat-icon" style="background:rgba(22,163,74,.12);color:var(--primary)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg></div><div class="stat-label">Doanh thu</div><div class="stat-value">${fmtN(Math.round(tRev/1e6*10)/10)}M</div></div>
     <div class="stat-card red"><div class="stat-icon" style="background:rgba(239,68,68,.12);color:var(--danger)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div><div class="stat-label">Công nợ</div><div class="stat-value">${fmtN(Math.round(tDbt/1e6*10)/10)}M</div></div>
-    <div class="stat-card blue"><div class="stat-icon" style="background:rgba(14,165,233,.12);color:var(--secondary)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="stat-label">Lấp đầy</div><div class="stat-value">${Math.round(rent/S.rooms.length*100)}%</div></div>
+    <div class="stat-card blue"><div class="stat-icon" style="background:rgba(14,165,233,.12);color:var(--secondary)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="stat-label">Lấp đầy</div><div class="stat-value">${S.rooms.length?Math.round(rent/S.rooms.length*100):0}%</div></div>
     <div class="stat-card orange"><div class="stat-icon" style="background:rgba(249,115,22,.12);color:var(--warning)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div><div class="stat-label">Điện + Nước</div><div class="stat-value">${fmtN(Math.round((elec.reduce((s,v)=>s+v,0)+water.reduce((s,v)=>s+v,0))/1e6*10)/10)}M</div></div>`;
   const dk=S.settings.darkMode,tc=dk?'#94a3b8':'#64748b',gc=dk?'rgba(255,255,255,.05)':'rgba(0,0,0,.05)';
   const c1=document.getElementById('chartRpt');if(c1){if(cRpt)cRpt.destroy();cRpt=new Chart(c1,{type:'line',data:{labels:lbs.slice(-6),datasets:[{label:'Doanh thu',data:rev.slice(-6),borderColor:'#16a34a',backgroundColor:'rgba(22,163,74,.1)',fill:true,tension:.4,borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#16a34a'},{label:'Công nợ',data:dbt.slice(-6),borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,.08)',fill:true,tension:.4,borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#ef4444'}]},options:{responsive:true,plugins:{legend:{labels:{color:tc,font:{size:11}}},tooltip:{callbacks:{label:c=>fmt(c.raw)}}},scales:{y:{ticks:{callback:v=>fmtN(v/1e6)+'M',color:tc},grid:{color:gc}},x:{ticks:{color:tc},grid:{display:false}}}}});}
@@ -4175,6 +4224,7 @@ function renderArchived(){
         ${iR('💰 Đã thu',fmt(a.totalPaidOnCheckout||0))}
         ${iR('📌 Còn nợ',a.totalDebtOnCheckout>0?fmt(a.totalDebtOnCheckout):'Không',a.totalDebtOnCheckout>0?'color:var(--danger)':'')}
       </div>
+      ${depositLine(a)}
       ${a.checkoutNote?`<div style="font-size:12px;color:var(--text3);padding:6px 0;border-top:1px solid var(--border);margin-top:6px">📝 ${esc(a.checkoutNote)}</div>`:''}
       <div class="ct-actions" style="margin-top:8px">
         <button class="btn btn-secondary btn-sm" onclick="deleteArchivedNow('${a.id}')">
@@ -4292,7 +4342,7 @@ function applyFontBalance(size){
 }
 
 /* ── RENDER ALL ─────────────────────────── */
-function renderAll(){renderHomeMenu();renderDash();renderRooms();renderTenants();renderPayment();renderDebt();renderReport();renderContracts();renderArchived();renderSettings();}
+function renderAll(){renderHomeMenu();renderDash();renderRooms();renderTenants();renderPayment();renderDebt();renderReport();renderContracts();renderArchived();renderSettings();if(typeof renderMaint==='function'){renderMaint();renderExpenses();}}
 function renderSettings(){
   const s=S.settings;
   // Profile card
@@ -4351,7 +4401,11 @@ function updateTopbarTitle(){
 
 /* ── INIT ───────────────────────────────── */
 document.addEventListener('DOMContentLoaded',()=>{
-  if(!load()){const d=createDemo();S.rooms=d.rooms;S.tenants=d.tenants;S.invoices=d.invoices;S.payments=d.payments;S.contracts=[];S.archived=[];save();}
+  if(!load()){
+    if(PT_CUR()==='main'){const d=createDemo();S.rooms=d.rooms;S.tenants=d.tenants;S.invoices=d.invoices;S.payments=d.payments;S.contracts=[];S.archived=[];save();}
+    else{let nm='Nhà trọ mới';try{const pr=JSON.parse(localStorage.getItem('ptProps')||'[]').find(x=>x.id===PT_CUR());if(pr)nm=pr.name}catch(e){}
+      S={...S,rooms:[],tenants:[],invoices:[],payments:[],contracts:[],archived:[],incidents:[],expenses:[],settings:{...S.settings,hotelName:nm,address:'',phone:'',zones:[]}};save();}
+  }
   if(!S.contracts)S.contracts=[];
   if(!S.archived)S.archived=[];
   // Dọn dẹp lịch sử khách cũ hơn 3 tháng
@@ -4381,6 +4435,7 @@ function bootUI(){
   });}
   if(typeof updatePinRow==='function')updatePinRow();
   if(typeof updateP2Rows==='function')updateP2Rows();
+  if(typeof updateP3Rows==='function'){syncPropName();updateP3Rows();}
 }
 </script>
 
@@ -4724,7 +4779,7 @@ function calcCheckout(){
   const waterNew=+document.getElementById('coWaterNew').value||0;
   const elecUsed=Math.max(0,elecNew-elecOld);
   const waterUsed=Math.max(0,waterNew-waterOld);
-  const elecFee=Math.round(elecUsed*elecPrice);
+  const elecFee=Math.round(elecCost({elecPrice},elecUsed));
   const waterFee=Math.round(waterUsed*waterPrice);
 
   const extra=+document.getElementById('coExtra').value||0;
@@ -5184,7 +5239,7 @@ function buildMsg(inv,kind){
     L.push(`• Tiền phòng: ${fmt(inv.roomFee)}`);
     L.push(`• Điện (${meterUse(inv,'elec')} kWh): ${fmt(inv.elecFee)}`);
     L.push(`• Nước (${meterUse(inv,'water')} m³): ${fmt(inv.waterFee)}`);
-    [['internet','Internet'],['serviceFee','Dịch vụ'],['garbage','Rác'],['parking','Giữ xe'],['extra','Phụ thu']].forEach(([k,l])=>{if(inv[k])L.push(`• ${l}: ${fmt(inv[k])}`)});
+    [['internet','Internet'],['serviceFee','Dịch vụ'],['garbage','Rác'],['parking','Giữ xe'],['extra','Phụ thu'],['lateFee','Phí trễ hạn']].forEach(([k,l])=>{if(inv[k])L.push(`• ${l}: ${fmt(inv[k])}`)});
     if(inv.discount)L.push(`• Giảm giá: -${fmt(inv.discount)}`);
     L.push(`Tổng cộng: ${fmt(inv.total)}`);
     if(inv.paid>0)L.push(`Đã thanh toán: ${fmt(inv.paid)}`);
@@ -5310,6 +5365,401 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
   window.addEventListener('load',put);
 })();
 
+/* ══ GIAI ĐOẠN 3: ĐIỆN BẬC THANG · PHÍ TRỄ HẠN · SỰ CỐ · CHI PHÍ · LÃI/LỖ · TRẢ CỌC · NHIỀU NHÀ TRỌ ══ */
+const incs=()=>S.incidents||(S.incidents=[]);
+const exps=()=>S.expenses||(S.expenses=[]);
+function undoToast(snap,msg){
+  toast(msg,'warning',{duration:9000,action:{label:'↩ Hoàn tác',fn:()=>{try{S=JSON.parse(snap);save();renderAll();toast('↩️ Đã hoàn tác','success')}catch(e){toast('Không thể hoàn tác','error')}}}});
+}
+const numIn=id=>{const e=document.getElementById(id);return e?(+e.value||0):0};
+const valIn=id=>{const e=document.getElementById(id);return e?e.value.trim():''};
+
+/* ── Điện bậc thang ── */
+const EVN_SAMPLE=[{limit:50,price:1984},{limit:50,price:2050},{limit:100,price:2380},{limit:100,price:2998},{limit:100,price:3350},{limit:null,price:3460}];
+const tierCfg=()=>(S.settings&&S.settings.elecTier)||{};
+const tierOn=()=>{const c=tierCfg();return !!(c.enabled&&Array.isArray(c.tiers)&&c.tiers.length)};
+function elecCost(room,kwh){
+  kwh=Math.max(0,+kwh||0);
+  if(!tierOn())return kwh*((room&&room.elecPrice!=null)?room.elecPrice:3500);
+  const c=tierCfg();let left=kwh,sum=0;
+  for(const t of c.tiers){if(left<=0)break;const take=t.limit==null?left:Math.min(left,+t.limit||0);sum+=take*(+t.price||0);left-=take}
+  if(left>0)sum+=left*(+c.tiers[c.tiers.length-1].price||0);
+  return Math.round(sum*(1+(+c.vat||0)/100));
+}
+function elecLabel(room,eu){return tierOn()?`Điện (${eu}kWh · bậc thang)`:`Điện (${eu}kWh × ${fmtN(room.elecPrice)}₫)`}
+let tierDraft=[];
+function openElecTier(){
+  const c=tierCfg();
+  tierDraft=(Array.isArray(c.tiers)&&c.tiers.length?c.tiers:EVN_SAMPLE).map(t=>({limit:t.limit==null?null:+t.limit,price:+t.price||0}));
+  mkModal('mElec','Giá điện bậc thang',`
+    <label style="display:flex;gap:8px;align-items:center;font-size:13px;font-weight:700;margin-bottom:8px"><input type="checkbox" id="etOn" ${c.enabled?'checked':''}> Tính điện theo bậc thang cho mọi phòng</label>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Khi tắt, app dùng đơn giá riêng của từng phòng như trước. Bậc cuối cùng là "trở lên".</div>
+    <div id="etRows"></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">
+      <button class="btn btn-secondary btn-sm" type="button" onclick="tierAdd()">+ Thêm bậc</button>
+      <button class="btn btn-secondary btn-sm" type="button" onclick="tierDel()">− Bớt bậc</button>
+      <button class="btn btn-secondary btn-sm" type="button" onclick="tierSample()">Điền mẫu EVN</button>
+    </div>
+    <div class="fg"><label class="flbl">Thuế VAT (%)</label><input class="fc" id="etVat" type="number" min="0" step="0.5" value="${+c.vat||0}" oninput="tierTest()"></div>
+    <div class="fg"><label class="flbl">Thử tính: số kWh</label><input class="fc" id="etTest" type="number" min="0" value="100" oninput="tierTest()"><div id="etTestOut" style="font-size:13px;font-weight:700;margin-top:6px"></div></div>
+    <div style="font-size:11px;color:#b45309;background:rgba(245,158,11,.12);padding:8px;border-radius:8px">⚠️ Giá mẫu chỉ để tham khảo. Hãy đối chiếu và nhập theo biểu giá điện hiện hành mà bạn áp dụng cho khách.</div>`,
+    `<button class="btn btn-secondary" type="button" onclick="closeM('mElec')">Hủy</button><button class="btn btn-primary" type="button" onclick="tierSave()">Lưu</button>`);
+  tierRender();openM('mElec');
+}
+function tierRender(){
+  const last=tierDraft.length-1;
+  document.getElementById('etRows').innerHTML=tierDraft.map((t,i)=>`<div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+    <span style="font-size:12px;font-weight:700;width:46px">Bậc ${i+1}</span>
+    ${i===last?'<span style="flex:1;font-size:12px;color:var(--text3)">trở lên</span>':`<input class="fc" type="number" min="1" style="flex:1" value="${t.limit==null?'':t.limit}" placeholder="số kWh" oninput="tierDraft[${i}].limit=+this.value||0;tierTest()">`}
+    <input class="fc" type="number" min="0" style="flex:1" value="${t.price||''}" placeholder="đ/kWh" oninput="tierDraft[${i}].price=+this.value||0;tierTest()"></div>`).join('');
+  tierTest();
+}
+function tierAdd(){if(tierDraft.length>=8){toast('Tối đa 8 bậc','warning');return}const l=tierDraft[tierDraft.length-1];tierDraft[tierDraft.length-1]={limit:100,price:l.price};tierDraft.push({limit:null,price:l.price});tierRender()}
+function tierDel(){if(tierDraft.length<=1)return;tierDraft.pop();tierDraft[tierDraft.length-1].limit=null;tierRender()}
+function tierSample(){tierDraft=EVN_SAMPLE.map(t=>({...t}));tierRender()}
+function tierTest(){
+  const out=document.getElementById('etTestOut');if(!out)return;
+  const keep=S.settings.elecTier;S.settings.elecTier={enabled:true,tiers:tierDraft,vat:numIn('etVat')};
+  const v=elecCost({elecPrice:0},numIn('etTest'));S.settings.elecTier=keep;
+  out.textContent='→ '+fmt(v);
+}
+function tierSave(){
+  const on=document.getElementById('etOn').checked;
+  const t=tierDraft.map((x,i)=>({limit:i===tierDraft.length-1?null:+x.limit,price:+x.price}));
+  if(on){
+    if(t.some((x,i)=>i<t.length-1&&!(x.limit>0))){toast('Mỗi bậc (trừ bậc cuối) cần số kWh lớn hơn 0','error');return}
+    if(t.some(x=>!(x.price>0))){toast('Nhập đơn giá cho tất cả các bậc','error');return}
+  }
+  S.settings.elecTier={enabled:on,tiers:t,vat:numIn('etVat')};save();closeM('mElec');updateP3Rows();toast(on?'✅ Đã bật giá điện bậc thang':'Đã lưu (đang tắt bậc thang)','success');
+}
+
+/* ── Phí trễ hạn ── */
+const lateCfg=()=>(S.settings&&S.settings.lateFee)||{};
+function overdueDays(inv){return Math.floor((Date.now()-new Date(inv.createdAt).getTime())/86400000)-(+lateCfg().grace||0)}
+function lateFeeOf(inv){
+  const c=lateCfg();if(!c.enabled||!(inv.debt>0))return 0;
+  const od=overdueDays(inv);if(od<=0)return 0;
+  const base=Math.max(0,(inv.baseTotal!=null?inv.baseTotal:inv.total)-(inv.paid||0));
+  let fee=c.mode==='pct'?base*(+c.value||0)/100*od/30:(+c.value||0)*od;
+  if(+c.cap>0)fee=Math.min(fee,base*(+c.cap)/100);
+  return Math.round(fee/1000)*1000;
+}
+function lateHint(inv){
+  if(!lateCfg().enabled)return '';
+  const fee=lateFeeOf(inv);
+  if(inv.lateFee&&fee===inv.lateFee)return `<div style="font-size:11px;color:var(--danger)">đã gồm phí trễ ${fmt(inv.lateFee)}</div>`;
+  if(fee>0)return `<div style="font-size:11px;color:var(--danger)">+ phí trễ ${fmt(fee)} <a style="text-decoration:underline;cursor:pointer;font-weight:700" onclick="applyLateFee('${inv.id}')">Áp phí</a></div>`;
+  return '';
+}
+function doApplyLate(inv,fee){
+  if(inv.baseTotal==null)inv.baseTotal=inv.total;
+  inv.lateFee=fee;inv.total=inv.baseTotal+fee;inv.debt=Math.max(0,inv.total-(inv.paid||0));
+  inv.status=inv.debt<=0?'paid':(inv.paid>0?'partial':'unpaid');
+  const room=S.rooms.find(r=>r.id===inv.roomId);if(room&&inv.debt>0)room.status='debt';
+}
+function applyLateFee(id){
+  const inv=S.invoices.find(i=>i.id===id);if(!inv)return;
+  const fee=lateFeeOf(inv);
+  if(fee<=0){toast('Chưa có phí trễ hạn để áp dụng','info');return}
+  if(inv.lateFee===fee){toast('Phí trễ hạn đã được áp dụng','info');return}
+  const room=S.rooms.find(r=>r.id===inv.roomId);
+  if(!confirm(`Áp phí trễ hạn ${fmt(fee)} cho phòng ${room?room.name:''}?\nTổng tiền và công nợ của hóa đơn sẽ tăng tương ứng.`))return;
+  const snap=JSON.stringify(S);doApplyLate(inv,fee);save();renderDebt();renderPayment();undoToast(snap,'⏰ Đã áp phí trễ hạn');
+}
+function pendingLate(){return S.invoices.filter(i=>{const f=lateFeeOf(i);return f>0&&f!==(i.lateFee||0)})}
+function applyAllLate(){
+  const list=pendingLate();if(!list.length){toast('Không có hóa đơn nào cần áp phí','info');return}
+  const tot=list.reduce((n,i)=>n+lateFeeOf(i)-(i.lateFee||0),0);
+  if(!confirm(`Áp phí trễ hạn cho ${list.length} hóa đơn (tổng thêm ${fmt(tot)})?`))return;
+  const snap=JSON.stringify(S);list.forEach(i=>doApplyLate(i,lateFeeOf(i)));save();renderDebt();renderPayment();undoToast(snap,`⏰ Đã áp phí cho ${list.length} hóa đơn`);
+}
+const _renderDebt=window.renderDebt;
+window.renderDebt=function(...a){
+  const r=_renderDebt.apply(this,a);
+  try{const el=document.getElementById('debtList'),n=pendingLate().length;
+    if(el&&n&&el.querySelector('.debt-card'))el.insertAdjacentHTML('afterbegin',`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;margin-bottom:8px;background:rgba(239,68,68,.08);border-radius:12px;font-size:12px;font-weight:700;color:var(--danger)"><span>⏰ ${n} hóa đơn đủ điều kiện tính phí trễ</span><button class="btn btn-danger btn-xs" type="button" onclick="applyAllLate()">Áp phí tất cả</button></div>`)}catch(e){}
+  return r;
+};
+function openLateFee(){
+  const c=lateCfg();
+  mkModal('mLate','Phí trễ hạn',`
+    <label style="display:flex;gap:8px;align-items:center;font-size:13px;font-weight:700;margin-bottom:8px"><input type="checkbox" id="lfOn" ${c.enabled?'checked':''}> Bật tính phí trễ hạn</label>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Tính từ ngày lập phiếu thu. Phí chỉ cộng vào hóa đơn khi bạn bấm "Áp phí", app không tự cộng tiền của khách.</div>
+    <div class="fg"><label class="flbl">Ân hạn (số ngày không tính phí)</label><input class="fc" id="lfGrace" type="number" min="0" value="${c.grace!=null?c.grace:5}"></div>
+    <div class="fg"><label class="flbl">Cách tính</label><select class="fc" id="lfMode"><option value="fixed" ${c.mode!=='pct'?'selected':''}>Số tiền cố định mỗi ngày trễ (₫)</option><option value="pct" ${c.mode==='pct'?'selected':''}>% số nợ mỗi tháng (tính theo ngày)</option></select></div>
+    <div class="fg"><label class="flbl">Mức phí</label><input class="fc" id="lfVal" type="number" min="0" step="any" value="${c.value||''}" placeholder="VD: 20000 hoặc 2"></div>
+    <div class="fg"><label class="flbl">Trần phí (% số nợ gốc, 0 = không giới hạn)</label><input class="fc" id="lfCap" type="number" min="0" value="${c.cap!=null?c.cap:10}"></div>
+    <div style="font-size:11px;color:#b45309;background:rgba(245,158,11,.12);padding:8px;border-radius:8px">⚠️ Nên thỏa thuận phí trễ hạn trong hợp đồng thuê trước khi áp dụng.</div>`,
+    `<button class="btn btn-secondary" type="button" onclick="closeM('mLate')">Hủy</button><button class="btn btn-primary" type="button" onclick="saveLateFee()">Lưu</button>`);
+  openM('mLate');
+}
+function saveLateFee(){
+  const on=document.getElementById('lfOn').checked,value=numIn('lfVal');
+  if(on&&!(value>0)){toast('Nhập mức phí lớn hơn 0','error');return}
+  S.settings.lateFee={enabled:on,grace:Math.max(0,numIn('lfGrace')),mode:document.getElementById('lfMode').value,value,cap:Math.max(0,numIn('lfCap'))};
+  save();closeM('mLate');updateP3Rows();renderDebt();toast('✅ Đã lưu cài đặt phí trễ hạn','success');
+}
+
+/* ── Sự cố & sửa chữa ── */
+const PRI={low:['Thấp','#64748b'],normal:['Bình thường','#f59e0b'],high:['Khẩn cấp','#ef4444']};
+const INC_ST={open:['Chưa xử lý','#ef4444'],doing:['Đang xử lý','#f59e0b'],done:['Đã xong','#16a34a']};
+let incFilter='all',incEditId=null,incPhoto=null;
+function setIncFilter(f){incFilter=f;renderMaint()}
+function renderMaint(){
+  const el=document.getElementById('maintList');if(!el)return;
+  const all=incs(),cm=curMonth();
+  const cnt=k=>all.filter(i=>i.status===k).length;
+  const cost=all.filter(i=>i.status==='done'&&i.paidBy!=='tenant'&&String(i.doneAt||i.date||'').slice(0,7)===cm).reduce((n,i)=>n+(+i.cost||0),0);
+  document.getElementById('maintSub').textContent=`${cnt('open')+cnt('doing')} việc đang mở · ${all.length} tổng cộng`;
+  document.getElementById('maintStats').innerHTML=
+    `<div class="stat-card red"><div class="stat-label">Chưa xử lý</div><div class="stat-value">${cnt('open')}</div></div>
+     <div class="stat-card orange"><div class="stat-label">Đang xử lý</div><div class="stat-value">${cnt('doing')}</div></div>
+     <div class="stat-card green"><div class="stat-label">Đã xong</div><div class="stat-value">${cnt('done')}</div></div>
+     <div class="stat-card blue"><div class="stat-label">Chi tháng này</div><div class="stat-value" style="font-size:15px">${fmt(cost)}</div></div>`;
+  document.getElementById('maintChips').innerHTML=[['all','Tất cả'],['open','Chưa xử lý'],['doing','Đang xử lý'],['done','Đã xong']].map(([k,l])=>`<button class="chip ${incFilter===k?'active':''}" type="button" onclick="setIncFilter('${k}')">${l}</button>`).join('');
+  const rank={open:0,doing:1,done:2},pr={high:0,normal:1,low:2};
+  const list=all.filter(i=>incFilter==='all'||i.status===incFilter).sort((a,b)=>(rank[a.status]-rank[b.status])||(pr[a.priority]-pr[b.priority])||String(b.date||'').localeCompare(String(a.date||'')));
+  if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🔧</div><div class="empty-title">${all.length?'Không có mục nào':'Chưa có sự cố nào'}</div><div class="empty-sub">Nhấn "Báo sự cố" để ghi nhận hỏng hóc, sửa chữa</div></div>`;return}
+  el.innerHTML=list.map(i=>{
+    const room=S.rooms.find(r=>r.id===i.roomId),pri=PRI[i.priority]||PRI.normal,st=INC_ST[i.status]||INC_ST.open;
+    return `<div class="card card-body" style="margin-bottom:10px;border-left:4px solid ${pri[1]}">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+        <div style="min-width:0"><div style="font-size:15px;font-weight:800">${esc(i.title)}</div>
+          <div style="font-size:12px;color:var(--text3)">${room?'Phòng '+esc(room.name):'Khu vực chung'} · ${esc(fmtDate(i.date))} · <span style="color:${pri[1]};font-weight:700">${pri[0]}</span></div></div>
+        <span style="padding:3px 10px;border-radius:99px;background:${st[1]}18;color:${st[1]};font-size:11px;font-weight:700;white-space:nowrap">${st[0]}</span></div>
+      ${i.desc?`<div style="font-size:12.5px;color:var(--text2);margin-top:6px;white-space:pre-wrap">${esc(i.desc)}</div>`:''}
+      ${(+i.cost>0)?`<div style="font-size:12px;margin-top:6px">💰 Chi phí: <b>${fmt(i.cost)}</b> · ${i.paidBy==='tenant'?'khách chịu':'chủ trọ chịu'}</div>`:''}
+      ${i.photo?`<img src="${esc(i.photo)}" alt="Ảnh sự cố" onclick="viewIncPhoto('${i.id}')" style="height:56px;border-radius:8px;margin-top:8px;cursor:pointer;border:1px solid var(--border)">`:''}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+        ${i.status==='open'?`<button class="btn btn-secondary btn-xs" type="button" onclick="setIncStatus('${i.id}','doing')">▶ Bắt đầu xử lý</button>`:''}
+        ${i.status!=='done'?`<button class="btn btn-primary btn-xs" type="button" onclick="setIncStatus('${i.id}','done')">✔ Hoàn thành</button>`:`<button class="btn btn-secondary btn-xs" type="button" onclick="setIncStatus('${i.id}','open')">↺ Mở lại</button>`}
+        <button class="btn btn-secondary btn-xs" type="button" onclick="editInc('${i.id}')">✏️ Sửa</button>
+        <button class="btn btn-danger btn-xs" type="button" onclick="delInc('${i.id}')">🗑️</button>
+      </div></div>`;
+  }).join('');
+}
+function viewIncPhoto(id){
+  const i=incs().find(x=>x.id===id);if(!i||!i.photo)return;
+  const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:12px;cursor:zoom-out';
+  ov.innerHTML=`<img src="${esc(i.photo)}" alt="Ảnh sự cố" style="max-width:100%;max-height:100%;border-radius:10px">`;ov.onclick=()=>ov.remove();document.body.appendChild(ov);
+}
+function editInc(id,over){
+  const i=id?incs().find(x=>x.id===id):null;incEditId=i?i.id:null;incPhoto=i?i.photo||null:null;
+  const o={...(i||{status:'open',priority:'normal',paidBy:'owner',date:today(),cost:0}),...(over||{})};
+  mkModal('mInc',i?'Sửa sự cố':'Báo sự cố',`
+    <div class="fg"><label class="flbl">Phòng / khu vực</label><select class="fc" id="icRoom"><option value="">Khu vực chung</option>${S.rooms.map(r=>`<option value="${esc(r.id)}" ${r.id===o.roomId?'selected':''}>Phòng ${esc(r.name)}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flbl">Tiêu đề <span>*</span></label><input class="fc" id="icTitle" value="${esc(o.title||'')}" placeholder="VD: Hỏng vòi nước, mất điện..."></div>
+    <div class="fg"><label class="flbl">Mô tả</label><textarea class="fc" id="icDesc" rows="3">${esc(o.desc||'')}</textarea></div>
+    <div class="frow"><div class="fg"><label class="flbl">Mức độ</label><select class="fc" id="icPri">${Object.entries(PRI).map(([k,v])=>`<option value="${k}" ${o.priority===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flbl">Trạng thái</label><select class="fc" id="icSt">${Object.entries(INC_ST).map(([k,v])=>`<option value="${k}" ${o.status===k?'selected':''}>${v[0]}</option>`).join('')}</select></div></div>
+    <div class="frow"><div class="fg"><label class="flbl">Chi phí (₫)</label><input class="fc" id="icCost" type="number" min="0" value="${+o.cost||''}"></div>
+    <div class="fg"><label class="flbl">Ai chịu</label><select class="fc" id="icPay"><option value="owner" ${o.paidBy!=='tenant'?'selected':''}>Chủ trọ</option><option value="tenant" ${o.paidBy==='tenant'?'selected':''}>Khách thuê</option></select></div></div>
+    <div class="fg"><label class="flbl">Ngày báo</label><input class="fc" id="icDate" type="date" value="${esc(o.date||today())}"></div>
+    <div class="fg"><label class="flbl">📷 Ảnh</label><input class="fc" type="file" accept="image/*" capture="environment" onchange="incPickPhoto(this)"><img id="icPhotoPrev" alt="" style="${incPhoto?'':'display:none;'}margin-top:6px;height:56px;border-radius:8px" ${incPhoto?`src="${esc(incPhoto)}"`:''}></div>`,
+    `<button class="btn btn-secondary" type="button" onclick="closeM('mInc')">Hủy</button><button class="btn btn-primary" type="button" onclick="saveInc()">Lưu</button>`);
+  openM('mInc');
+}
+function incPickPhoto(inp){
+  const f=inp.files&&inp.files[0];if(!f)return;
+  resizeImageDataUrl(f,900,.6).then(d=>{incPhoto=d;const im=document.getElementById('icPhotoPrev');if(im){im.src=d;im.style.display='block'}}).catch(()=>toast('Không đọc được ảnh','error'));
+}
+function saveInc(){
+  const title=valIn('icTitle');if(!title){toast('Nhập tiêu đề sự cố','error');return}
+  const cost=numIn('icCost');if(cost<0){toast('Chi phí không được âm','error');return}
+  const rec={roomId:document.getElementById('icRoom').value,title,desc:valIn('icDesc'),priority:document.getElementById('icPri').value,status:document.getElementById('icSt').value,cost,paidBy:document.getElementById('icPay').value,date:valIn('icDate')||today(),photo:incPhoto||null};
+  let i=incEditId?incs().find(x=>x.id===incEditId):null;
+  if(!i){i={id:'INC'+uid(),createdAt:new Date().toISOString()};incs().push(i)}
+  const was=i.status;Object.assign(i,rec);
+  if(i.status==='done'&&was!=='done')i.doneAt=new Date().toISOString();
+  if(i.status!=='done')delete i.doneAt;
+  save();closeM('mInc');renderMaint();renderExpenses();toast('✅ Đã lưu sự cố','success');
+}
+function setIncStatus(id,st){
+  const i=incs().find(x=>x.id===id);if(!i)return;
+  if(st==='done'&&!(+i.cost>0)){editInc(id,{status:'done'});toast('Nhập chi phí sửa chữa (nếu có) rồi bấm Lưu','info');return}
+  i.status=st;if(st==='done')i.doneAt=new Date().toISOString();else delete i.doneAt;
+  save();renderMaint();renderExpenses();
+}
+function delInc(id){
+  const i=incs().find(x=>x.id===id);if(!i||!confirm(`Xóa sự cố "${i.title}"?`))return;
+  const snap=JSON.stringify(S);S.incidents=incs().filter(x=>x.id!==id);save();renderMaint();renderExpenses();undoToast(snap,'🗑️ Đã xóa sự cố');
+}
+
+/* ── Chi phí ── */
+const EXP_CATS=['Điện nước chung','Sửa chữa','Nhân công','Vệ sinh','Internet / mạng','Thuế & phí','Mua sắm','Khác'];
+let expMonth=curMonth(),expEditId=null;
+function setExpMonth(v){expMonth=v||curMonth();renderExpenses()}
+const monthOf=d=>String(d||'').slice(0,7);
+function monthExpenses(m){
+  const a=exps().filter(e=>monthOf(e.date)===m).map(e=>({...e,auto:false}));
+  const b=incs().filter(i=>i.status==='done'&&i.paidBy!=='tenant'&&(+i.cost||0)>0&&monthOf(i.doneAt||i.date||i.createdAt)===m)
+    .map(i=>({id:i.id,date:String(i.doneAt||i.date||i.createdAt||'').slice(0,10),category:'Sửa chữa (từ sự cố)',desc:i.title,amount:+i.cost,roomId:i.roomId,auto:true}));
+  return a.concat(b).sort((x,y)=>String(y.date).localeCompare(String(x.date)));
+}
+const sumExp=m=>monthExpenses(m).reduce((n,e)=>n+(+e.amount||0),0);
+function renderExpenses(){
+  const el=document.getElementById('expList');if(!el)return;
+  const inp=document.getElementById('expMonthIn');if(inp&&inp.value!==expMonth)inp.value=expMonth;
+  const list=monthExpenses(expMonth),total=list.reduce((n,e)=>n+(+e.amount||0),0);
+  const rev=S.invoices.filter(i=>i.month===expMonth).reduce((n,i)=>n+(i.paid||0),0);
+  document.getElementById('expSub').textContent=`${getMonthName(expMonth)} · ${list.length} khoản`;
+  const by={};list.forEach(e=>{by[e.category]=(by[e.category]||0)+(+e.amount||0)});
+  const cats=Object.entries(by).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('expSummary').innerHTML=`<div class="stat-grid mb-3">
+    <div class="stat-card green"><div class="stat-label">Đã thu</div><div class="stat-value" style="font-size:15px">${fmt(rev)}</div></div>
+    <div class="stat-card orange"><div class="stat-label">Tổng chi</div><div class="stat-value" style="font-size:15px">${fmt(total)}</div></div>
+    <div class="stat-card ${rev-total>=0?'blue':'red'}"><div class="stat-label">${rev-total>=0?'Lãi':'Lỗ'}</div><div class="stat-value" style="font-size:15px">${fmt(Math.abs(rev-total))}</div></div></div>
+    ${cats.length?`<div class="card card-body" style="margin-bottom:10px">${cats.map(([c,v])=>`<div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:12px"><span>${esc(c)}</span><b>${fmt(v)}</b></div><div style="height:6px;border-radius:4px;background:var(--border)"><div style="height:6px;border-radius:4px;background:var(--warning);width:${Math.round(v/total*100)}%"></div></div></div>`).join('')}</div>`:''}`;
+  if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-icon">🧾</div><div class="empty-title">Chưa có khoản chi nào</div><div class="empty-sub">Nhấn "Thêm" để ghi chi phí vận hành</div></div>`;return}
+  el.innerHTML=list.map(e=>{const room=S.rooms.find(r=>r.id===e.roomId);
+    return `<div class="card card-body" style="margin-bottom:8px;display:flex;justify-content:space-between;gap:10px;align-items:center">
+      <div style="min-width:0"><div style="font-size:14px;font-weight:700">${esc(e.desc||e.category)}</div>
+        <div style="font-size:11px;color:var(--text3)">${esc(fmtDate(e.date))} · ${esc(e.category)}${room?' · Phòng '+esc(room.name):''}${e.auto?' · 🔧 tự động từ sự cố':''}</div></div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-size:15px;font-weight:800;color:var(--danger)">${fmt(e.amount)}</div>
+        ${e.auto?'':`<div style="display:flex;gap:4px;justify-content:flex-end;margin-top:4px"><button class="btn btn-secondary btn-xs" type="button" onclick="editExp('${e.id}')">✏️</button><button class="btn btn-danger btn-xs" type="button" onclick="delExp('${e.id}')">🗑️</button></div>`}</div></div>`}).join('');
+}
+function editExp(id){
+  const e=id?exps().find(x=>x.id===id):null;expEditId=e?e.id:null;
+  const o=e||{date:today(),category:EXP_CATS[0],amount:'',desc:'',roomId:''};
+  mkModal('mExp',e?'Sửa khoản chi':'Thêm khoản chi',`
+    <div class="fg"><label class="flbl">Ngày</label><input class="fc" id="exDate" type="date" value="${esc(o.date)}"></div>
+    <div class="fg"><label class="flbl">Loại chi phí</label><select class="fc" id="exCat">${EXP_CATS.map(c=>`<option ${c===o.category?'selected':''}>${esc(c)}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flbl">Nội dung</label><input class="fc" id="exDesc" value="${esc(o.desc||'')}" placeholder="VD: Tiền điện khu vực chung"></div>
+    <div class="fg"><label class="flbl">Số tiền (₫) <span>*</span></label><input class="fc" id="exAmt" type="number" min="0" value="${o.amount||''}"></div>
+    <div class="fg"><label class="flbl">Phòng (nếu liên quan)</label><select class="fc" id="exRoom"><option value="">— Chung —</option>${S.rooms.map(r=>`<option value="${esc(r.id)}" ${r.id===o.roomId?'selected':''}>Phòng ${esc(r.name)}</option>`).join('')}</select></div>`,
+    `<button class="btn btn-secondary" type="button" onclick="closeM('mExp')">Hủy</button><button class="btn btn-primary" type="button" onclick="saveExp()">Lưu</button>`);
+  openM('mExp');
+}
+function saveExp(){
+  const amount=numIn('exAmt');if(!(amount>0)){toast('Nhập số tiền lớn hơn 0','error');return}
+  const rec={date:valIn('exDate')||today(),category:document.getElementById('exCat').value,desc:valIn('exDesc'),amount,roomId:document.getElementById('exRoom').value};
+  let e=expEditId?exps().find(x=>x.id===expEditId):null;
+  if(!e){e={id:'EXP'+uid()};exps().push(e)}
+  Object.assign(e,rec);expMonth=monthOf(rec.date)||expMonth;
+  save();closeM('mExp');renderExpenses();toast('✅ Đã lưu khoản chi','success');
+}
+function delExp(id){
+  const e=exps().find(x=>x.id===id);if(!e||!confirm('Xóa khoản chi này?'))return;
+  const snap=JSON.stringify(S);S.expenses=exps().filter(x=>x.id!==id);save();renderExpenses();undoToast(snap,'🗑️ Đã xóa khoản chi');
+}
+
+/* ── Lãi / Lỗ ── */
+function renderPL(){
+  const box=document.getElementById('plBox');if(!box)return;
+  const now=new Date(),rows=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1),m=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    const inv=S.invoices.filter(x=>x.month===m),rev=inv.reduce((n,x)=>n+(x.paid||0),0),debt=inv.reduce((n,x)=>n+(x.debt||0),0),exp=sumExp(m);
+    rows.push({label:`T${d.getMonth()+1}/${String(d.getFullYear()).slice(2)}`,rev,debt,exp,profit:rev-exp});
+  }
+  const max=Math.max(1,...rows.map(r=>Math.max(r.rev,r.exp))),tot=rows.reduce((a,r)=>({rev:a.rev+r.rev,exp:a.exp+r.exp,debt:a.debt+r.debt}),{rev:0,exp:0,debt:0});
+  box.innerHTML=rows.map(r=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700"><span>${r.label}</span><span style="color:${r.profit>=0?'var(--success)':'var(--danger)'}">${r.profit>=0?'Lãi':'Lỗ'} ${fmt(Math.abs(r.profit))}</span></div>
+    <div style="height:7px;border-radius:4px;background:var(--border);margin-top:4px"><div style="height:7px;border-radius:4px;background:var(--success);width:${Math.round(r.rev/max*100)}%"></div></div>
+    <div style="height:7px;border-radius:4px;background:var(--border);margin-top:3px"><div style="height:7px;border-radius:4px;background:var(--warning);width:${Math.round(r.exp/max*100)}%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:3px"><span>Thu ${fmt(r.rev)}</span><span>Chi ${fmt(r.exp)}</span>${r.debt?`<span style="color:var(--danger)">Nợ ${fmt(r.debt)}</span>`:''}</div></div>`).join('')
+   +`<div style="border-top:1px solid var(--border);padding-top:8px;font-size:13px;font-weight:800;display:flex;justify-content:space-between"><span>Cộng 6 tháng</span><span style="color:${tot.rev-tot.exp>=0?'var(--success)':'var(--danger)'}">${tot.rev-tot.exp>=0?'Lãi':'Lỗ'} ${fmt(Math.abs(tot.rev-tot.exp))}</span></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:4px">Thu = tiền đã thu theo hóa đơn của từng tháng. Chi = khoản chi + sửa chữa do chủ trọ chịu.</div>`;
+}
+const _renderReport=window.renderReport;
+window.renderReport=function(...a){try{return _renderReport.apply(this,a)}finally{try{renderPL()}catch(e){}}};
+
+/* ── Trả cọc khi khách dọn đi ── */
+let depId=null;
+function depositLine(a){
+  const dep=+a.deposit||0;if(!dep)return '';
+  const st=a.depositSettle;
+  if(st)return `<div style="font-size:12px;padding:6px 0;border-top:1px solid var(--border);margin-top:6px">💵 Cọc ${fmt(dep)} → ${st.refund>=0?'hoàn <b>'+fmt(st.refund)+'</b>':'khách bù <b style="color:var(--danger)">'+fmt(-st.refund)+'</b>'} <a style="color:var(--primary);cursor:pointer;font-weight:700" onclick="openDepositSettle('${esc(a.id)}')">Xem/Sửa</a></div>`;
+  return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;padding:8px 10px;margin-top:6px;background:rgba(245,158,11,.12);border-radius:10px"><span>💵 Cọc ${fmt(dep)} chưa quyết toán</span><button class="btn btn-primary btn-xs" type="button" onclick="openDepositSettle('${esc(a.id)}')">Quyết toán cọc</button></div>`;
+}
+function openDepositSettle(id){
+  const a=(S.archived||[]).find(x=>x.id===id);if(!a)return;depId=id;
+  const dep=+a.deposit||0,st=a.depositSettle||{};
+  mkModal('mDep','Quyết toán tiền cọc',`
+    <div style="font-size:13px;margin-bottom:8px">Khách: <b>${esc(a.name||'—')}</b> · Phòng ${esc(a.roomName||'?')}<br>Tiền cọc đã nhận: <b>${fmt(dep)}</b></div>
+    <div class="fg"><label class="flbl">Trừ nợ tiền phòng/điện nước còn thiếu (₫)</label><input class="fc" id="dsDebt" type="number" min="0" value="${st.debt!=null?st.debt:(+a.totalDebtOnCheckout||0)}" oninput="depCalc()"></div>
+    <div class="fg"><label class="flbl">Trừ hư hỏng / đền bù (₫)</label><input class="fc" id="dsDamage" type="number" min="0" value="${st.damage||''}" oninput="depCalc()"></div>
+    <div class="fg"><label class="flbl">Khấu trừ khác (₫)</label><input class="fc" id="dsOther" type="number" min="0" value="${st.other||''}" oninput="depCalc()"></div>
+    <div class="fg"><label class="flbl">Ghi chú</label><input class="fc" id="dsNote" value="${esc(st.note||'')}" placeholder="VD: thay khóa cửa, sơn lại tường"></div>
+    <div class="frow"><div class="fg"><label class="flbl">Hình thức hoàn</label><select class="fc" id="dsMethod"><option value="cash" ${st.method!=='bank'?'selected':''}>Tiền mặt</option><option value="bank" ${st.method==='bank'?'selected':''}>Chuyển khoản</option></select></div>
+    <div class="fg"><label class="flbl">Ngày</label><input class="fc" id="dsDate" type="date" value="${esc(st.date||today())}"></div></div>
+    <div id="dsResult" style="font-size:15px;font-weight:800;text-align:center;padding:12px;border-radius:12px;background:var(--primary-bg)"></div>`,
+    `<button class="btn btn-secondary" type="button" onclick="closeM('mDep')">Đóng</button><button class="btn btn-primary" type="button" onclick="saveDeposit()">Lưu quyết toán</button>`);
+  depCalc();openM('mDep');
+}
+function depCalc(){
+  const a=(S.archived||[]).find(x=>x.id===depId);if(!a)return 0;
+  const r=(+a.deposit||0)-numIn('dsDebt')-numIn('dsDamage')-numIn('dsOther');
+  const el=document.getElementById('dsResult');
+  if(el){el.style.color=r>=0?'var(--primary)':'var(--danger)';el.textContent=r>=0?'Hoàn lại cho khách: '+fmt(r):'Khách còn phải bù: '+fmt(-r)}
+  return r;
+}
+function saveDeposit(){
+  const a=(S.archived||[]).find(x=>x.id===depId);if(!a)return;
+  if(numIn('dsDebt')<0||numIn('dsDamage')<0||numIn('dsOther')<0){toast('Số tiền không được âm','error');return}
+  a.depositSettle={deposit:+a.deposit||0,debt:numIn('dsDebt'),damage:numIn('dsDamage'),other:numIn('dsOther'),refund:depCalc(),method:document.getElementById('dsMethod').value,date:valIn('dsDate')||today(),note:valIn('dsNote'),settledAt:new Date().toISOString()};
+  save();closeM('mDep');renderArchived();toast('✅ Đã lưu quyết toán cọc','success');
+}
+const _confirmCheckout=window.confirmCheckout;
+window.confirmCheckout=function(...a){
+  const tid=document.getElementById('coTenantId').value,n=(S.archived||[]).length;
+  const r=_confirmCheckout.apply(this,a);
+  const arc=S.archived||[];
+  if(arc.length>n){const e=arc[arc.length-1];if(e.id===tid&&(+e.deposit||0)>0)setTimeout(()=>openDepositSettle(tid),500)}
+  return r;
+};
+
+/* ── Nhiều nhà trọ ── */
+const getProps=()=>{try{const p=JSON.parse(localStorage.getItem('ptProps'));if(Array.isArray(p)&&p.length)return p}catch(e){}return [{id:'main',name:'Nhà trọ chính'}]};
+const setProps=p=>{try{localStorage.setItem('ptProps',JSON.stringify(p))}catch(e){}};
+function syncPropName(){
+  const p=getProps(),x=p.find(q=>q.id===PT_CUR());
+  if(x&&S.settings.hotelName&&x.name!==S.settings.hotelName){x.name=S.settings.hotelName}
+  if(!p.some(q=>q.id===PT_CUR()))p.push({id:PT_CUR(),name:S.settings.hotelName||'Nhà trọ'});
+  setProps(p);
+}
+function openProps(){
+  syncPropName();const p=getProps(),cur=PT_CUR();
+  mkModal('mProps','Nhà trọ đang quản lý',`
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Mỗi nhà trọ có dữ liệu và đường dẫn Firebase riêng. Khi chuyển nhà trọ, app sẽ tải lại trang (và hỏi lại mã PIN nếu đã bật).</div>
+    ${p.map(x=>`<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <button class="btn ${x.id===cur?'btn-primary':'btn-secondary'}" type="button" style="flex:1;text-align:left" onclick="switchProp('${esc(x.id)}')">${x.id===cur?'✅ ':'🏠 '}${esc(x.name)}</button>
+      ${x.id!==cur&&x.id!=='main'?`<button class="btn btn-danger btn-sm" type="button" aria-label="Xóa nhà trọ" onclick="deleteProp('${esc(x.id)}')">🗑️</button>`:''}</div>`).join('')}
+    <div class="fg" style="margin-top:12px"><label class="flbl">Thêm nhà trọ mới</label><input class="fc" id="propNew" placeholder="Tên nhà trọ"></div>`,
+    `<button class="btn btn-secondary" type="button" onclick="closeM('mProps')">Đóng</button><button class="btn btn-primary" type="button" onclick="addProp()">+ Thêm</button>`);
+  openM('mProps');
+}
+function switchProp(id){if(id===PT_CUR()){closeM('mProps');return}save();localStorage.setItem('ptCurProp',id);location.reload()}
+function addProp(){
+  const name=valIn('propNew');if(!name){toast('Nhập tên nhà trọ','error');return}
+  const p=getProps();if(p.some(x=>x.name.toLowerCase()===name.toLowerCase())){toast('Tên này đã có','warning');return}
+  const id='p'+uid().slice(0,8);p.push({id,name});setProps(p);switchProp(id);
+}
+function deleteProp(id){
+  const p=getProps(),x=p.find(q=>q.id===id);if(!x||id==='main'||id===PT_CUR())return;
+  if(!confirm(`Xóa nhà trọ "${x.name}" khỏi thiết bị này?\nDữ liệu trên máy sẽ mất. Dữ liệu đã đồng bộ lên Firebase (nếu có) không bị xóa.`))return;
+  if(!confirm('Xác nhận lần cuối: xóa vĩnh viễn?'))return;
+  localStorage.removeItem('pt3_'+id);setProps(p.filter(q=>q.id!==id));openProps();toast('Đã xóa nhà trọ','info');
+}
+
+/* ── Hàng trạng thái trong Cài đặt + thông báo thật ── */
+function updateP3Rows(){
+  const set=(id,t)=>{const e=document.getElementById(id);if(e)e.textContent=t};
+  const p=getProps(),cur=p.find(x=>x.id===PT_CUR());
+  set('propSettingRow',(cur?cur.name:'—')+(p.length>1?` · ${p.length} nhà trọ`:' · nhấn để thêm nhà trọ'));
+  const c=tierCfg();set('elecSettingRow',tierOn()?`Đang bật · ${c.tiers.length} bậc${c.vat?' · VAT '+c.vat+'%':''}`:'Đang dùng đơn giá riêng từng phòng');
+  const l=lateCfg();set('lateSettingRow',l.enabled?`Đang bật · ân hạn ${l.grace||0} ngày · ${l.mode==='pct'?l.value+'%/tháng':fmtN(l.value)+'đ/ngày'}`:'Đang tắt');
+}
+window.showNotif=function(){
+  const items=[];
+  const d=S.invoices.filter(i=>i.debt>0).length;if(d)items.push(`🔴 ${d} hóa đơn còn nợ chưa thu`);
+  try{const n=(S.contracts||[]).filter(c=>getContractStatus(c)==='near').length;if(n)items.push(`📄 ${n} hợp đồng sắp hết hạn trong 30 ngày`)}catch(e){}
+  const o=incs().filter(i=>i.status!=='done').length;if(o)items.push(`🔧 ${o} sự cố chưa xử lý xong`);
+  const u=(S.archived||[]).filter(a=>(+a.deposit||0)>0&&!a.depositSettle).length;if(u)items.push(`💵 ${u} khoản cọc chưa quyết toán`);
+  const lp=pendingLate().length;if(lp)items.push(`⏰ ${lp} hóa đơn đủ điều kiện tính phí trễ`);
+  if(!items.length)items.push('✅ Không có việc nào cần xử lý');
+  items.forEach((m,i)=>setTimeout(()=>toast(m,'info',{duration:5000}),i*350));
+};
+
 /* ══ BẢO MẬT: KHÓA PIN + HOÀN TÁC ══ */
 (function(){
   const K_PIN='ptPin',K_AUTO='ptPinAuto',K_FAIL='ptPinFail';
@@ -5397,7 +5847,7 @@ if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
   function forgotPin(){
     if(!confirm('Quên PIN sẽ XÓA toàn bộ dữ liệu trên THIẾT BỊ NÀY để đặt lại.\nDữ liệu đã đồng bộ lên Firebase (nếu có) vẫn còn và có thể tải lại sau.\n\nTiếp tục?'))return;
     if(!confirm('Xác nhận lần cuối: xóa dữ liệu trên thiết bị này?'))return;
-    [K_PIN,K_AUTO,K_FAIL,'pt3'].forEach(k=>localStorage.removeItem(k));
+    [K_PIN,K_AUTO,K_FAIL,'ptProps','ptCurProp'].forEach(k=>localStorage.removeItem(k));Object.keys(localStorage).filter(k=>k.startsWith('pt3')).forEach(k=>localStorage.removeItem(k));
     location.reload();
   }
 
@@ -5545,6 +5995,7 @@ function refreshAndSort(silent){
 let fbApp=null,fbDb=null,fbConnected=false,fbAutoSync=false,fbListener=null,fbSaveTimer=null;
 window.fbApplyingRemote=false;
 const FB_PATH='phongtro_data';
+function fbPath(){const c=PT_CUR();return c==='main'?FB_PATH:FB_PATH+'_'+c}
 /* Cấu hình mặc định — có thể sửa trong Cài đặt → Firebase Sync (lưu vào localStorage) */
 const DEFAULT_FB_CONFIG={
   apiKey:"AIzaSyBMvvndb-aVsp3U2ycMVfHjTt-rlh_X6kE",
@@ -5663,7 +6114,7 @@ async function pushFirebaseSilently(){
   if(!fbConnected||!fbDb)return;
   try{
     const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
-    await fbDb.ref(FB_PATH).set({rooms:S.rooms,tenants:S.tenants,invoices:S.invoices,payments:S.payments,contracts:S.contracts||[],archived:S.archived||[],settings:S.settings,syncedAt:new Date().toISOString(),deviceName:cfg.deviceName||'?',deviceId:getFbDeviceId()});
+    await fbDb.ref(fbPath()).set({rooms:S.rooms,tenants:S.tenants,invoices:S.invoices,payments:S.payments,contracts:S.contracts||[],archived:S.archived||[],incidents:S.incidents||[],expenses:S.expenses||[],settings:S.settings,syncedAt:new Date().toISOString(),deviceName:cfg.deviceName||'?',deviceId:getFbDeviceId()});
     const now=new Date().toLocaleTimeString('vi-VN');
     const el=document.getElementById('fbLastSync');if(el)el.innerHTML='↗️ '+now;
     fbAddLog('↗️ Auto sync lên Firebase lúc '+now);
@@ -5679,7 +6130,7 @@ async function syncToFirebase(){
   updateFbStatus('syncing');
   try{
     const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
-    await fbDb.ref(FB_PATH).set({rooms:S.rooms,tenants:S.tenants,invoices:S.invoices,payments:S.payments,contracts:S.contracts||[],archived:S.archived||[],settings:S.settings,syncedAt:new Date().toISOString(),deviceName:cfg.deviceName||'?',deviceId:getFbDeviceId()});
+    await fbDb.ref(fbPath()).set({rooms:S.rooms,tenants:S.tenants,invoices:S.invoices,payments:S.payments,contracts:S.contracts||[],archived:S.archived||[],incidents:S.incidents||[],expenses:S.expenses||[],settings:S.settings,syncedAt:new Date().toISOString(),deviceName:cfg.deviceName||'?',deviceId:getFbDeviceId()});
     const now=new Date().toLocaleTimeString('vi-VN');
     const el=document.getElementById('fbLastSync');if(el)el.innerHTML='⬆️ '+now;
     fbAddLog('⬆️ Đẩy lên thành công lúc '+now);
@@ -5692,7 +6143,7 @@ async function syncFromFirebase(){
   if(!fbConnected||!fbDb){toast('Chưa kết nối Firebase!','error');return;}
   updateFbStatus('syncing');
   try{
-    const snap=await fbDb.ref(FB_PATH).once('value');
+    const snap=await fbDb.ref(fbPath()).once('value');
     const data=snap.val();
     if(!data){toast('Firebase chưa có dữ liệu. Hãy đẩy lên trước!','warning');updateFbStatus('connected');return;}
     const t2=data.syncedAt?new Date(data.syncedAt).toLocaleString('vi-VN'):'';
@@ -5702,7 +6153,7 @@ Nguồn: ${(data.deviceName||'?')} · ${t2}`)){updateFbStatus('connected');retur
     window.fbApplyingRemote=true;
     if(data.rooms)S.rooms=data.rooms;if(data.tenants)S.tenants=data.tenants;
     if(data.invoices)S.invoices=data.invoices;if(data.payments)S.payments=data.payments;
-    if(data.contracts)S.contracts=data.contracts;if(data.archived)S.archived=data.archived;
+    if(data.contracts)S.contracts=data.contracts;if(data.archived)S.archived=data.archived;if(data.incidents)S.incidents=data.incidents;if(data.expenses)S.expenses=data.expenses;
     if(data.settings)S.settings={...S.settings,...data.settings};
     save();window.fbApplyingRemote=false;renderAll();
     const now=new Date().toLocaleTimeString('vi-VN');
@@ -5716,13 +6167,13 @@ Nguồn: ${(data.deviceName||'?')} · ${t2}`)){updateFbStatus('connected');retur
 function startFbListener(){
   if(!fbDb)return;stopFbListener();
   const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
-  fbListener=fbDb.ref(FB_PATH).on('value',snap=>{
+  fbListener=fbDb.ref(fbPath()).on('value',snap=>{
     const data=snap.val();if(!data)return;
     if(data.deviceId?data.deviceId===getFbDeviceId():(data.deviceName&&data.deviceName===cfg.deviceName))return;
     window.fbApplyingRemote=true;
     if(data.rooms)S.rooms=data.rooms;if(data.tenants)S.tenants=data.tenants;
     if(data.invoices)S.invoices=data.invoices;if(data.payments)S.payments=data.payments;
-    if(data.contracts)S.contracts=data.contracts;if(data.archived)S.archived=data.archived;
+    if(data.contracts)S.contracts=data.contracts;if(data.archived)S.archived=data.archived;if(data.incidents)S.incidents=data.incidents;if(data.expenses)S.expenses=data.expenses;
     if(data.settings)S.settings={...S.settings,...data.settings};
     save();window.fbApplyingRemote=false;renderAll();
     const now=new Date().toLocaleTimeString('vi-VN');
@@ -5734,7 +6185,7 @@ function startFbListener(){
 }
 
 function stopFbListener(){
-  if(fbDb&&fbListener){fbDb.ref(FB_PATH).off('value',fbListener);fbListener=null;}
+  if(fbDb&&fbListener){fbDb.ref(fbPath()).off('value',fbListener);fbListener=null;}
 }
 
 function updateFbStatus(state){

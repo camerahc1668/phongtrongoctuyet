@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>PhòngTrọ Pro - Quản Lý Nhà Trọ</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#16a34a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PhòngTrọ">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -13,7 +19,9 @@
 <script src="https://unpkg.com/docxtemplater@3.44.0/build/docxtemplater.js"></script>
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <style>
 :root{
   --primary:#16a34a;--primary-light:#22c55e;--primary-dark:#15803d;--primary-bg:#f0fdf4;
@@ -1306,6 +1314,36 @@ html[data-font-size-mode="large"] .chip{padding-top:8px;padding-bottom:8px}
           </div>
           <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+        <div class="stg-row" onclick="openBank()">
+          <div class="stg-row-icon" style="background:rgba(22,163,74,.12);color:#16a34a">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20v.01M20 20v.01"/></svg>
+          </div>
+          <div class="stg-row-body">
+            <div class="stg-row-lbl">Tài khoản nhận tiền (VietQR)</div>
+            <div class="stg-row-val" id="bankSettingRow">Chưa cài đặt</div>
+          </div>
+          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="stg-row" onclick="installApp()">
+          <div class="stg-row-icon" style="background:rgba(99,102,241,.12);color:#6366f1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          </div>
+          <div class="stg-row-body">
+            <div class="stg-row-lbl">Cài ứng dụng lên màn hình</div>
+            <div class="stg-row-val" id="installSettingRow">Dùng như app, chạy offline</div>
+          </div>
+          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="stg-row" onclick="openPinMenu()">
+          <div class="stg-row-icon" style="background:rgba(239,68,68,.12);color:#ef4444">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <div class="stg-row-body">
+            <div class="stg-row-lbl">Khóa ứng dụng bằng mã PIN</div>
+            <div class="stg-row-val" id="pinSettingRow">Chưa bật</div>
+          </div>
+          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
         <div class="stg-row" onclick="refreshAndSort()">
           <div class="stg-row-icon" style="background:rgba(14,165,233,.12);color:#0ea5e9">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
@@ -1576,6 +1614,10 @@ html[data-font-size-mode="large"] .chip{padding-top:8px;padding-bottom:8px}
     <div class="frow"><div class="fg"><label class="flbl">CS Điện cũ</label><input class="fc" id="invEO" type="number" value="0" oninput="calcInv()"></div><div class="fg"><label class="flbl">CS Điện mới</label><input class="fc" id="invEN" type="number" value="0" oninput="calcInv()"></div></div>
     <div class="frow"><div class="fg"><label class="flbl">CS Nước cũ</label><input class="fc" id="invWO" type="number" value="0" oninput="calcInv()"></div><div class="fg"><label class="flbl">CS Nước mới</label><input class="fc" id="invWN" type="number" value="0" oninput="calcInv()"></div></div>
     <div class="frow"><div class="fg"><label class="flbl">Phụ thu (₫)</label><input class="fc" id="invExtra" type="number" value="0" oninput="calcInv()"></div><div class="fg"><label class="flbl">Giảm giá (₫)</label><input class="fc" id="invDisc" type="number" value="0" oninput="calcInv()"></div></div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">📷 Ảnh công tơ điện</label><input class="fc" type="file" accept="image/*" capture="environment" id="invPhotoE" onchange="invPickPhoto(this,'e')"><img id="invPhotoEPrev" alt="" style="display:none;margin-top:6px;height:56px;border-radius:8px"></div>
+      <div class="fg"><label class="flbl">📷 Ảnh công tơ nước</label><input class="fc" type="file" accept="image/*" capture="environment" id="invPhotoW" onchange="invPickPhoto(this,'w')"><img id="invPhotoWPrev" alt="" style="display:none;margin-top:6px;height:56px;border-radius:8px"></div>
+    </div>
     <div class="card mt-2" style="background:var(--primary-bg);border-color:var(--primary)"><div class="card-body" id="invPreview"></div></div>
     <div class="fg mt-2"><label class="flbl">Ghi chú</label><input class="fc" id="invNote" placeholder="Ghi chú thêm..."></div>
   </div>
@@ -1874,7 +1916,9 @@ let cRev,cOcc,cRpt,cUtil;
 let currentContractData=null;// Lưu tạm dữ liệu hợp đồng đang tạo
 
 /* ── DEMO DATA ─────────────────────────── */
-function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function uid(){return (window.crypto&&crypto.randomUUID)?crypto.randomUUID().replace(/-/g,'').slice(0,16):Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+/* Chống XSS: luôn bọc dữ liệu người dùng nhập khi đưa vào innerHTML */
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function createDemo(){
   const rN=['P101','P102','P103','P104','P201','P202','P203','P204','P301','P302','P303','P304','P401','P402','P403','P404','P501','P502','P503','P504'];
   const pr=[2200000,2500000,2800000,3000000,3200000,3500000];
@@ -1905,12 +1949,17 @@ function createDemo(){
 
 /* ── STORAGE ───────────────────────────── */
 function save(){
-  try{localStorage.setItem('pt3',JSON.stringify(S));}catch(e){}
+  try{localStorage.setItem('pt3',JSON.stringify(S));window.__saveFailed=false;}
+  catch(e){
+    if(!window.__saveFailed){window.__saveFailed=true;
+      const quota=e&&(e.name==='QuotaExceededError'||e.code===22||e.code===1014);
+      toast(quota?'⚠️ Bộ nhớ thiết bị đã đầy — dữ liệu CHƯA được lưu! Hãy xuất sao lưu và xóa bớt ảnh.':'⚠️ Không thể lưu dữ liệu: '+(e&&e.message||'lỗi không xác định'),'error',{duration:12000});}
+  }
   if(typeof scheduleFirebasePush==='function'&&typeof fbConnected!=='undefined'&&fbConnected&&fbAutoSync&&!window.fbApplyingRemote){
     scheduleFirebasePush();
   }
 }
-function load(){try{const s=localStorage.getItem('pt3');if(s){const parsed=JSON.parse(s);S={...S,...parsed};if(!S.contracts)S.contracts=[];if(!S.archived)S.archived=[];return true;}}catch(e){}return false;}
+function load(){try{const s=localStorage.getItem('pt3');if(s){const parsed=JSON.parse(s);S={...S,...parsed};if(!S.contracts)S.contracts=[];if(!S.archived)S.archived=[];return true;}}catch(e){window.__loadError=true;try{localStorage.setItem('pt3_corrupt_backup',localStorage.getItem('pt3')||'');}catch(_){}}return false;}
 function resetDemo(){if(!confirm('Reset về dữ liệu mẫu?'))return;const d=createDemo();S.rooms=d.rooms;S.tenants=d.tenants;S.invoices=d.invoices;S.payments=d.payments;save();renderAll();toast('Đã reset dữ liệu demo!','success')}
 function backupData(){const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='phongtro_'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('Đã sao lưu!','success')}
 function restoreData(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(d.rooms&&d.tenants){S={...S,...d};save();renderAll();toast('Khôi phục thành công!','success');}}catch{toast('File không hợp lệ!','error');}};r.readAsText(f);inp.value='';}
@@ -1924,16 +1973,17 @@ function stLbl(s){return{available:'Còn trống',rented:'Đang thuê',debt:'N�
 function getMonthName(m){const d=new Date(m+'-01');return`Tháng ${d.getMonth()+1}/${d.getFullYear()}`}
 function today(){return new Date().toISOString().slice(0,10)}
 function curMonth(){const d=new Date();return`${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}`}
-function iR(l,v,s){return`<div><div style="font-size:11px;color:var(--text3);font-weight:600">${l}</div><div style="font-size:13px;font-weight:700;color:var(--text);margin-top:2px${s?';'+s:''}">${v||'—'}</div></div>`}
+function iR(l,v,s){return`<div><div style="font-size:11px;color:var(--text3);font-weight:600">${l}</div><div style="font-size:13px;font-weight:700;color:var(--text);margin-top:2px${s?';'+s:''}">${v?esc(v):'—'}</div></div>`}
 function pR(l,v){return`<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px dashed var(--border)"><span style="color:var(--text2)">${l}</span><span style="font-weight:700">${v}</span></div>`}
-function avHtml(t,sz,rad){const s=sz||38,r=rad||50;if(t?.avatar)return`<div style="width:${s}px;height:${s}px;border-radius:${r}%;overflow:hidden;flex-shrink:0"><img src="${t.avatar}" style="width:100%;height:100%;object-fit:cover"></div>`;return`<div style="width:${s}px;height:${s}px;border-radius:${r}%;background:${t?.avatarColor||'#16a34a'};display:flex;align-items:center;justify-content:center;font-size:${Math.floor(s*.36)}px;font-weight:800;color:white;flex-shrink:0">${t?getInits(t.name):'?'}</div>`;}
+function avHtml(t,sz,rad){const s=sz||38,r=rad||50;if(t?.avatar)return`<div style="width:${s}px;height:${s}px;border-radius:${r}%;overflow:hidden;flex-shrink:0"><img src="${esc(t.avatar)}" style="width:100%;height:100%;object-fit:cover"></div>`;return`<div style="width:${s}px;height:${s}px;border-radius:${r}%;background:${t?.avatarColor||'#16a34a'};display:flex;align-items:center;justify-content:center;font-size:${Math.floor(s*.36)}px;font-weight:800;color:white;flex-shrink:0">${t?getInits(t.name):'?'}</div>`;}
 
 /* ── TOAST ─────────────────────────────── */
-function toast(msg,type='info'){
+function toast(msg,type='info',opts){
   const icons={success:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`,error:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,warning:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,info:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/></svg>`};
-  const el=document.createElement('div');el.className=`toast ${type}`;el.innerHTML=(icons[type]||icons.info)+`<span>${msg}</span>`;
+  const el=document.createElement('div');el.className=`toast ${type}`;el.innerHTML=(icons[type]||icons.info)+`<span>${esc(msg)}</span>`;
+  if(opts&&opts.action){const b=document.createElement('button');b.type='button';b.textContent=opts.action.label;b.style.cssText='margin-left:10px;background:rgba(255,255,255,.22);border:0;color:inherit;font-weight:800;padding:5px 12px;border-radius:8px;cursor:pointer;pointer-events:auto;font-family:inherit';b.onclick=()=>{try{opts.action.fn();}finally{el.remove();}};el.style.pointerEvents='auto';el.appendChild(b);}
   document.getElementById('toastBox').appendChild(el);
-  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300);},3500);
+  setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300);},(opts&&opts.duration)||3500);
 }
 
 /* ── NAVIGATION ────────────────────────── */
@@ -2122,12 +2172,12 @@ function getRoomPhotos(room){
 function renderRoomCover(room){
   const photos=getRoomPhotos(room);
   if(!photos.length)return'';
-  return`<div class="room-cover"><img src="${photos[0]}" alt="Ảnh phòng ${room.name}"><div class="room-photo-count">${photos.length} ảnh</div></div>`;
+  return`<div class="room-cover"><img src="${photos[0]}" alt="Ảnh phòng ${esc(room.name)}"><div class="room-photo-count">${photos.length} ảnh</div></div>`;
 }
 
 function renderRoomThumb(room){
   const photos=getRoomPhotos(room);
-  return photos.length?`<div class="room-list-thumb"><img src="${photos[0]}" alt="Ảnh phòng ${room.name}"></div>`:'';
+  return photos.length?`<div class="room-list-thumb"><img src="${photos[0]}" alt="Ảnh phòng ${esc(room.name)}"></div>`:'';
 }
 
 /* ══ VIEW 1: SƠ ĐỒ TẦNG (MAP) ════════ */
@@ -2149,7 +2199,7 @@ function renderRoomsMap(rows){
     const zoneHtml=`
       <div class="zone-section">
         <div class="zone-header">
-          <div class="zone-badge">🏢 Khu ${zone}</div>
+          <div class="zone-badge">🏢 Khu ${esc(zone)}</div>
           <div class="floor-line"></div>
           <div class="floor-count">${totalRooms} phòng · ${totalEmpty} trống</div>
         </div>
@@ -2163,12 +2213,12 @@ function renderRoomsMap(rows){
               const debtAmt=inv?.debt||0;
               const stCls=getStatusClass(room.status);
               let avHtmlStr='';
-              if(t?.avatar)avHtmlStr=`<div class="rc-avatar-mini"><img src="${t.avatar}"></div>`;
+              if(t?.avatar)avHtmlStr=`<div class="rc-avatar-mini"><img src="${esc(t.avatar)}"></div>`;
               else if(t)avHtmlStr=`<div class="rc-avatar-mini" style="background:${t.avatarColor||'#16a34a'}">${getInits(t.name)}</div>`;
               else avHtmlStr=`<div style="width:20px;height:20px;border-radius:6px;background:var(--bg2);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="7" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>`;
-              return`<div class="room-cell ${stCls}" onclick="showRoomDet('${room.id}')" title="Phòng ${room.name}${t?' — '+t.name:''}${debtAmt>0?' · Nợ '+fmt(debtAmt):''}">
+              return`<div class="room-cell ${stCls}" onclick="showRoomDet('${room.id}')" title="Phòng ${esc(room.name)}${t?' — '+esc(t.name):''}${debtAmt>0?' · Nợ '+fmt(debtAmt):''}">
                 <div class="rc-status-dot"></div>
-                <div class="rc-no">${room.name}</div>
+                <div class="rc-no">${esc(room.name)}</div>
                 ${avHtmlStr}
                 ${debtAmt>0?`<div style="font-size:8px;font-weight:800;color:var(--danger)">${Math.round(debtAmt/1000)}K</div>`:`<div class="rc-price-mini">${Math.round(room.price/1000)}K</div>`}
               </div>`;
@@ -2198,20 +2248,20 @@ function renderRoomsGrid(rows){
       const rmCnt=t?.roommates?.length||0;
       const debtAmt=inv?.debt||0;
       let av='';
-      if(t?.avatar)av=`<div class="rc-avatar"><img src="${t.avatar}" alt="${t.name}"></div>`;
+      if(t?.avatar)av=`<div class="rc-avatar"><img src="${esc(t.avatar)}" alt="${esc(t.name)}"></div>`;
       else if(t)av=`<div class="rc-avatar" style="background:${t.avatarColor||'#16a34a'}">${getInits(t.name)}</div>`;
       else av=`<div class="rc-avatar" style="background:var(--border)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" style="width:16px;height:16px"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>`;
       return`<div class="room-card ${stCls}" onclick="showRoomDet('${room.id}')">
         <span class="rc-badge ${bdCls}">${{available:'🟢 Trống',rented:'🔵 Thuê',debt:'🔴 Nợ',due:'🟡 Hạn'}[room.status]}</span>
         <div class="rc-inner">
           ${renderRoomCover(room)}
-          <div class="rc-room-no">${room.name}</div>
+          <div class="rc-room-no">${esc(room.name)}</div>
           <div class="rc-floor">Tầng ${room.floor} · ${room.area}m²</div>
           <div class="rc-price">${fmt(room.price)}<span>/tháng</span></div>
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
             ${av}
             <div style="min-width:0;flex:1">
-              ${t?`<div class="rc-tenant-name">${t.name}</div><div class="rc-tenant-sub">${t.phone}${rmCnt?` · +${rmCnt} người`:''}</div>`:`<div class="rc-tenant-name" style="color:var(--text3)">Chưa có khách</div>`}
+              ${t?`<div class="rc-tenant-name">${esc(t.name)}</div><div class="rc-tenant-sub">${esc(t.phone)}${rmCnt?` · +${rmCnt} người`:''}</div>`:`<div class="rc-tenant-name" style="color:var(--text3)">Chưa có khách</div>`}
             </div>
           </div>
           <div class="rc-stats">
@@ -2252,15 +2302,15 @@ function renderRoomsList(rows){
       const liCls=getStatusListClass(room.status);
       const statusIcon={available:'🟢',rented:'🔵',debt:'🔴',due:'🟡'}[room.status]||'⚪';
       let avStr='';
-      if(t?.avatar)avStr=`<div class="rc-avatar" style="width:36px;height:36px;border-radius:10px"><img src="${t.avatar}"></div>`;
+      if(t?.avatar)avStr=`<div class="rc-avatar" style="width:36px;height:36px;border-radius:10px"><img src="${esc(t.avatar)}"></div>`;
       else if(t)avStr=`<div class="rc-avatar" style="width:36px;height:36px;border-radius:10px;font-size:12px;background:${t.avatarColor||'#16a34a'}">${getInits(t.name)}</div>`;
       return`<div class="room-list-item ${liCls}" onclick="showRoomDet('${room.id}')">
-        <div class="rli-no">${statusIcon} ${room.name}</div>
+        <div class="rli-no">${statusIcon} ${esc(room.name)}</div>
         ${renderRoomThumb(room)}
         ${t?`<div style="width:36px;height:36px;border-radius:10px;overflow:hidden;flex-shrink:0">${avStr}</div>`:''}
         <div class="rli-info">
-          <div class="rli-tenant">${t?t.name:'— Chưa có khách'}</div>
-          <div class="rli-sub">${t?t.phone+' · ':''}${room.area}m² · ${room.floor?floorLabel(room.floor):''}</div>
+          <div class="rli-tenant">${t?esc(t.name):'— Chưa có khách'}</div>
+          <div class="rli-sub">${t?esc(t.phone)+' · ':''}${room.area}m² · ${room.floor?floorLabel(room.floor):''}</div>
         </div>
         <div class="rli-right">
           <div class="rli-price">${fmt(room.price)}</div>
@@ -2342,7 +2392,7 @@ function populateZoneSelect(){
   if(!sel)return;
   const cur=sel.value;
   sel.innerHTML=`<option value="">-- Chọn khu --</option>`+
-    zones.map(z=>`<option value="${z}" ${cur===z?'selected':''}>${z}</option>`).join('');
+    zones.map(z=>`<option value="${esc(z)}" ${cur===z?'selected':''}>${esc(z)}</option>`).join('');
   if(cur)sel.value=cur;
   updateRoomCode();
 }
@@ -2517,12 +2567,12 @@ function renderZoneList(){
   const zones=getZones();
   document.getElementById('zoneList').innerHTML=zones.length?zones.map((z,i)=>`
     <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border-radius:12px;margin-bottom:8px;border:1.5px solid var(--border)">
-      <div style="width:36px;height:36px;border-radius:10px;background:var(--primary-bg);border:2px solid var(--primary);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:var(--primary)">${z}</div>
+      <div style="width:36px;height:36px;border-radius:10px;background:var(--primary-bg);border:2px solid var(--primary);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:var(--primary)">${esc(z)}</div>
       <div style="flex:1">
-        <div style="font-size:14px;font-weight:700">Khu ${z}</div>
+        <div style="font-size:14px;font-weight:700">Khu ${esc(z)}</div>
         <div style="font-size:11px;color:var(--text3)">${S.rooms.filter(r=>r.zone===z).length} phòng</div>
       </div>
-      <button class="btn btn-danger btn-xs" onclick="removeZone('${z}')" ${S.rooms.filter(r=>r.zone===z).length>0?'disabled title="Còn phòng trong khu này"':''}>🗑️</button>
+      <button class="btn btn-danger btn-xs" data-z="${esc(z)}" onclick="removeZone(this.dataset.z)" ${S.rooms.filter(r=>r.zone===z).length>0?'disabled title="Còn phòng trong khu này"':''}>🗑️</button>
     </div>`).join('')
     :`<div style="text-align:center;color:var(--text3);padding:20px;font-size:13px">Chưa có khu nào. Thêm khu mới bên trên.</div>`;
 }
@@ -2531,6 +2581,7 @@ function addZone(){
   const input=document.getElementById('newZoneInput');
   const val=input.value.trim().toUpperCase();
   if(!val){toast('Nhập tên khu!','error');return}
+  if(!/^[\p{L}\p{N} _-]{1,10}$/u.test(val)){toast('Tên khu tối đa 10 ký tự, chỉ gồm chữ, số, khoảng trắng, - hoặc _','error');return}
   const zones=getZones();
   if(zones.includes(val)){toast('Khu này đã tồn tại!','warning');return}
   zones.push(val);
@@ -2560,13 +2611,13 @@ function showRoomDet(id){
   document.getElementById('mRoomDetTitle').textContent='Phòng '+room.name;
   const stBg={available:'rgba(16,185,129,.12)',rented:'rgba(14,165,233,.12)',debt:'rgba(239,68,68,.12)',due:'rgba(249,115,22,.12)'}[room.status];
   const stClr={available:'var(--success)',rented:'var(--secondary)',debt:'var(--danger)',due:'var(--warning)'}[room.status];
-  const rmHtml=t?.roommates?.length?`<div style="font-size:13px;font-weight:700;color:var(--info);margin:14px 0 8px">👥 Người ở cùng (${t.roommates.length})</div>${t.roommates.map(rm=>`<div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--bg2);border-radius:12px;margin-bottom:6px">${rm.avatar?`<img src="${rm.avatar}" style="width:38px;height:38px;border-radius:11px;object-fit:cover;">`:`<div style="width:38px;height:38px;border-radius:11px;background:var(--secondary);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:white">${getInits(rm.name)}</div>`}<div style="flex:1"><div style="font-size:13px;font-weight:700">${rm.name}</div><div style="font-size:11px;color:var(--text3)">${rm.phone} · ${rm.gender}</div></div></div>`).join('')}`:'';
+  const rmHtml=t?.roommates?.length?`<div style="font-size:13px;font-weight:700;color:var(--info);margin:14px 0 8px">👥 Người ở cùng (${t.roommates.length})</div>${t.roommates.map(rm=>`<div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--bg2);border-radius:12px;margin-bottom:6px">${rm.avatar?`<img src="${esc(rm.avatar)}" style="width:38px;height:38px;border-radius:11px;object-fit:cover;">`:`<div style="width:38px;height:38px;border-radius:11px;background:var(--secondary);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:white">${getInits(rm.name)}</div>`}<div style="flex:1"><div style="font-size:13px;font-weight:700">${esc(rm.name)}</div><div style="font-size:11px;color:var(--text3)">${esc(rm.phone)} · ${esc(rm.gender)}</div></div></div>`).join('')}`:'';
   const roomPhotos=getRoomPhotos(room);
-  const roomGallery=roomPhotos.length?`<div class="room-gallery">${roomPhotos.map((src,i)=>`<div class="room-gallery-item"><img src="${src}" alt="Ảnh phòng ${room.name} ${i+1}"></div>`).join('')}</div>`:'';
+  const roomGallery=roomPhotos.length?`<div class="room-gallery">${roomPhotos.map((src,i)=>`<div class="room-gallery-item"><img src="${src}" alt="Ảnh phòng ${esc(room.name)} ${i+1}"></div>`).join('')}</div>`:'';
   document.getElementById('mRoomDetBody').innerHTML=`
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
       ${t?avHtml(t,56,18):`<div style="width:56px;height:56px;border-radius:16px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:26px">🏠</div>`}
-      <div><div style="font-size:22px;font-weight:900">${room.name}</div><span style="padding:3px 12px;border-radius:99px;background:${stBg};color:${stClr};font-size:11px;font-weight:700;margin-top:4px;display:inline-block">${stLbl(room.status)}</span></div>
+      <div><div style="font-size:22px;font-weight:900">${esc(room.name)}</div><span style="padding:3px 12px;border-radius:99px;background:${stBg};color:${stClr};font-size:11px;font-weight:700;margin-top:4px;display:inline-block">${stLbl(room.status)}</span></div>
     </div>
     ${roomGallery}
     <div class="card card-body mb-3"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${iR('Giá thuê',fmt(room.price))}${iR('Diện tích',room.area+' m²')}${iR('Tầng',room.floor)}${iR('Giá điện',fmtN(room.elecPrice)+' ₫/kWh')}${iR('Giá nước',fmtN(room.waterPrice)+' ₫/m³')}${iR('Internet',fmt(room.internet))}${iR('Dịch vụ',fmt(room.serviceFee))}${iR('Rác',fmt(room.garbage))}${iR('Giữ xe',fmt(room.parking))}${iR('CS Điện/Nước',fmtN(room.elecIndex)+' / '+fmtN(room.waterIndex))}</div></div>
@@ -2597,18 +2648,18 @@ function renderRMs(){
       <button class="rm-del" onclick="removeRM(${i})">✕</button>
       <div class="rm-hdr">
         <div class="rm-avatar" onclick="document.getElementById('rmAv${i}').click()">
-          ${rm.avatar?`<img src="${rm.avatar}">`:`${i+1}`}
+          ${rm.avatar?`<img src="${esc(rm.avatar)}">`:`${i+1}`}
         </div>
         <input type="file" id="rmAv${i}" accept="image/*" style="display:none" onchange="loadRmAv(this,${i})">
         <div><div style="font-size:12px;font-weight:700;color:var(--primary)">Người ở cùng ${i+1}</div><div style="font-size:11px;color:var(--text3)">Nhấn số để đổi ảnh đại diện</div></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">Họ và tên *</div><input class="fc" style="font-size:12px;padding:8px 10px" placeholder="Họ tên..." value="${rm.name}" oninput="rms[${i}].name=this.value"></div>
+        <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">Họ và tên *</div><input class="fc" style="font-size:12px;padding:8px 10px" placeholder="Họ tên..." value="${esc(rm.name)}" oninput="rms[${i}].name=this.value"></div>
         <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">Giới tính</div><select class="fc" style="font-size:12px;padding:8px 10px" onchange="rms[${i}].gender=this.value"><option ${rm.gender==='Nam'?'selected':''}>Nam</option><option ${rm.gender==='Nữ'?'selected':''}>Nữ</option><option ${rm.gender==='Khác'?'selected':''}>Khác</option></select></div>
-        <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">Số điện thoại</div><input class="fc" style="font-size:12px;padding:8px 10px" type="tel" placeholder="09..." value="${rm.phone}" oninput="rms[${i}].phone=this.value"></div>
-        <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">Ngày sinh</div><input class="fc" style="font-size:12px;padding:8px 10px" type="date" value="${rm.dob}" onchange="rms[${i}].dob=this.value"></div>
-        <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">CCCD / CMND</div><input class="fc" style="font-size:12px;padding:8px 10px" placeholder="012..." value="${rm.cccd}" oninput="rms[${i}].cccd=this.value"></div>
-        <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">Biển số xe</div><input class="fc" style="font-size:12px;padding:8px 10px" placeholder="51A-..." value="${rm.vehicle}" oninput="rms[${i}].vehicle=this.value"></div>
+        <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">Số điện thoại</div><input class="fc" style="font-size:12px;padding:8px 10px" type="tel" placeholder="09..." value="${esc(rm.phone)}" oninput="rms[${i}].phone=this.value"></div>
+        <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">Ngày sinh</div><input class="fc" style="font-size:12px;padding:8px 10px" type="date" value="${esc(rm.dob)}" onchange="rms[${i}].dob=this.value"></div>
+        <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">CCCD / CMND</div><input class="fc" style="font-size:12px;padding:8px 10px" placeholder="012..." value="${esc(rm.cccd)}" oninput="rms[${i}].cccd=this.value"></div>
+        <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">Biển số xe</div><input class="fc" style="font-size:12px;padding:8px 10px" placeholder="51A-..." value="${esc(rm.vehicle)}" oninput="rms[${i}].vehicle=this.value"></div>
       </div>
       <!-- Mối quan hệ với chủ hộ -->
       <div style="margin-bottom:8px">
@@ -2616,10 +2667,10 @@ function renderRMs(){
         <div style="display:flex;gap:6px">
           <select class="fc" style="font-size:12px;padding:8px 10px;flex:1" onchange="setRmRel(${i},this.value)">
             <option value="">-- Chọn quan hệ --</option>
-            ${relOpts.map(r=>`<option value="${r}" ${rm.relation===r?'selected':''}>${r}</option>`).join('')}
+            ${relOpts.map(r=>`<option value="${esc(r)}" ${rm.relation===r?'selected':''}>${esc(r)}</option>`).join('')}
             <option value="__custom__" ${rm.relation&&!relOpts.includes(rm.relation)?'selected':''}>✏️ Tự ghi...</option>
           </select>
-          ${rm.relation&&!relOpts.includes(rm.relation)?`<input class="fc" style="font-size:12px;padding:8px 10px;width:130px;flex-shrink:0" placeholder="Quan hệ..." value="${rm.relation}" oninput="rms[${i}].relation=this.value;saveCustomRel(this.value)" id="relCustom${i}">`:``}
+          ${rm.relation&&!relOpts.includes(rm.relation)?`<input class="fc" style="font-size:12px;padding:8px 10px;width:130px;flex-shrink:0" placeholder="Quan hệ..." value="${esc(rm.relation)}" oninput="rms[${i}].relation=this.value;saveCustomRel(this.value)" id="relCustom${i}">`:``}
         </div>
       </div>
       <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px">🪪 Ảnh CCCD (người ở cùng ${i+1})</div>
@@ -2627,20 +2678,20 @@ function renderRMs(){
         <div class="cmnd-box" onclick="document.getElementById('rmCF${i}').click()" style="aspect-ratio:16/9">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8" cy="10" r="2"/><path d="M3 16l5-5 3 3 4-5 6 7"/></svg>
           <div class="cmnd-lbl">Mặt trước</div>
-          <img id="rmCFP${i}" style="display:${rm.cmndFront?'block':'none'}" src="${rm.cmndFront}">
+          <img id="rmCFP${i}" style="display:${rm.cmndFront?'block':'none'}" src="${esc(rm.cmndFront)}">
         </div>
         <div class="cmnd-box" onclick="document.getElementById('rmCB${i}').click()" style="aspect-ratio:16/9">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:18px;height:18px"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 10h10M7 14h6"/></svg>
           <div class="cmnd-lbl">Mặt sau</div>
-          <img id="rmCBP${i}" style="display:${rm.cmndBack?'block':'none'}" src="${rm.cmndBack}">
+          <img id="rmCBP${i}" style="display:${rm.cmndBack?'block':'none'}" src="${esc(rm.cmndBack)}">
         </div>
       </div>
       <input type="file" id="rmCF${i}" accept="image/*" style="display:none" onchange="loadRmCmnd(this,${i},'front')">
       <input type="file" id="rmCB${i}" accept="image/*" style="display:none" onchange="loadRmCmnd(this,${i},'back')">
-      <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">Địa chỉ thường trú</div><input class="fc" style="font-size:12px;padding:8px 10px" placeholder="Địa chỉ..." value="${rm.address}" oninput="rms[${i}].address=this.value"></div>
+      <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">Địa chỉ thường trú</div><input class="fc" style="font-size:12px;padding:8px 10px" placeholder="Địa chỉ..." value="${esc(rm.address)}" oninput="rms[${i}].address=this.value"></div>
     </div>`).join('');
 }
-function loadRmAv(inp,i){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{rms[i].avatar=e.target.result;renderRMs()};r.readAsDataURL(f)}
+function loadRmAv(inp,i){const f=inp.files[0];if(!f)return;resizeImageDataUrl(f,600,.72).then(d=>{rms[i].avatar=d;renderRMs()}).catch(()=>toast('Không đọc được ảnh','error'))}
 function loadRmCmnd(inp,i,side){
   const f=inp.files[0];if(!f)return;
   const r=new FileReader();r.onload=e=>{
@@ -2741,7 +2792,7 @@ function openCT01(tenantId){
   document.getElementById('ct01ToCoQuan').value=coQuan;
 
   // Nội dung đề nghị
-  const roomName=room?`Phòng ${room.name}, `:'';
+  const roomName=room?`Phòng ${esc(room.name)}, `:'';
   document.getElementById('ct01Content').value=`Đăng ký tạm trú tại địa chỉ ${roomName}${propAddr}`;
   document.getElementById('ct01SignDate').value=today();
 
@@ -2760,11 +2811,11 @@ function renderCT01Members(members){
     const dob=rm.dob?new Date(rm.dob).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'}):'';
     return`<tr>
       <td style="text-align:center;font-weight:700;padding:6px 4px">${i+1}</td>
-      <td style="padding:6px 4px">${rm.name||''}</td>
+      <td style="padding:6px 4px">${esc(rm.name||'')}</td>
       <td style="text-align:center;padding:6px 4px">${dob}</td>
-      <td style="text-align:center;padding:6px 4px">${rm.gender||''}</td>
-      <td style="padding:6px 4px">${rm.cccd||''}</td>
-      <td style="padding:6px 4px">${rm.relation||''}</td>
+      <td style="text-align:center;padding:6px 4px">${esc(rm.gender||'')}</td>
+      <td style="padding:6px 4px">${esc(rm.cccd||'')}</td>
+      <td style="padding:6px 4px">${esc(rm.relation||'')}</td>
     </tr>`;
   }).join('');
 }
@@ -2814,11 +2865,11 @@ function exportCT01(){
     const d=rm.dob?new Date(rm.dob).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'}):'';
     memberRows.push(`<tr>
       <td style="border:1px solid #000;text-align:center;padding:5px 3px;font-size:10pt">${i+1}</td>
-      <td style="border:1px solid #000;padding:5px 6px;font-size:10pt">${rm.name||''}</td>
+      <td style="border:1px solid #000;padding:5px 6px;font-size:10pt">${esc(rm.name||'')}</td>
       <td style="border:1px solid #000;text-align:center;padding:5px 3px;font-size:10pt">${d}</td>
-      <td style="border:1px solid #000;text-align:center;padding:5px 3px;font-size:10pt">${rm.gender||''}</td>
-      <td style="border:1px solid #000;padding:5px 3px;font-size:10pt">${rm.cccd||''}</td>
-      <td style="border:1px solid #000;padding:5px 6px;font-size:10pt">${rm.relation||''}</td>
+      <td style="border:1px solid #000;text-align:center;padding:5px 3px;font-size:10pt">${esc(rm.gender||'')}</td>
+      <td style="border:1px solid #000;padding:5px 3px;font-size:10pt">${esc(rm.cccd||'')}</td>
+      <td style="border:1px solid #000;padding:5px 6px;font-size:10pt">${esc(rm.relation||'')}</td>
     </tr>`);
   });
   // Thêm dòng trống cho đủ 7 dòng
@@ -3047,18 +3098,18 @@ function renderTenants(){
   if(!ts.length){document.getElementById('tenantList').innerHTML=`<div class="empty"><div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div class="empty-title">Không tìm thấy khách</div></div>`;return;}
   document.getElementById('tenantList').innerHTML=ts.map(t=>{
     const room=S.rooms.find(r=>r.id===t.roomId),inv=S.invoices.find(i=>i.tenantId===t.id&&i.month===curMonth()),rmCnt=t.roommates?.length||0;
-    const av=t.avatar?`<div class="t-avatar"><img src="${t.avatar}" alt="${t.name}"></div>`:`<div class="t-avatar" style="background:linear-gradient(135deg,${t.avatarColor},${t.avatarColor}99)">${getInits(t.name)}</div>`;
+    const av=t.avatar?`<div class="t-avatar"><img src="${esc(t.avatar)}" alt="${esc(t.name)}"></div>`:`<div class="t-avatar" style="background:linear-gradient(135deg,${t.avatarColor},${t.avatarColor}99)">${getInits(t.name)}</div>`;
     return `<div class="tenant-card" onclick="showTenantDet('${t.id}')">
       <div style="display:flex;gap:14px;align-items:flex-start">
         ${av}
         <div style="flex:1;min-width:0">
-          <div class="t-name">${t.name}</div>
+          <div class="t-name">${esc(t.name)}</div>
           <div class="t-meta">
-            <div class="t-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07"/></svg>${t.phone}</div>
-            ${room?`<div class="t-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Phòng ${room.name}</div>`:''}
+            <div class="t-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07"/></svg>${esc(t.phone)}</div>
+            ${room?`<div class="t-meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Phòng ${esc(room.name)}</div>`:''}
           </div>
           <div class="t-badges">
-            ${t.gender?`<span class="t-badge" style="background:${t.gender==='Nam'?'rgba(14,165,233,.12)':'rgba(236,72,153,.12)'};color:${t.gender==='Nam'?'var(--secondary)':'#ec4899'}">${t.gender}</span>`:''}
+            ${t.gender?`<span class="t-badge" style="background:${t.gender==='Nam'?'rgba(14,165,233,.12)':'rgba(236,72,153,.12)'};color:${t.gender==='Nam'?'var(--secondary)':'#ec4899'}">${esc(t.gender)}</span>`:''}
             ${room?`<span class="t-badge" style="background:rgba(22,163,74,.12);color:var(--primary)">Đang thuê</span>`:`<span class="t-badge" style="background:var(--bg2);color:var(--text3)">Chưa có phòng</span>`}
             ${rmCnt>0?`<span class="t-badge" style="background:rgba(99,102,241,.12);color:var(--info)">+${rmCnt} người cùng</span>`:''}
             ${inv?.debt>0?`<span class="t-badge" style="background:rgba(239,68,68,.12);color:var(--danger)">Nợ ${fmt(inv.debt)}</span>`:''}
@@ -3086,7 +3137,7 @@ function openAddTenant(){
   ['avPrev','cmndFPrev','cmndBPrev'].forEach(id=>{const e=document.getElementById(id);e.style.display='none';e.src='';});
   rms=[];renderRMs();
   const empty=S.rooms.filter(r=>r.status==='available');
-  document.getElementById('tRoom').innerHTML=`<option value="">-- Chọn phòng --</option>`+empty.map(r=>`<option value="${r.id}">Phòng ${r.name} (${fmt(r.price)})</option>`).join('');
+  document.getElementById('tRoom').innerHTML=`<option value="">-- Chọn phòng --</option>`+empty.map(r=>`<option value="${r.id}">Phòng ${esc(r.name)} (${fmt(r.price)})</option>`).join('');
   openM('mTenant');
 }
 function openEditTenant(id){
@@ -3099,7 +3150,7 @@ function openEditTenant(id){
   const cb=document.getElementById('cmndBPrev');if(t.cmndBack){cb.src=t.cmndBack;cb.style.display='block';}else cb.style.display='none';
   rms=JSON.parse(JSON.stringify(t.roommates||[]));renderRMs();
   const rooms=[...S.rooms.filter(r=>r.status==='available'),...(t.roomId?[S.rooms.find(r=>r.id===t.roomId)].filter(Boolean):[])];
-  document.getElementById('tRoom').innerHTML=`<option value="">-- Chọn phòng --</option>`+rooms.map(r=>`<option value="${r.id}" ${r.id===t.roomId?'selected':''}>Phòng ${r.name} (${fmt(r.price)})</option>`).join('');
+  document.getElementById('tRoom').innerHTML=`<option value="">-- Chọn phòng --</option>`+rooms.map(r=>`<option value="${r.id}" ${r.id===t.roomId?'selected':''}>Phòng ${esc(r.name)} (${fmt(r.price)})</option>`).join('');
   openM('mTenant');
 }
 function prevAvatar(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{avUrl=e.target.result;const p=document.getElementById('avPrev');p.src=avUrl;p.style.display='block';};r.readAsDataURL(f)}
@@ -3132,23 +3183,23 @@ function delTenant(id){
 function showTenantDet(id){
   const t=S.tenants.find(x=>x.id===id);if(!t)return;
   const room=S.rooms.find(r=>r.id===t.roomId),invs=S.invoices.filter(i=>i.tenantId===id).slice(-6).reverse();
-  const bigAv=t.avatar?`<img src="${t.avatar}" style="width:80px;height:80px;border-radius:20px;object-fit:cover;border:3px solid var(--primary)">`:`<div style="width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,${t.avatarColor},${t.avatarColor}99);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;color:white">${getInits(t.name)}</div>`;
-  const cmndHtml=(t.cmndFront||t.cmndBack)?`<div style="margin-top:10px"><div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:6px">🪪 CCCD chủ hợp đồng</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${t.cmndFront?`<div style="border-radius:10px;overflow:hidden;border:1.5px solid var(--border)"><img src="${t.cmndFront}" style="width:100%;display:block"><div style="font-size:10px;text-align:center;padding:4px;background:var(--bg2)">Mặt trước</div></div>`:''} ${t.cmndBack?`<div style="border-radius:10px;overflow:hidden;border:1.5px solid var(--border)"><img src="${t.cmndBack}" style="width:100%;display:block"><div style="font-size:10px;text-align:center;padding:4px;background:var(--bg2)">Mặt sau</div></div>`:''}</div></div>`:'';
+  const bigAv=t.avatar?`<img src="${esc(t.avatar)}" style="width:80px;height:80px;border-radius:20px;object-fit:cover;border:3px solid var(--primary)">`:`<div style="width:80px;height:80px;border-radius:20px;background:linear-gradient(135deg,${t.avatarColor},${t.avatarColor}99);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;color:white">${getInits(t.name)}</div>`;
+  const cmndHtml=(t.cmndFront||t.cmndBack)?`<div style="margin-top:10px"><div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:6px">🪪 CCCD chủ hợp đồng</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${t.cmndFront?`<div style="border-radius:10px;overflow:hidden;border:1.5px solid var(--border)"><img src="${esc(t.cmndFront)}" style="width:100%;display:block"><div style="font-size:10px;text-align:center;padding:4px;background:var(--bg2)">Mặt trước</div></div>`:''} ${t.cmndBack?`<div style="border-radius:10px;overflow:hidden;border:1.5px solid var(--border)"><img src="${esc(t.cmndBack)}" style="width:100%;display:block"><div style="font-size:10px;text-align:center;padding:4px;background:var(--bg2)">Mặt sau</div></div>`:''}</div></div>`:'';
   const rmHtml=(t.roommates||[]).length?`
     <div class="card card-body mb-3" style="border-color:var(--info)">
       <div style="font-size:13px;font-weight:700;color:var(--info);margin-bottom:10px">👥 Người Ở Cùng (${t.roommates.length})</div>
       ${t.roommates.map((rm,i)=>`
         <div style="background:var(--bg2);border-radius:12px;padding:10px;margin-bottom:8px">
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            ${rm.avatar?`<img src="${rm.avatar}" style="width:42px;height:42px;border-radius:12px;object-fit:cover;">`:`<div style="width:42px;height:42px;border-radius:12px;background:var(--secondary);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:white">${getInits(rm.name)||i+1}</div>`}
-            <div><div style="font-size:14px;font-weight:700">${rm.name}</div><div style="font-size:11px;color:var(--text3)">${rm.gender} · ${rm.phone}</div></div>
+            ${rm.avatar?`<img src="${esc(rm.avatar)}" style="width:42px;height:42px;border-radius:12px;object-fit:cover;">`:`<div style="width:42px;height:42px;border-radius:12px;background:var(--secondary);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:white">${getInits(rm.name)||i+1}</div>`}
+            <div><div style="font-size:14px;font-weight:700">${esc(rm.name)}</div><div style="font-size:11px;color:var(--text3)">${esc(rm.gender)} · ${esc(rm.phone)}</div></div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">${iR('CCCD',rm.cccd)}${iR('Ngày sinh',rm.dob)}${iR('Biển số',rm.vehicle||'—')}${iR('Địa chỉ',rm.address)}</div>
-          ${(rm.cmndFront||rm.cmndBack)?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">${rm.cmndFront?`<div style="border-radius:8px;overflow:hidden;border:1px solid var(--border)"><img src="${rm.cmndFront}" style="width:100%;display:block"><div style="font-size:10px;text-align:center;padding:3px;background:var(--bg2);color:var(--text3)">Mặt trước</div></div>`:''} ${rm.cmndBack?`<div style="border-radius:8px;overflow:hidden;border:1px solid var(--border)"><img src="${rm.cmndBack}" style="width:100%;display:block"><div style="font-size:10px;text-align:center;padding:3px;background:var(--bg2);color:var(--text3)">Mặt sau</div></div>`:''}</div>`:''}
+          ${(rm.cmndFront||rm.cmndBack)?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">${rm.cmndFront?`<div style="border-radius:8px;overflow:hidden;border:1px solid var(--border)"><img src="${esc(rm.cmndFront)}" style="width:100%;display:block"><div style="font-size:10px;text-align:center;padding:3px;background:var(--bg2);color:var(--text3)">Mặt trước</div></div>`:''} ${rm.cmndBack?`<div style="border-radius:8px;overflow:hidden;border:1px solid var(--border)"><img src="${esc(rm.cmndBack)}" style="width:100%;display:block"><div style="font-size:10px;text-align:center;padding:3px;background:var(--bg2);color:var(--text3)">Mặt sau</div></div>`:''}</div>`:''}
         </div>`).join('')}
     </div>`:'';
   document.getElementById('mTenantDetBody').innerHTML=`
-    <div style="text-align:center;margin-bottom:18px">${bigAv}<div style="font-size:20px;font-weight:800;margin-top:12px">${t.name}</div><div style="font-size:13px;color:var(--text3)">${t.gender} · ${t.phone}</div>${room?`<span class="t-badge" style="background:rgba(22,163,74,.12);color:var(--primary);margin-top:6px;display:inline-block">🏠 Phòng ${room.name}</span>`:''}</div>
+    <div style="text-align:center;margin-bottom:18px">${bigAv}<div style="font-size:20px;font-weight:800;margin-top:12px">${esc(t.name)}</div><div style="font-size:13px;color:var(--text3)">${esc(t.gender)} · ${esc(t.phone)}</div>${room?`<span class="t-badge" style="background:rgba(22,163,74,.12);color:var(--primary);margin-top:6px;display:inline-block">🏠 Phòng ${esc(room.name)}</span>`:''}</div>
     <div class="card card-body mb-3"><div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px">📋 Thông tin cá nhân</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${iR('Họ tên',t.name)}${iR('Giới tính',t.gender)}${iR('Điện thoại',t.phone)}${iR('Ngày sinh',t.dob)}${iR('CCCD',t.cccd)}${iR('Biển số',t.vehicle||'—')}${iR('Vào ở',t.moveIn)}${iR('Tiền cọc',fmt(t.deposit))}</div>${iR('Địa chỉ',t.address)}${cmndHtml}</div>
     ${rmHtml}
     <div class="card card-body mb-3"><div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px">💳 Lịch sử hóa đơn</div>${invs.length?invs.map(inv=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:13px;font-weight:600">${getMonthName(inv.month)}</div><div style="font-size:11px;color:${inv.status==='paid'?'var(--success)':inv.status==='partial'?'var(--warning)':'var(--danger)'}">${{paid:'✅ Đã trả',partial:'⚠️ Trả một phần',unpaid:'❌ Chưa trả'}[inv.status]}</div></div><div style="text-align:right"><div style="font-weight:800">${fmt(inv.total)}</div>${inv.debt>0?`<div style="font-size:11px;color:var(--danger)">Nợ: ${fmt(inv.debt)}</div>`:''}</div></div>`).join(''):'<div style="text-align:center;color:var(--text3);font-size:13px;padding:10px">Chưa có hóa đơn</div>'}</div>
@@ -3203,8 +3254,8 @@ function openTransfer(tenantId){
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
         ${avHtml(t,46,18)}
         <div>
-          <div style="font-size:15px;font-weight:800">${t.name}</div>
-          <div style="font-size:12px;color:var(--text3)">📞 ${t.phone}</div>
+          <div style="font-size:15px;font-weight:800">${esc(t.name)}</div>
+          <div style="font-size:12px;color:var(--text3)">📞 ${esc(t.phone)}</div>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
@@ -3233,7 +3284,7 @@ function openTransfer(tenantId){
   // Phòng trống
   const empties=S.rooms.filter(r=>r.status==='available');
   document.getElementById('tfNewRoom').innerHTML=`<option value="">-- Chọn phòng trống --</option>`+
-    empties.map(r=>`<option value="${r.id}">Phòng ${r.name} — ${fmt(r.price)}/tháng (Tầng ${r.floor||'?'}, ${r.area||'?'}m²)</option>`).join('');
+    empties.map(r=>`<option value="${r.id}">Phòng ${esc(r.name)} — ${fmt(r.price)}/tháng (Tầng ${r.floor||'?'}, ${r.area||'?'}m²)</option>`).join('');
 
   openM('mTransfer');
 }
@@ -3289,7 +3340,7 @@ function calcTF(){
   const transferStr=transferD.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
 
   document.getElementById('tfSummary').innerHTML=`
-    <div class="tf-row"><span>Phòng cũ → Phòng mới</span><strong>Phòng ${oldRoomName} → Phòng ${nr.name}</strong></div>
+    <div class="tf-row"><span>Phòng cũ → Phòng mới</span><strong>Phòng ${oldRoomName} → Phòng ${esc(nr.name)}</strong></div>
     <div class="tf-row" style="background:rgba(14,165,233,.05)">
       <span>⏱️ Thời gian tính tiền</span>
       <strong>${lastPaidStr} → ${transferStr} (${daysStayed} ngày)</strong>
@@ -3434,11 +3485,12 @@ function renderPayment(){
     const sc={paid:'var(--success)',partial:'var(--warning)',unpaid:'var(--danger)'}[inv.status];
     const sl={paid:'Đã thanh toán',partial:'Trả một phần',unpaid:'Chưa thanh toán'}[inv.status];
     return `<div class="inv-card">
-      <div class="inv-hdr"><div><div class="inv-room">Phòng ${room?.name||'?'}</div><div class="inv-month">${t?.name||'—'} · ${getMonthName(inv.month)}</div></div><span style="padding:4px 12px;border-radius:99px;background:${sc}18;color:${sc};font-size:11px;font-weight:700">${sl}</span></div>
-      <div class="inv-body">${pR('Tiền phòng',fmt(inv.roomFee))}${pR('Tiền điện',fmt(inv.elecFee))}${pR('Tiền nước',fmt(inv.waterFee))}${inv.internet?pR('Internet',fmt(inv.internet)):''}${inv.serviceFee?pR('Dịch vụ',fmt(inv.serviceFee)):''}${inv.garbage?pR('Rác',fmt(inv.garbage)):''}${inv.parking?pR('Giữ xe',fmt(inv.parking)):''}${inv.extra?pR('Phụ thu',fmt(inv.extra)):''}${inv.discount?pR('Giảm giá','- '+fmt(inv.discount)):''}${inv.note?`<div style="font-size:11px;color:var(--text3);padding:4px 0">📝 ${inv.note}</div>`:''}</div>
+      <div class="inv-hdr"><div><div class="inv-room">Phòng ${esc(room?.name||'?')}</div><div class="inv-month">${esc(t?.name||'—')} · ${getMonthName(inv.month)}</div></div><span style="padding:4px 12px;border-radius:99px;background:${sc}18;color:${sc};font-size:11px;font-weight:700">${sl}</span></div>
+      <div class="inv-body">${pR('Tiền phòng',fmt(inv.roomFee))}${pR('Tiền điện',fmt(inv.elecFee))}${pR('Tiền nước',fmt(inv.waterFee))}${inv.internet?pR('Internet',fmt(inv.internet)):''}${inv.serviceFee?pR('Dịch vụ',fmt(inv.serviceFee)):''}${inv.garbage?pR('Rác',fmt(inv.garbage)):''}${inv.parking?pR('Giữ xe',fmt(inv.parking)):''}${inv.extra?pR('Phụ thu',fmt(inv.extra)):''}${inv.discount?pR('Giảm giá','- '+fmt(inv.discount)):''}${inv.note?`<div style="font-size:11px;color:var(--text3);padding:4px 0">📝 ${esc(inv.note)}</div>`:''}</div>
       <div class="inv-total"><div class="inv-total-lbl">Tổng cộng</div><div class="inv-total-val">${fmt(inv.total)}</div></div>
       ${inv.debt>0?`<div style="padding:6px 16px;background:rgba(239,68,68,.08);font-size:12px;color:var(--danger);font-weight:700">⚠️ Còn nợ: ${fmt(inv.debt)}</div>`:''}
-      <div class="inv-foot">
+      ${photosHtml(inv)}<div class="inv-foot">
+        <button class="btn btn-secondary" onclick="sendInv('${inv.id}')">📤 Gửi</button>
         <button class="btn btn-secondary" onclick="printInv('${inv.id}')">🖨️ In</button>
         ${inv.status!=='paid'?`<button class="btn btn-primary" onclick="openPay('${inv.id}')">💰 Thanh toán</button>`:''}
         <button class="btn btn-danger btn-sm" onclick="delInv('${inv.id}')">🗑️</button>
@@ -3448,7 +3500,7 @@ function renderPayment(){
 }
 function openCreateInv(preRoomId){
   const rentedRooms=S.rooms.filter(r=>r.status!=='available');
-  document.getElementById('invRoom').innerHTML=`<option value="">-- Chọn phòng --</option>`+rentedRooms.map(r=>`<option value="${r.id}" ${r.id===preRoomId?'selected':''}>Phòng ${r.name}</option>`).join('');
+  document.getElementById('invRoom').innerHTML=`<option value="">-- Chọn phòng --</option>`+rentedRooms.map(r=>`<option value="${r.id}" ${r.id===preRoomId?'selected':''}>Phòng ${esc(r.name)}</option>`).join('');
   document.getElementById('invMonth').value=curMonth();
   ['invEO','invEN','invWO','invWN','invExtra','invDisc'].forEach(id=>document.getElementById(id).value='0');
   document.getElementById('invNote').value='';
@@ -3477,8 +3529,17 @@ function saveInv(){
   const eo=+document.getElementById('invEO').value||0,en=+document.getElementById('invEN').value||0;
   const wo=+document.getElementById('invWO').value||0,wn=+document.getElementById('invWN').value||0;
   const extra=+document.getElementById('invExtra').value||0,disc=+document.getElementById('invDisc').value||0;
-  const eu=Math.max(0,en-eo),wu=Math.max(0,wn-wo),ef=eu*(room?.elecPrice||3500),wf=wu*(room?.waterPrice||15000);
+  if(eo<0||en<0||wo<0||wn<0||extra<0||disc<0){toast('Chỉ số và số tiền không được âm!','error');return}
+  const eReset=en<eo,wReset=wn<wo;
+  if(eReset||wReset){
+    const what=[eReset?`điện (${en} < ${eo})`:'',wReset?`nước (${wn} < ${wo})`:''].filter(Boolean).join(' và ');
+    if(!confirm(`⚠️ Chỉ số mới nhỏ hơn chỉ số cũ: ${what}.\n\nNếu công tơ đã được thay/quay vòng, bấm OK để tính tiêu thụ từ 0 đến chỉ số mới.\nNếu nhập nhầm, bấm Hủy để sửa lại.`))return;
+  }
+  const eu=eReset?en:en-eo,wu=wReset?wn:wn-wo,ef=eu*(room?.elecPrice||3500),wf=wu*(room?.waterPrice||15000);
+  if(eu>1500||wu>150){if(!confirm(`Mức tiêu thụ bất thường (điện ${eu} kWh, nước ${wu} m³). Vẫn tạo hóa đơn?`))return;}
   const total=(room?.price||0)+ef+wf+(room?.serviceFee||0)+(room?.internet||0)+(room?.garbage||0)+(room?.parking||0)+extra-disc;
+  if(total<0){toast('Giảm giá lớn hơn tổng tiền — hóa đơn bị âm!','error');return}
+  if(S.invoices.some(i=>i.roomId===roomId&&i.month===month)&&!confirm(`Phòng ${room?.name||''} đã có hóa đơn tháng ${month}.\nVẫn tạo thêm hóa đơn nữa?`))return;
   if(room){room.elecIndex=en;room.waterIndex=wn;}
   S.invoices.push({id:'INV'+uid(),roomId,tenantId:tenant?.id||'',month,elecOld:eo,elecNew:en,waterOld:wo,waterNew:wn,roomFee:room?.price||0,elecFee:ef,waterFee:wf,serviceFee:room?.serviceFee||0,internet:room?.internet||0,garbage:room?.garbage||0,parking:room?.parking||0,extra,discount:disc,total,paid:0,debt:total,status:'unpaid',payMethod:'',note:document.getElementById('invNote').value,createdAt:new Date().toISOString()});
   save();closeM('mInv');renderPayment();toast('Đã tạo hóa đơn!','success');
@@ -3487,7 +3548,7 @@ function openPay(invId){
   const inv=S.invoices.find(i=>i.id===invId);if(!inv)return;
   const room=S.rooms.find(r=>r.id===inv.roomId),t=S.tenants.find(x=>x.id===inv.tenantId);
   document.getElementById('payInvId').value=invId;document.getElementById('payAmt').value=inv.debt;document.getElementById('payNote').value='';selPay('cash');
-  document.getElementById('payDetail').innerHTML=`<div class="card card-body" style="background:var(--primary-bg);border-color:var(--primary);margin-bottom:12px"><div style="font-size:14px;font-weight:700;color:var(--primary)">Phòng ${room?.name} — ${getMonthName(inv.month)}</div>${t?`<div style="font-size:12px;color:var(--text2);margin-top:4px">👤 ${t.name}</div>`:''}<div style="display:flex;justify-content:space-between;margin-top:10px"><div><div style="font-size:11px;color:var(--text3)">Tổng</div><div style="font-weight:800">${fmt(inv.total)}</div></div><div><div style="font-size:11px;color:var(--text3)">Đã trả</div><div style="font-weight:800;color:var(--success)">${fmt(inv.paid)}</div></div><div><div style="font-size:11px;color:var(--text3)">Còn nợ</div><div style="font-weight:800;color:var(--danger)">${fmt(inv.debt)}</div></div></div></div>`;
+  document.getElementById('payDetail').innerHTML=`<div class="card card-body" style="background:var(--primary-bg);border-color:var(--primary);margin-bottom:12px"><div style="font-size:14px;font-weight:700;color:var(--primary)">Phòng ${esc(room?.name)} — ${getMonthName(inv.month)}</div>${t?`<div style="font-size:12px;color:var(--text2);margin-top:4px">👤 ${esc(t.name)}</div>`:''}<div style="display:flex;justify-content:space-between;margin-top:10px"><div><div style="font-size:11px;color:var(--text3)">Tổng</div><div style="font-weight:800">${fmt(inv.total)}</div></div><div><div style="font-size:11px;color:var(--text3)">Đã trả</div><div style="font-weight:800;color:var(--success)">${fmt(inv.paid)}</div></div><div><div style="font-size:11px;color:var(--text3)">Còn nợ</div><div style="font-weight:800;color:var(--danger)">${fmt(inv.debt)}</div></div></div></div>`;
   openM('mPay');
 }
 function selPay(m){payMethod=m;['Cash','Bank','Debt'].forEach(x=>document.getElementById('pay'+x)?.classList.toggle('active',x.toLowerCase()===m))}
@@ -3506,8 +3567,8 @@ function delInv(id){if(!confirm('Xóa hóa đơn này?'))return;S.invoices=S.inv
 function printInv(invId){
   const inv=S.invoices.find(i=>i.id===invId);if(!inv)return;
   const room=S.rooms.find(r=>r.id===inv.roomId),t=S.tenants.find(x=>x.id===inv.tenantId);
-  document.getElementById('printInv').innerHTML=`<div class="logo-name">${S.settings.hotelName}</div><div style="text-align:center;font-size:12px;color:#666">${S.settings.address} · ĐT: ${S.settings.phone}</div><hr class="divider"><div style="text-align:center;font-size:17px;font-weight:800;margin:10px 0">PHIẾU THU TIỀN PHÒNG</div><hr class="divider"><div class="pr"><span>Phòng:</span><strong>${room?.name}</strong></div><div class="pr"><span>Người thuê:</span><strong>${t?.name||'—'}</strong></div><div class="pr"><span>Tháng:</span><strong>${getMonthName(inv.month)}</strong></div><div class="pr"><span>Ngày in:</span><strong>${new Date().toLocaleDateString('vi-VN')}</strong></div><hr class="divider"><div class="pr"><span>Tiền phòng:</span><span>${fmt(inv.roomFee)}</span></div><div class="pr"><span>Điện (${inv.elecNew-inv.elecOld} kWh):</span><span>${fmt(inv.elecFee)}</span></div><div class="pr"><span>Nước (${inv.waterNew-inv.waterOld} m³):</span><span>${fmt(inv.waterFee)}</span></div>${inv.internet?`<div class="pr"><span>Internet:</span><span>${fmt(inv.internet)}</span></div>`:''}${inv.serviceFee?`<div class="pr"><span>Dịch vụ:</span><span>${fmt(inv.serviceFee)}</span></div>`:''}${inv.garbage?`<div class="pr"><span>Rác:</span><span>${fmt(inv.garbage)}</span></div>`:''}${inv.extra?`<div class="pr"><span>Phụ thu:</span><span>${fmt(inv.extra)}</span></div>`:''}${inv.discount?`<div class="pr"><span>Giảm giá:</span><span>- ${fmt(inv.discount)}</span></div>`:''}<div class="ptotal"><span>TỔNG CỘNG</span><span>${fmt(inv.total)}</span></div>${inv.debt>0?`<div class="pr" style="color:red"><span>Còn nợ:</span><span>${fmt(inv.debt)}</span></div>`:'<div style="color:green;text-align:center;font-weight:700;padding:8px">✅ Đã thanh toán đủ</div>'}<hr class="divider"><div style="text-align:center;font-size:11px;color:#999">Xin cảm ơn quý khách!<br>${S.settings.hotelName}</div>`;
-  window.print();
+  document.getElementById('printInv').innerHTML=`<div class="logo-name">${esc(S.settings.hotelName)}</div><div style="text-align:center;font-size:12px;color:#666">${esc(S.settings.address)} · ĐT: ${esc(S.settings.phone)}</div><hr class="divider"><div style="text-align:center;font-size:17px;font-weight:800;margin:10px 0">PHIẾU THU TIỀN PHÒNG</div><hr class="divider"><div class="pr"><span>Phòng:</span><strong>${esc(room?.name)}</strong></div><div class="pr"><span>Người thuê:</span><strong>${esc(t?.name||'—')}</strong></div><div class="pr"><span>Tháng:</span><strong>${getMonthName(inv.month)}</strong></div><div class="pr"><span>Ngày in:</span><strong>${new Date().toLocaleDateString('vi-VN')}</strong></div><hr class="divider"><div class="pr"><span>Tiền phòng:</span><span>${fmt(inv.roomFee)}</span></div><div class="pr"><span>Điện (${meterUse(inv,'elec')} kWh):</span><span>${fmt(inv.elecFee)}</span></div><div class="pr"><span>Nước (${meterUse(inv,'water')} m³):</span><span>${fmt(inv.waterFee)}</span></div>${inv.internet?`<div class="pr"><span>Internet:</span><span>${fmt(inv.internet)}</span></div>`:''}${inv.serviceFee?`<div class="pr"><span>Dịch vụ:</span><span>${fmt(inv.serviceFee)}</span></div>`:''}${inv.garbage?`<div class="pr"><span>Rác:</span><span>${fmt(inv.garbage)}</span></div>`:''}${inv.extra?`<div class="pr"><span>Phụ thu:</span><span>${fmt(inv.extra)}</span></div>`:''}${inv.discount?`<div class="pr"><span>Giảm giá:</span><span>- ${fmt(inv.discount)}</span></div>`:''}<div class="ptotal"><span>TỔNG CỘNG</span><span>${fmt(inv.total)}</span></div>${inv.debt>0?`<div class="pr" style="color:red"><span>Còn nợ:</span><span>${fmt(inv.debt)}</span></div>`:'<div style="color:green;text-align:center;font-weight:700;padding:8px">✅ Đã thanh toán đủ</div>'}${printQrHtml(inv)}<hr class="divider"><div style="text-align:center;font-size:11px;color:#999">Xin cảm ơn quý khách!<br>${esc(S.settings.hotelName)}</div>`;
+  printWhenReady();
 }
 
 /* ══════════════════════════════════════════
@@ -3522,7 +3583,7 @@ function renderDebt(){
     const room=S.rooms.find(r=>r.id===inv.roomId),t=S.tenants.find(x=>x.id===inv.tenantId);
     const days=Math.floor((Date.now()-new Date(inv.createdAt).getTime())/86400000),high=days>30;
     const av=avHtml(t,40,18);
-    return `<div class="debt-card ${high?'':'warn'}"><div style="display:flex;align-items:center;gap:10px;flex:1">${av}<div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:700">${t?.name||'—'}</div><div style="font-size:12px;color:var(--text3)">Phòng ${room?.name||'?'} · ${getMonthName(inv.month)}</div><div style="font-size:11px;color:var(--warning);font-weight:700;margin-top:4px">${days>0?`⏰ Quá hạn ${days} ngày`:'📅 Tháng này'}</div></div></div><div style="text-align:right"><div style="font-size:18px;font-weight:900;color:var(--danger)">${fmt(inv.debt)}</div><div style="font-size:11px;color:var(--text3)">/${fmt(inv.total)}</div><button class="btn btn-danger btn-xs mt-1" onclick="openPay('${inv.id}')">Thu nợ</button></div></div>`;
+    return `<div class="debt-card ${high?'':'warn'}"><div style="display:flex;align-items:center;gap:10px;flex:1">${av}<div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:700">${esc(t?.name||'—')}</div><div style="font-size:12px;color:var(--text3)">Phòng ${esc(room?.name||'?')} · ${getMonthName(inv.month)}</div><div style="font-size:11px;color:var(--warning);font-weight:700;margin-top:4px">${days>0?`⏰ Quá hạn ${days} ngày`:'📅 Tháng này'}</div></div></div><div style="text-align:right"><div style="font-size:18px;font-weight:900;color:var(--danger)">${fmt(inv.debt)}</div><div style="font-size:11px;color:var(--text3)">/${fmt(inv.total)}</div><div style="display:flex;gap:6px;justify-content:flex-end;margin-top:4px"><button class="btn btn-secondary btn-xs" onclick="sendInv('${inv.id}','remind')">🔔 Nhắc</button><button class="btn btn-danger btn-xs" onclick="openPay('${inv.id}')">Thu nợ</button></div></div></div>`;
   }).join('');
 }
 
@@ -3664,9 +3725,9 @@ function openCreateContract(tenantId){
   document.getElementById('ctTenantCccd').value='';
   document.getElementById('ctTenantAddr').value='';
   document.getElementById('ctTenantSel').innerHTML=`<option value="">-- Chọn người thuê để tự điền --</option>`+
-    S.tenants.map(t=>{const r=S.rooms.find(x=>x.id===t.roomId);return`<option value="${t.id}">${t.name} — ${t.phone}${r?' (Phòng '+r.name+')':''}</option>`}).join('');
+    S.tenants.map(t=>{const r=S.rooms.find(x=>x.id===t.roomId);return`<option value="${t.id}">${esc(t.name)} — ${esc(t.phone)}${r?' (Phòng '+esc(r.name)+')':''}</option>`}).join('');
   document.getElementById('ctRoomSel').innerHTML=`<option value="">-- Chọn phòng --</option>`+
-    S.rooms.map(r=>`<option value="${r.id}">Phòng ${r.name} — ${fmt(r.price)}/tháng (${r.status==='available'?'Còn trống':'Đang thuê'})</option>`).join('');
+    S.rooms.map(r=>`<option value="${r.id}">Phòng ${esc(r.name)} — ${fmt(r.price)}/tháng (${r.status==='available'?'Còn trống':'Đang thuê'})</option>`).join('');
   if(tenantId){
     document.getElementById('ctTenantSel').value=tenantId;
     fillContractFromTenant();
@@ -3707,7 +3768,7 @@ function showContractSummary(){
   if(!tName&&!r){document.getElementById('ctSummaryBox').style.display='none';return;}
   document.getElementById('ctSummaryGrid').innerHTML=`
     ${tName?`<div class="ct-meta-item"><div class="ct-meta-lbl">Người thuê</div><div class="ct-meta-val">${tName}</div></div>`:''}
-    ${r?`<div class="ct-meta-item"><div class="ct-meta-lbl">Phòng</div><div class="ct-meta-val">${r.name}</div></div>`:''}
+    ${r?`<div class="ct-meta-item"><div class="ct-meta-lbl">Phòng</div><div class="ct-meta-val">${esc(r.name)}</div></div>`:''}
     ${rent?`<div class="ct-meta-item"><div class="ct-meta-lbl">Giá thuê</div><div class="ct-meta-val">${fmt(+rent)}</div></div>`:''}
   `;
   document.getElementById('ctSummaryBox').style.display='block';
@@ -3768,16 +3829,16 @@ function renderContractPreview(ct){
     <div style="text-align:center;font-size:16px;font-weight:800;margin:12px 0">HỢP ĐỒNG THUÊ PHÒNG TRỌ</div>
     <p style="text-align:center;font-style:italic;font-size:12px">Hôm nay, ngày ${day} tháng ${month} năm ${year}, tại căn nhà số ${ct.propertyAddr||ct.ownerAddr||'................'}<br>Chúng tôi ký tên dưới đây gồm có:</p>
     <p><strong>BÊN CHO THUÊ PHÒNG TRỌ (Bên A):</strong></p>
-    <p>Ông/bà: <strong>${ct.ownerName}</strong></p>
+    <p>Ông/bà: <strong>${esc(ct.ownerName)}</strong></p>
     <p>CMND/CCCD số: <strong>${ct.ownerCccd||'................................'}</strong></p>
     <p>Thường trú tại: <strong>${ct.ownerAddr||'................................'}</strong></p>
     <p style="margin-top:8px"><strong>BÊN THUÊ PHÒNG TRỌ (Bên B):</strong></p>
-    <p>Ông/bà: <strong>${ct.tenantName}</strong></p>
+    <p>Ông/bà: <strong>${esc(ct.tenantName)}</strong></p>
     <p>CMND/CCCD số: <strong>${ct.tenantCccd||'................................'}</strong></p>
     <p>Thường trú tại: <strong>${ct.tenantAddr||'................................'}</strong></p>
     <p style="margin-top:8px;font-style:italic"><strong>Sau khi thỏa thuận, hai bên thống nhất như sau:</strong></p>
     <p><strong>1. Nội dung thuê phòng trọ</strong></p>
-    <p>Bên A cho Bên B thuê 01 phòng trọ số <strong>${ct.roomName}</strong> tại căn nhà số <strong>${ct.propertyAddr||ct.ownerAddr||'................................'}</strong>. Với thời hạn là: <strong>${ct.duration} tháng</strong>, từ ngày <strong>${startD}</strong> đến ngày <strong>${endD}</strong>, giá thuê: <strong>${fmt(ct.rent)}</strong> (Bằng chữ: <em>${numToWords(ct.rent)}</em>). Chưa bao gồm chi phí: điện sinh hoạt (<strong>${fmtN(ct.elecPrice)} ₫/kWh</strong>), nước (<strong>${fmtN(ct.waterPrice)} ₫/m³</strong>). Tiền thuê thanh toán vào ngày <strong>${ct.payDay}</strong> hàng tháng.</p>
+    <p>Bên A cho Bên B thuê 01 phòng trọ số <strong>${esc(ct.roomName)}</strong> tại căn nhà số <strong>${ct.propertyAddr||ct.ownerAddr||'................................'}</strong>. Với thời hạn là: <strong>${ct.duration} tháng</strong>, từ ngày <strong>${startD}</strong> đến ngày <strong>${endD}</strong>, giá thuê: <strong>${fmt(ct.rent)}</strong> (Bằng chữ: <em>${numToWords(ct.rent)}</em>). Chưa bao gồm chi phí: điện sinh hoạt (<strong>${fmtN(ct.elecPrice)} ₫/kWh</strong>), nước (<strong>${fmtN(ct.waterPrice)} ₫/m³</strong>). Tiền thuê thanh toán vào ngày <strong>${ct.payDay}</strong> hàng tháng.</p>
     <p><strong>2. Trách nhiệm Bên A</strong></p>
     <p>Đảm bảo căn nhà cho thuê không có tranh chấp, khiếu kiện. Đăng ký với chính quyền địa phương về thủ tục cho thuê phòng trọ.</p>
     <p><strong>3. Trách nhiệm Bên B</strong></p>
@@ -3785,13 +3846,13 @@ function renderContractPreview(ct){
     <p>Đảm bảo các thiết bị và sửa chữa các hư hỏng trong phòng khi sử dụng. Chỉ sử dụng phòng trọ vào mục đích ở, tối đa <strong>${ct.people}</strong> người. Cung cấp giấy tờ tùy thân để đăng ký tạm trú, giữ gìn an ninh trật tự, nếp sống văn hóa đô thị. Không tụ tập nhậu nhẹt, cờ bạc và các hành vi vi phạm pháp luật.</p>
     <p><strong>4. Điều khoản thực hiện</strong></p>
     <p>Hai bên nghiêm túc thực hiện trong thời hạn cho thuê, nếu bên A lấy phòng phải báo cho bên B ít nhất 01 tháng, hoặc ngược lại. Sau thời hạn <strong>${ct.duration} tháng</strong> nếu bên B có nhu cầu hai bên tiếp tục thương lượng gia hạn hợp đồng.</p>
-    ${ct.extraTerms?`<p><strong>5. Điều khoản bổ sung</strong></p><p>${ct.extraTerms}</p>`:''}
+    ${ct.extraTerms?`<p><strong>5. Điều khoản bổ sung</strong></p><p>${esc(ct.extraTerms)}</p>`:''}
     <table><tr><th>Lần gia hạn</th><th>Thời gian (tháng)</th><th>Từ ngày</th><th>Đến ngày</th><th>Giá thuê/tháng</th><th>Ký tên</th></tr>
     <tr><td style="text-align:center">1</td><td></td><td></td><td></td><td></td><td></td></tr>
     <tr><td style="text-align:center">2</td><td></td><td></td><td></td><td></td><td></td></tr></table>
     <div class="sign-row" style="margin-top:24px">
-      <div><div style="font-weight:700">Bên B</div><div style="font-style:italic;font-size:11px">(Ký, ghi rõ họ tên)</div><div style="height:50px"></div><div style="font-weight:700">${ct.tenantName}</div></div>
-      <div><div style="font-weight:700">Bên A</div><div style="font-style:italic;font-size:11px">(Ký, ghi rõ họ tên)</div><div style="height:50px"></div><div style="font-weight:700">${ct.ownerName}</div></div>
+      <div><div style="font-weight:700">Bên B</div><div style="font-style:italic;font-size:11px">(Ký, ghi rõ họ tên)</div><div style="height:50px"></div><div style="font-weight:700">${esc(ct.tenantName)}</div></div>
+      <div><div style="font-weight:700">Bên A</div><div style="font-style:italic;font-size:11px">(Ký, ghi rõ họ tên)</div><div style="height:50px"></div><div style="font-weight:700">${esc(ct.ownerName)}</div></div>
     </div>
     <p style="text-align:center;font-size:11px;color:#999;margin-top:16px;font-style:italic">* Hợp đồng được lập thành 02 bản, mỗi bên giữ 01 bản có giá trị pháp lý như nhau.</p>`;
 }
@@ -3823,16 +3884,16 @@ p{margin:6px 0}
 <h1>HỢP ĐỒNG THUÊ PHÒNG TRỌ</h1>
 <p class="center" style="font-style:italic">Hôm nay, ngày ${day} tháng ${month} năm ${year}, tại căn nhà số ${ct.propertyAddr||ct.ownerAddr||'...............'}.<br>Chúng tôi ký tên dưới đây gồm có:</p>
 <p><b>BÊN CHO THUÊ PHÒNG TRỌ (gọi tắt là Bên A):</b></p>
-<p>Ông/bà (tên chủ hợp đồng): <b>${ct.ownerName}</b></p>
+<p>Ông/bà (tên chủ hợp đồng): <b>${esc(ct.ownerName)}</b></p>
 <p>CMND/CCCD số: <b>${ct.ownerCccd||'................................'}</b></p>
 <p>Thường trú tại: <b>${ct.ownerAddr||'................................'}</b></p>
 <p><b>BÊN THUÊ PHÒNG TRỌ (gọi tắt là Bên B):</b></p>
-<p>Ông/bà: <b>${ct.tenantName}</b></p>
+<p>Ông/bà: <b>${esc(ct.tenantName)}</b></p>
 <p>CMND/CCCD số: <b>${ct.tenantCccd||'................................'}</b></p>
 <p>Thường trú tại: <b>${ct.tenantAddr||'................................'}</b></p>
 <p style="font-style:italic"><b>Sau khi thỏa thuận, hai bên thống nhất như sau:</b></p>
 <p><b>1. Nội dung thuê phòng trọ</b></p>
-<p>Bên A cho Bên B thuê 01 phòng trọ số <b>${ct.roomName}</b> tại căn nhà số <b>${ct.propertyAddr||ct.ownerAddr||'...............'}.</b> Với thời hạn là: <b>${ct.duration} tháng</b>, từ ngày <b>${startD}</b> đến ngày <b>${endD}</b>, giá thuê: <b>${fmt(ct.rent)}</b> (Bằng chữ: <i>${numToWords(ct.rent)}</i>). Chưa bao gồm chi phí: điện sinh hoạt (<b>${fmtN(ct.elecPrice)} đồng/kWh</b>), nước (<b>${fmtN(ct.waterPrice)} đồng/m³</b>). Tiền thuê thanh toán vào ngày <b>${ct.payDay}</b> hàng tháng.</p>
+<p>Bên A cho Bên B thuê 01 phòng trọ số <b>${esc(ct.roomName)}</b> tại căn nhà số <b>${ct.propertyAddr||ct.ownerAddr||'...............'}.</b> Với thời hạn là: <b>${ct.duration} tháng</b>, từ ngày <b>${startD}</b> đến ngày <b>${endD}</b>, giá thuê: <b>${fmt(ct.rent)}</b> (Bằng chữ: <i>${numToWords(ct.rent)}</i>). Chưa bao gồm chi phí: điện sinh hoạt (<b>${fmtN(ct.elecPrice)} đồng/kWh</b>), nước (<b>${fmtN(ct.waterPrice)} đồng/m³</b>). Tiền thuê thanh toán vào ngày <b>${ct.payDay}</b> hàng tháng.</p>
 <p><b>2. Trách nhiệm Bên A</b></p>
 <p>Đảm bảo căn nhà cho thuê không có tranh chấp, khiếu kiện. Đăng ký với chính quyền địa phương về thủ tục cho thuê phòng trọ.</p>
 <p><b>3. Trách nhiệm Bên B</b></p>
@@ -3840,7 +3901,7 @@ p{margin:6px 0}
 <p>Đảm bảo các thiết bị và sửa chữa các hư hỏng trong phòng khi sử dụng. Chỉ sử dụng phòng trọ vào mục đích ở, tối đa <b>${ct.people}</b> người (kể cả trẻ em). Không chứa các thiết bị gây cháy nổ, hàng cấm. Cung cấp giấy tờ tùy thân để đăng ký tạm trú, giữ gìn an ninh trật tự, nếp sống văn hóa đô thị; không tụ tập nhậu nhẹt, cờ bạc và các hành vi vi phạm pháp luật khác.</p>
 <p><b>4. Điều khoản thực hiện</b></p>
 <p>Hai bên nghiêm túc thực hiện những quy định trên trong thời hạn cho thuê, nếu bên A lấy phòng phải báo cho bên B ít nhất 01 tháng, hoặc ngược lại. Sau thời hạn <b>${ct.duration} tháng</b> nếu bên B có nhu cầu hai bên tiếp tục thương lượng giá thuê để gia hạn hợp đồng.</p>
-${ct.extraTerms?`<p><b>5. Điều khoản bổ sung</b></p><p>${ct.extraTerms}</p>`:''}
+${ct.extraTerms?`<p><b>5. Điều khoản bổ sung</b></p><p>${esc(ct.extraTerms)}</p>`:''}
 <table>
 <tr><th>Số lần gia hạn</th><th>Thời gian gia hạn (tháng)</th><th>Từ ngày</th><th>Đến ngày</th><th>Giá thuê/tháng (đồng)</th><th>Ký tên</th></tr>
 <tr><td align="center">1</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
@@ -3848,8 +3909,8 @@ ${ct.extraTerms?`<p><b>5. Điều khoản bổ sung</b></p><p>${ct.extraTerms}</
 </table>
 <table style="margin-top:40px;border:none">
 <tr>
-<td style="width:50%;text-align:center;border:none;padding:10px 20px"><b>Bên B</b><br><i>(Ký, ghi rõ họ tên)</i><br><br><br><br><b>${ct.tenantName}</b></td>
-<td style="width:50%;text-align:center;border:none;padding:10px 20px"><b>Bên A</b><br><i>(Ký, ghi rõ họ tên)</i><br><br><br><br><b>${ct.ownerName}</b></td>
+<td style="width:50%;text-align:center;border:none;padding:10px 20px"><b>Bên B</b><br><i>(Ký, ghi rõ họ tên)</i><br><br><br><br><b>${esc(ct.tenantName)}</b></td>
+<td style="width:50%;text-align:center;border:none;padding:10px 20px"><b>Bên A</b><br><i>(Ký, ghi rõ họ tên)</i><br><br><br><br><b>${esc(ct.ownerName)}</b></td>
 </tr>
 </table>
 <p style="text-align:center;font-size:10pt;color:#666;font-style:italic;margin-top:20px">*(Hợp đồng này được lập thành 02 bản, mỗi bên giữ 01 bản có giá trị pháp lý như nhau)*</p>
@@ -3875,22 +3936,22 @@ function exportContractPDF(){
     <div style="text-align:center"><b>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</b><br>Độc lập – Tự do – Hạnh phúc<br>———————————</div>
     <h2 style="text-align:center;font-size:16pt;margin:16px 0">HỢP ĐỒNG THUÊ PHÒNG TRỌ</h2>
     <p style="text-align:center;font-style:italic">Hôm nay, ngày ${day} tháng ${month} năm ${year}, tại căn nhà số ${ct.propertyAddr||ct.ownerAddr||'...............'}. Chúng tôi ký tên dưới đây gồm có:</p>
-    <p><b>BÊN CHO THUÊ PHÒNG TRỌ (Bên A):</b><br>Ông/bà: <b>${ct.ownerName}</b><br>CMND/CCCD số: <b>${ct.ownerCccd||'................................'}</b><br>Thường trú tại: <b>${ct.ownerAddr||'................................'}</b></p>
-    <p><b>BÊN THUÊ PHÒNG TRỌ (Bên B):</b><br>Ông/bà: <b>${ct.tenantName}</b><br>CMND/CCCD số: <b>${ct.tenantCccd||'................................'}</b><br>Thường trú tại: <b>${ct.tenantAddr||'................................'}</b></p>
+    <p><b>BÊN CHO THUÊ PHÒNG TRỌ (Bên A):</b><br>Ông/bà: <b>${esc(ct.ownerName)}</b><br>CMND/CCCD số: <b>${ct.ownerCccd||'................................'}</b><br>Thường trú tại: <b>${ct.ownerAddr||'................................'}</b></p>
+    <p><b>BÊN THUÊ PHÒNG TRỌ (Bên B):</b><br>Ông/bà: <b>${esc(ct.tenantName)}</b><br>CMND/CCCD số: <b>${ct.tenantCccd||'................................'}</b><br>Thường trú tại: <b>${ct.tenantAddr||'................................'}</b></p>
     <p style="font-style:italic"><b>Sau khi thỏa thuận, hai bên thống nhất như sau:</b></p>
-    <p><b>1. Nội dung thuê phòng trọ</b><br>Bên A cho Bên B thuê 01 phòng trọ số <b>${ct.roomName}</b> tại <b>${ct.propertyAddr||ct.ownerAddr||'...............'}.</b> Với thời hạn <b>${ct.duration} tháng</b>, từ ngày <b>${startD}</b> đến ngày <b>${endD}</b>, giá thuê: <b>${fmt(ct.rent)}</b> (<i>${numToWords(ct.rent)}</i>). Điện: <b>${fmtN(ct.elecPrice)} đ/kWh</b>, nước: <b>${fmtN(ct.waterPrice)} đ/m³</b>. Thanh toán ngày <b>${ct.payDay}</b> hàng tháng.</p>
+    <p><b>1. Nội dung thuê phòng trọ</b><br>Bên A cho Bên B thuê 01 phòng trọ số <b>${esc(ct.roomName)}</b> tại <b>${ct.propertyAddr||ct.ownerAddr||'...............'}.</b> Với thời hạn <b>${ct.duration} tháng</b>, từ ngày <b>${startD}</b> đến ngày <b>${endD}</b>, giá thuê: <b>${fmt(ct.rent)}</b> (<i>${numToWords(ct.rent)}</i>). Điện: <b>${fmtN(ct.elecPrice)} đ/kWh</b>, nước: <b>${fmtN(ct.waterPrice)} đ/m³</b>. Thanh toán ngày <b>${ct.payDay}</b> hàng tháng.</p>
     <p><b>2. Trách nhiệm Bên A</b><br>Đảm bảo căn nhà cho thuê không có tranh chấp, khiếu kiện. Đăng ký với chính quyền địa phương về thủ tục cho thuê phòng trọ.</p>
     <p><b>3. Trách nhiệm Bên B</b><br>Đặt cọc <b>${fmt(ct.deposit)}</b> (<i>${numToWords(ct.deposit)}</i>). Thanh toán tiền thuê hàng tháng vào ngày <b>${ct.payDay}</b>. Chỉ sử dụng mục đích ở, tối đa <b>${ct.people}</b> người. Giữ gìn an ninh trật tự, nếp sống văn hóa.</p>
     <p><b>4. Điều khoản thực hiện</b><br>Hai bên nghiêm túc thực hiện. Thông báo trước ít nhất 01 tháng khi muốn chấm dứt hợp đồng.</p>
-    ${ct.extraTerms?`<p><b>5. Điều khoản bổ sung</b><br>${ct.extraTerms}</p>`:''}
+    ${ct.extraTerms?`<p><b>5. Điều khoản bổ sung</b><br>${esc(ct.extraTerms)}</p>`:''}
     <table style="border-collapse:collapse;width:100%;margin:12px 0;font-size:11pt">
       <tr style="background:#f0f0f0"><th style="border:1px solid #000;padding:5px;text-align:center">Lần gia hạn</th><th style="border:1px solid #000;padding:5px">Thời gian</th><th style="border:1px solid #000;padding:5px">Từ ngày</th><th style="border:1px solid #000;padding:5px">Đến ngày</th><th style="border:1px solid #000;padding:5px">Giá thuê</th><th style="border:1px solid #000;padding:5px">Ký tên</th></tr>
       <tr><td style="border:1px solid #000;padding:5px;text-align:center">1</td><td style="border:1px solid #000;padding:10px"></td><td style="border:1px solid #000;padding:10px"></td><td style="border:1px solid #000;padding:10px"></td><td style="border:1px solid #000;padding:10px"></td><td style="border:1px solid #000;padding:10px"></td></tr>
       <tr><td style="border:1px solid #000;padding:5px;text-align:center">2</td><td style="border:1px solid #000;padding:10px"></td><td style="border:1px solid #000;padding:10px"></td><td style="border:1px solid #000;padding:10px"></td><td style="border:1px solid #000;padding:10px"></td><td style="border:1px solid #000;padding:10px"></td></tr>
     </table>
     <table style="width:100%;margin-top:40px;border-collapse:collapse">
-      <tr><td style="width:50%;text-align:center;padding:10px;border:none"><b>Bên B</b><br><i>(Ký, ghi rõ họ tên)</i><br><br><br><br><b>${ct.tenantName}</b></td>
-          <td style="width:50%;text-align:center;padding:10px;border:none"><b>Bên A</b><br><i>(Ký, ghi rõ họ tên)</i><br><br><br><br><b>${ct.ownerName}</b></td></tr>
+      <tr><td style="width:50%;text-align:center;padding:10px;border:none"><b>Bên B</b><br><i>(Ký, ghi rõ họ tên)</i><br><br><br><br><b>${esc(ct.tenantName)}</b></td>
+          <td style="width:50%;text-align:center;padding:10px;border:none"><b>Bên A</b><br><i>(Ký, ghi rõ họ tên)</i><br><br><br><br><b>${esc(ct.ownerName)}</b></td></tr>
     </table>
     <p style="text-align:center;font-size:10pt;color:#666;font-style:italic;margin-top:20px">* Hợp đồng được lập thành 02 bản, mỗi bên giữ 01 bản có giá trị pháp lý như nhau.</p>
   </div>`;
@@ -3953,8 +4014,8 @@ function renderContracts(){
       <div class="ct-hdr">
         <div style="flex:1;min-width:0">
           <div class="ct-id">🔖 ${ct.id.toUpperCase()}</div>
-          <div class="ct-name">${ct.tenantName}</div>
-          <div class="ct-room">🏠 Phòng ${ct.roomName} · Bên A: ${ct.ownerName}</div>
+          <div class="ct-name">${esc(ct.tenantName)}</div>
+          <div class="ct-room">🏠 Phòng ${esc(ct.roomName)} · Bên A: ${esc(ct.ownerName)}</div>
         </div>
         <span class="ct-status-badge ${st}">${getContractStatusLabel(st)}</span>
       </div>
@@ -3980,7 +4041,7 @@ function showContractDet(id){
   document.getElementById('mContractDetTitle').textContent=`📄 ${ct.id.toUpperCase()}`;
   document.getElementById('mContractDetBody').innerHTML=`
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
-      <div><div style="font-size:18px;font-weight:800">${ct.tenantName}</div><div style="font-size:13px;color:var(--text2)">🏠 Phòng ${ct.roomName}</div></div>
+      <div><div style="font-size:18px;font-weight:800">${esc(ct.tenantName)}</div><div style="font-size:13px;color:var(--text2)">🏠 Phòng ${esc(ct.roomName)}</div></div>
       <span class="ct-status-badge ${st}">${getContractStatusLabel(st)}</span>
     </div>
     <div class="card card-body mb-3" style="background:var(--primary-bg);border-color:var(--primary)">
@@ -4002,7 +4063,7 @@ function showContractDet(id){
       </div>
       ${iR('Địa chỉ thường trú (Bên B)',ct.tenantAddr||'—')}
     </div>
-    ${ct.extraTerms?`<div class="card card-body mb-3"><div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px">📝 Điều khoản bổ sung</div><div style="font-size:13px;color:var(--text2)">${ct.extraTerms}</div></div>`:''}
+    ${ct.extraTerms?`<div class="card card-body mb-3"><div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px">📝 Điều khoản bổ sung</div><div style="font-size:13px;color:var(--text2)">${esc(ct.extraTerms)}</div></div>`:''}
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn btn-primary" style="flex:1" onclick="closeM('mContractDet');redownloadContract('${id}')">📥 Xuất PDF</button>
       <button class="btn btn-secondary" style="flex:1" onclick="closeM('mContractDet');printContract('${id}')">🖨️ In</button>
@@ -4097,8 +4158,8 @@ function renderArchived(){
             <span class="archived-badge">📦 Đã dọn đi</span>
             ${a.totalDebtOnCheckout>0?`<span class="archived-badge" style="background:rgba(239,68,68,.12);color:var(--danger);border-color:rgba(239,68,68,.3)">⚠️ Còn nợ</span>`:''}
           </div>
-          <div class="ct-name">${a.name||'—'}</div>
-          <div class="ct-room">📞 ${a.phone||'—'} · 🏠 Phòng ${a.roomName||'?'} · Dọn: ${archivedStr}</div>
+          <div class="ct-name">${esc(a.name||'—')}</div>
+          <div class="ct-room">📞 ${esc(a.phone||'—')} · 🏠 Phòng ${esc(a.roomName||'?')} · Dọn: ${archivedStr}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
           <div style="font-size:10px;color:${urgentDelete?'var(--danger)':'var(--text3)'};font-weight:700">🗑️ Xóa sau</div>
@@ -4114,7 +4175,7 @@ function renderArchived(){
         ${iR('💰 Đã thu',fmt(a.totalPaidOnCheckout||0))}
         ${iR('📌 Còn nợ',a.totalDebtOnCheckout>0?fmt(a.totalDebtOnCheckout):'Không',a.totalDebtOnCheckout>0?'color:var(--danger)':'')}
       </div>
-      ${a.checkoutNote?`<div style="font-size:12px;color:var(--text3);padding:6px 0;border-top:1px solid var(--border);margin-top:6px">📝 ${a.checkoutNote}</div>`:''}
+      ${a.checkoutNote?`<div style="font-size:12px;color:var(--text3);padding:6px 0;border-top:1px solid var(--border);margin-top:6px">📝 ${esc(a.checkoutNote)}</div>`:''}
       <div class="ct-actions" style="margin-top:8px">
         <button class="btn btn-secondary btn-sm" onclick="deleteArchivedNow('${a.id}')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
@@ -4297,6 +4358,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   cleanupArchived();
   // Tạo dữ liệu demo hợp đồng nếu chưa có
   if(S.contracts.length===0&&S.tenants.length>0){createDemoContracts();}
+  if(window.__loadError)setTimeout(()=>toast('⚠️ Dữ liệu cũ bị lỗi, không đọc được. Bản gốc đã được giữ lại trong trình duyệt (pt3_corrupt_backup).','error',{duration:15000}),300);
+  if(typeof pinRequired==='function'&&pinRequired()){applyDark();showPinLock(bootUI);}else bootUI();
+});
+
+function bootUI(){
   applyDark();applyIcon();applyFontSettings();renderAll();
   updateTopbarTitle();
   // Khởi tạo danh sách khu trong form phòng
@@ -4313,7 +4379,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(dur){dur.addEventListener('change',function(){
     document.getElementById('ctDurationCustomBox').style.display=this.value==='other'?'block':'none';
   });}
-});
+  if(typeof updatePinRow==='function')updatePinRow();
+  if(typeof updateP2Rows==='function')updateP2Rows();
+}
 </script>
 
 <!-- ═══ MODAL: DỌN ĐI ═══ -->
@@ -4582,8 +4650,8 @@ function openCheckout(tenantId){
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
         ${avHtml(t,48,18)}
         <div>
-          <div style="font-size:16px;font-weight:800">${t.name}</div>
-          <div style="font-size:12px;color:var(--text3)">📞 ${t.phone} · 🏠 Phòng ${room.name}</div>
+          <div style="font-size:16px;font-weight:800">${esc(t.name)}</div>
+          <div style="font-size:12px;color:var(--text3)">📞 ${esc(t.phone)} · 🏠 Phòng ${esc(room.name)}</div>
           <div style="font-size:12px;color:var(--text3)">Vào ở: ${t.moveIn||'?'} · Đóng tiền gần nhất: ${lastPaidStr}</div>
         </div>
       </div>
@@ -4614,7 +4682,7 @@ function openCheckout(tenantId){
         <div class="checkout-debt-title">⚠️ Nợ tồn đọng cần thanh toán</div>
         ${allDebts.map(i=>`
           <div class="checkout-debt-row">
-            <span>${getMonthName(i.month)} ${i.note?'— '+i.note.slice(0,30):''}</span>
+            <span>${getMonthName(i.month)} ${i.note?'— '+esc(i.note.slice(0,30)):''}</span>
             <strong style="color:var(--danger)">${fmt(i.debt)}</strong>
           </div>`).join('')}
         <div class="checkout-debt-row">
@@ -4933,6 +5001,23 @@ function cleanupArchived(){
         <div><div style="font-size:13px;font-weight:700">Tự động sync real-time</div><div style="font-size:11px;color:var(--text3)">Nhận thay đổi từ thiết bị khác ngay lập tức</div></div>
         <div class="toggle" id="fbAutoToggle" onclick="toggleFbAuto()"></div>
       </div>
+      <div style="margin-top:14px;padding:12px;background:var(--bg2);border-radius:12px;border:1.5px solid var(--border)">
+        <div style="font-size:13px;font-weight:800;margin-bottom:2px">🔐 Tài khoản đăng nhập Firebase</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px" id="fbAuthStatus">Chưa đăng nhập — cần để siết Rules (chỉ chủ trọ được đọc/ghi)</div>
+        <div class="fg"><label class="flbl">Email</label><input class="fc" id="fbAuthEmail" type="email" autocomplete="username" placeholder="chutro@gmail.com"></div>
+        <div class="fg"><label class="flbl">Mật khẩu</label><input class="fc" id="fbAuthPass" type="password" autocomplete="current-password" placeholder="Tối thiểu 6 ký tự"></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" type="button" onclick="fbSignIn(false)">Đăng nhập</button>
+          <button class="btn btn-secondary btn-sm" type="button" onclick="fbSignIn(true)">Tạo tài khoản</button>
+          <button class="btn btn-secondary btn-sm" type="button" onclick="fbSignOut()">Đăng xuất</button>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px;word-break:break-all" id="fbAuthUid"></div>
+      </div>
+      <div style="margin-top:10px;padding:12px;background:var(--bg2);border-radius:12px;border:1.5px solid var(--border)">
+        <div style="font-size:13px;font-weight:800;margin-bottom:2px">☁️ Ảnh (CCCD, avatar, công tơ)</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px" id="fbImgInfo">—</div>
+        <button class="btn btn-secondary btn-sm" type="button" onclick="fbMigrateImages()">Chuyển ảnh lên Firebase Storage</button>
+      </div>
     </div>
     <div id="fbPanelSync" style="display:none">
       <div class="fb-sync-stats" id="fbSyncStats">
@@ -4986,6 +5071,435 @@ function cleanupArchived(){
 </style>
 
 <script>
+/* ══ GIAI ĐOẠN 2: VIETQR · GỬI ZALO/SMS · ẢNH CÔNG TƠ · AUTH · STORAGE · PWA ══ */
+const BANKS=[['970436','Vietcombank'],['970415','VietinBank'],['970418','BIDV'],['970405','Agribank'],['970407','Techcombank'],['970422','MB Bank'],['970416','ACB'],['970432','VPBank'],['970423','TPBank'],['970403','Sacombank'],['970437','HDBank'],['970441','VIB'],['970443','SHB'],['970440','SeABank'],['970448','OCB'],['970426','MSB'],['970431','Eximbank'],['970449','LPBank'],['970428','Nam A Bank'],['970409','Bac A Bank'],['970425','ABBank']];
+const stripVN=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D');
+const getBank=()=>(S.settings&&S.settings.bank)||{};
+const bankReady=()=>{const b=getBank();return b.enabled!==false&&!!b.bin&&!!b.acc};
+const bankName=b=>(BANKS.find(x=>x[0]===b.bin)||[0,b.bin])[1];
+function meterUse(inv,k){const o=inv[k+'Old']||0,n=inv[k+'New']||0;return n<o?n:n-o}
+function transferNote(inv){const room=S.rooms.find(r=>r.id===inv.roomId);const [y,m]=String(inv.month||'').split('-');const rn=stripVN(room?room.name:'').trim();const lbl=/^p/i.test(rn)?rn:'P'+rn;return (lbl+' T'+(m||'')+(y||'').slice(2)).replace(/[^A-Za-z0-9 ]/g,'').slice(0,25)}
+function qrUrl(inv,amount){
+  if(!bankReady())return '';const b=getBank();
+  const amt=Math.max(0,Math.round(amount!=null?amount:(inv.debt>0?inv.debt:0)));
+  return `https://img.vietqr.io/image/${b.bin}-${encodeURIComponent(b.acc)}-compact2.png?amount=${amt}&addInfo=${encodeURIComponent(transferNote(inv))}&accountName=${encodeURIComponent(stripVN(b.name||'').toUpperCase())}`;
+}
+function printQrHtml(inv){
+  if(!bankReady()||!(inv.debt>0))return '';const b=getBank();
+  return `<hr class="divider"><div style="text-align:center"><img src="${esc(qrUrl(inv))}" alt="QR chuyển khoản" style="width:170px;height:auto"><div style="font-size:11px;color:#444">${esc(bankName(b))} · ${esc(b.acc)}<br>${esc(b.name||'')}<br>Nội dung: <b>${esc(transferNote(inv))}</b></div></div>`;
+}
+function printWhenReady(){
+  const imgs=[...document.querySelectorAll('#printInv img')].filter(i=>!i.complete);
+  if(!imgs.length){window.print();return}
+  let done=false;const go=()=>{if(done)return;done=true;window.print()};
+  Promise.all(imgs.map(i=>new Promise(r=>{i.onload=i.onerror=r}))).then(go);setTimeout(go,2500);
+}
+function photosHtml(inv){
+  if(!inv.elecPhoto&&!inv.waterPhoto)return '';
+  const th=(k,src,lb)=>src?`<img src="${esc(src)}" alt="${lb}" title="${lb}" onclick="viewInvPhoto('${inv.id}','${k}')" style="height:46px;border-radius:8px;cursor:pointer;border:1px solid var(--border)">`:'';
+  return `<div style="display:flex;gap:8px;padding:8px 16px;align-items:center"><span style="font-size:11px;color:var(--text3)">📷 Công tơ</span>${th('e',inv.elecPhoto,'Ảnh công tơ điện')}${th('w',inv.waterPhoto,'Ảnh công tơ nước')}</div>`;
+}
+function viewInvPhoto(id,k){
+  const inv=S.invoices.find(i=>i.id===id);const src=inv&&(k==='e'?inv.elecPhoto:inv.waterPhoto);if(!src)return;
+  const ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:9997;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:12px;cursor:zoom-out';
+  ov.innerHTML=`<img src="${esc(src)}" alt="Ảnh công tơ" style="max-width:100%;max-height:100%;border-radius:10px">`;ov.onclick=()=>ov.remove();document.body.appendChild(ov);
+}
+
+/* ── ảnh công tơ khi tạo hóa đơn ── */
+let invPhotos={e:null,w:null};
+function invPickPhoto(inp,k){
+  const f=inp.files&&inp.files[0];if(!f)return;
+  resizeImageDataUrl(f,900,.6).then(d=>{invPhotos[k]=d;const im=document.getElementById(k==='e'?'invPhotoEPrev':'invPhotoWPrev');if(im){im.src=d;im.style.display='block'}}).catch(()=>toast('Không đọc được ảnh','error'));
+}
+function resetInvPhotos(){invPhotos={e:null,w:null};['invPhotoE','invPhotoW'].forEach(i=>{const e=document.getElementById(i);if(e)e.value=''});['invPhotoEPrev','invPhotoWPrev'].forEach(i=>{const e=document.getElementById(i);if(e){e.style.display='none';e.removeAttribute('src')}})}
+const _openCreateInv=window.openCreateInv;
+window.openCreateInv=function(...a){resetInvPhotos();return _openCreateInv.apply(this,a)};
+const _saveInv=window.saveInv;
+window.saveInv=function(...a){
+  const n=S.invoices.length,ph={...invPhotos};
+  const r=_saveInv.apply(this,a);
+  if(S.invoices.length>n){const inv=S.invoices[S.invoices.length-1];if(ph.e)inv.elecPhoto=ph.e;if(ph.w)inv.waterPhoto=ph.w;if(ph.e||ph.w){save();if(typeof renderPayment==='function')renderPayment()}resetInvPhotos()}
+  return r;
+};
+
+/* ── tiện ích modal & clipboard ── */
+function mkModal(id,title,body,foot){
+  let o=document.getElementById(id);if(o)o.remove();
+  o=document.createElement('div');o.className='overlay';o.id=id;
+  o.innerHTML=`<div class="modal"><div class="mhandle"></div><div class="mhdr"><div class="mtitle">${esc(title)}</div><button class="mclose" type="button" aria-label="Đóng" onclick="closeM('${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="mbody">${body}</div>${foot?`<div class="mfoot">${foot}</div>`:''}</div>`;
+  document.body.appendChild(o);return o;
+}
+async function copyText(t){
+  try{await navigator.clipboard.writeText(t);return true}catch(e){}
+  try{const ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();return ok}catch(e){return false}
+}
+
+/* ── tài khoản nhận tiền VietQR ── */
+function openBank(){
+  const b=getBank();
+  mkModal('mBank','Tài khoản nhận tiền (VietQR)',`
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">Mã QR sẽ in trên hóa đơn và gửi kèm tin nhắn, khách quét là tự điền sẵn số tiền và nội dung. Cần Internet để hiển thị QR.</div>
+    <div class="fg"><label class="flbl">Ngân hàng</label><select class="fc" id="bkBin"><option value="">-- Chọn ngân hàng --</option>${BANKS.map(x=>`<option value="${x[0]}" ${x[0]===b.bin?'selected':''}>${esc(x[1])}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flbl">Số tài khoản</label><input class="fc" id="bkAcc" inputmode="numeric" value="${esc(b.acc||'')}" placeholder="0123456789"></div>
+    <div class="fg"><label class="flbl">Tên chủ tài khoản</label><input class="fc" id="bkName" value="${esc(b.name||'')}" placeholder="NGUYEN VAN A"></div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:13px;font-weight:600;margin:6px 0"><input type="checkbox" id="bkOn" ${b.enabled!==false?'checked':''}> Hiện mã QR trên hóa đơn và tin nhắn</label>
+    <div id="bkPrev" style="text-align:center;margin-top:8px"></div>`,
+    `<button class="btn btn-secondary" type="button" onclick="bankPreview()">Xem thử QR</button><button class="btn btn-primary" type="button" onclick="saveBank()">Lưu</button>`);
+  openM('mBank');
+}
+function readBankForm(){return{bin:document.getElementById('bkBin').value,acc:document.getElementById('bkAcc').value.replace(/\D/g,''),name:stripVN(document.getElementById('bkName').value).toUpperCase().trim(),enabled:document.getElementById('bkOn').checked}}
+function bankPreview(){
+  const b=readBankForm();if(!b.bin||!b.acc){toast('Chọn ngân hàng và nhập số tài khoản','error');return}
+  const fake={roomId:'',month:new Date().toISOString().slice(0,7),debt:10000};
+  const url=`https://img.vietqr.io/image/${b.bin}-${encodeURIComponent(b.acc)}-compact2.png?amount=10000&addInfo=TEST&accountName=${encodeURIComponent(b.name)}`;
+  document.getElementById('bkPrev').innerHTML=`<img src="${esc(url)}" alt="QR thử" style="width:100%;max-width:260px;border-radius:12px;background:#fff" onerror="this.outerHTML='<div style=&quot;color:#ef4444;font-size:12px&quot;>Không tải được QR — kiểm tra Internet và số tài khoản.</div>'">`;
+}
+function saveBank(){
+  const b=readBankForm();
+  if(!b.bin||b.acc.length<6){toast('Chọn ngân hàng và nhập số tài khoản hợp lệ','error');return}
+  if(!b.name){toast('Nhập tên chủ tài khoản','error');return}
+  S.settings.bank=b;save();closeM('mBank');updateP2Rows();toast('✅ Đã lưu tài khoản nhận tiền','success');
+}
+function showQR(id){
+  const inv=S.invoices.find(i=>i.id===id);if(!inv)return;
+  if(!bankReady()){toast('Hãy cài tài khoản nhận tiền trước','warning');openBank();return}
+  const b=getBank();
+  mkModal('mQR','Mã QR thanh toán',`<div style="text-align:center"><img src="${esc(qrUrl(inv))}" alt="QR" style="width:100%;max-width:300px;border-radius:12px;background:#fff" onerror="this.outerHTML='<div style=&quot;color:#ef4444;font-size:13px;padding:20px&quot;>Không tải được QR — cần Internet.</div>'">
+    <div style="margin-top:10px;font-size:13px;line-height:1.6"><b>${esc(bankName(b))}</b> · ${esc(b.acc)}<br>${esc(b.name||'')}<br>Số tiền: <b>${fmt(inv.debt>0?inv.debt:0)}</b><br>Nội dung: <b>${esc(transferNote(inv))}</b></div></div>`,
+    `<button class="btn btn-secondary" type="button" onclick="copyAny('${esc(b.acc)}','Đã sao chép số tài khoản')">Chép STK</button><button class="btn btn-primary" type="button" onclick="copyAny('${esc(transferNote(inv))}','Đã sao chép nội dung')">Chép nội dung</button>`);
+  openM('mQR');
+}
+async function copyAny(t,msg){toast((await copyText(t))?'📋 '+msg:'Không sao chép được','info')}
+
+/* ── soạn & gửi hóa đơn / nhắc nợ ── */
+function buildMsg(inv,kind){
+  const t=S.tenants.find(x=>x.id===inv.tenantId),room=S.rooms.find(r=>r.id===inv.roomId);
+  const days=Math.floor((Date.now()-new Date(inv.createdAt).getTime())/86400000);
+  const hotel=S.settings.hotelName||'Nhà trọ',mn=getMonthName(inv.month);
+  const L=[`Chào ${t&&t.name?t.name:'anh/chị'},`];
+  if(kind==='remind'){
+    L.push(`${hotel} xin nhắc anh/chị khoản tiền phòng ${room?room.name:''} ${mn} còn thiếu ${fmt(inv.debt)}${days>30?' (đã quá hạn '+days+' ngày)':''}.`);
+  }else{
+    L.push(`${hotel} gửi anh/chị hóa đơn phòng ${room?room.name:''} ${mn}:`);
+    L.push(`• Tiền phòng: ${fmt(inv.roomFee)}`);
+    L.push(`• Điện (${meterUse(inv,'elec')} kWh): ${fmt(inv.elecFee)}`);
+    L.push(`• Nước (${meterUse(inv,'water')} m³): ${fmt(inv.waterFee)}`);
+    [['internet','Internet'],['serviceFee','Dịch vụ'],['garbage','Rác'],['parking','Giữ xe'],['extra','Phụ thu']].forEach(([k,l])=>{if(inv[k])L.push(`• ${l}: ${fmt(inv[k])}`)});
+    if(inv.discount)L.push(`• Giảm giá: -${fmt(inv.discount)}`);
+    L.push(`Tổng cộng: ${fmt(inv.total)}`);
+    if(inv.paid>0)L.push(`Đã thanh toán: ${fmt(inv.paid)}`);
+    L.push(inv.debt>0?`Còn lại: ${fmt(inv.debt)}`:'✅ Đã thanh toán đủ.');
+  }
+  if(inv.debt>0&&bankReady()){
+    const b=getBank();
+    L.push('',`Chuyển khoản: ${bankName(b)} - STK ${b.acc} - ${b.name}`,`Số tiền: ${fmt(inv.debt)}`,`Nội dung: ${transferNote(inv)}`,`Mã QR: ${qrUrl(inv)}`);
+  }
+  L.push('','Cảm ơn anh/chị!');
+  return L.join('\n');
+}
+function normPhone(p){let d=String(p||'').replace(/\D/g,'');if(d.startsWith('84'))d='0'+d.slice(2);return d}
+function sendInv(id,kind){
+  const inv=S.invoices.find(i=>i.id===id);if(!inv)return;
+  const t=S.tenants.find(x=>x.id===inv.tenantId),phone=normPhone(t&&t.phone);
+  mkModal('mSend',kind==='remind'?'🔔 Nhắc nợ':'📤 Gửi hóa đơn',`
+    <div style="font-size:12px;color:var(--text3);margin-bottom:6px">Gửi tới: <b>${esc(t?t.name:'—')}</b> ${phone?'· '+esc(phone):'· <span style="color:#ef4444">chưa có số điện thoại</span>'}</div>
+    <textarea class="fc" id="sendTxt" rows="13" style="font-size:13px;line-height:1.5">${esc(buildMsg(inv,kind))}</textarea>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px">Zalo không cho điền sẵn nội dung qua liên kết nên app sẽ sao chép tin nhắn, bạn chỉ cần dán vào khung chat.</div>`,
+    `<button class="btn btn-secondary" type="button" onclick="sendAct('copy','${phone}')">📋 Chép</button>
+     <button class="btn btn-primary" type="button" ${phone?'':'disabled'} onclick="sendAct('zalo','${phone}')">💬 Zalo</button>
+     <button class="btn btn-secondary" type="button" ${phone?'':'disabled'} onclick="sendAct('sms','${phone}')">✉️ SMS</button>
+     ${navigator.share?`<button class="btn btn-secondary" type="button" onclick="sendAct('share','${phone}')">↗ Khác</button>`:''}`);
+  if(bankReady()&&inv.debt>0)document.querySelector('#mSend .mbody').insertAdjacentHTML('afterbegin',`<div style="text-align:center;margin-bottom:8px"><img src="${esc(qrUrl(inv))}" alt="QR" style="height:120px;border-radius:8px;background:#fff" onerror="this.remove()"></div>`);
+  openM('mSend');
+}
+async function sendAct(act,phone){
+  const txt=document.getElementById('sendTxt').value;
+  if(act==='copy'){toast((await copyText(txt))?'📋 Đã sao chép tin nhắn':'Không sao chép được','info');return}
+  if(act==='zalo'){const ok=await copyText(txt);toast(ok?'📋 Đã chép tin nhắn — dán vào Zalo':'Mở Zalo — hãy tự dán tin nhắn','info');window.open('https://zalo.me/'+phone,'_blank','noopener');return}
+  if(act==='sms'){location.href='sms:'+phone+'?&body='+encodeURIComponent(txt);return}
+  if(act==='share'){try{await navigator.share({text:txt})}catch(e){}}
+}
+
+/* ── Firebase Auth + Storage ── */
+function hookFbAuth(){if(fbApp&&firebase.auth){fbApp.auth().onAuthStateChanged(()=>updateAuthUi())}}
+function updateAuthUi(){
+  const st=document.getElementById('fbAuthStatus'),uid=document.getElementById('fbAuthUid');if(!st)return;
+  const u=fbApp&&firebase.auth?fbApp.auth().currentUser:null;
+  st.textContent=u?'🟢 Đã đăng nhập: '+(u.email||u.uid):(fbApp?'Chưa đăng nhập — cần để siết Rules (chỉ chủ trọ được đọc/ghi)':'Hãy kết nối Firebase trước');
+  if(uid)uid.textContent=u?'UID: '+u.uid:'';
+  updateImgInfo();
+}
+function authMsg(e){
+  const m={'auth/invalid-credential':'Sai email hoặc mật khẩu','auth/wrong-password':'Sai mật khẩu','auth/user-not-found':'Tài khoản không tồn tại','auth/invalid-email':'Email không hợp lệ','auth/email-already-in-use':'Email này đã có tài khoản — hãy bấm Đăng nhập','auth/weak-password':'Mật khẩu quá yếu (tối thiểu 6 ký tự)','auth/operation-not-allowed':'Chưa bật Email/Password: Firebase Console → Authentication → Sign-in method','auth/network-request-failed':'Lỗi mạng','auth/too-many-requests':'Thử quá nhiều lần, hãy đợi một lát'};
+  return m[e&&e.code]||(e&&e.message)||'Lỗi không xác định';
+}
+async function fbSignIn(create){
+  if(!fbApp||!firebase.auth){toast('Hãy kết nối Firebase trước','error');return}
+  const em=document.getElementById('fbAuthEmail').value.trim(),pw=document.getElementById('fbAuthPass').value;
+  if(!em||!pw){toast('Nhập email và mật khẩu','error');return}
+  try{
+    if(create)await fbApp.auth().createUserWithEmailAndPassword(em,pw);else await fbApp.auth().signInWithEmailAndPassword(em,pw);
+    document.getElementById('fbAuthPass').value='';toast(create?'✅ Đã tạo tài khoản và đăng nhập':'✅ Đã đăng nhập','success');updateAuthUi();
+    if(fbAutoSync&&typeof stopFbListener==='function'){stopFbListener();startFbListener()}
+  }catch(e){toast(authMsg(e),'error')}
+}
+async function fbSignOut(){if(fbApp&&firebase.auth){try{await fbApp.auth().signOut();toast('Đã đăng xuất','info')}catch(e){toast(authMsg(e),'error')}}updateAuthUi()}
+
+function collectDataImages(){
+  const out=[];(function walk(o){
+    if(!o||typeof o!=='object')return;
+    for(const k of Object.keys(o)){const v=o[k];
+      if(typeof v==='string'&&v.startsWith('data:image/'))out.push([o,k]);
+      else if(v&&typeof v==='object')walk(v)}
+  })(S);return out;
+}
+function updateImgInfo(){
+  const el=document.getElementById('fbImgInfo');if(!el)return;
+  const it=collectDataImages();const kb=Math.round(it.reduce((n,[o,k])=>n+o[k].length,0)/1024);
+  el.textContent=it.length?`${it.length} ảnh đang nằm trong bộ nhớ máy (~${kb>1024?(kb/1024).toFixed(1)+' MB':kb+' KB'}). Chuyển lên Storage để giảm dung lượng.`:'Không còn ảnh nào lưu trong bộ nhớ máy.';
+}
+async function fbMigrateImages(){
+  if(!fbApp||!fbConnected){toast('Hãy kết nối Firebase trước','error');return}
+  if(!firebase.storage){toast('Thiếu thư viện Firebase Storage','error');return}
+  const items=collectDataImages();
+  if(!items.length){toast('Không có ảnh nào cần chuyển','info');return}
+  if(!confirm(`Chuyển ${items.length} ảnh lên Firebase Storage?\nẢnh sẽ được thay bằng đường dẫn, giúp dữ liệu nhẹ hơn. Cần bật Storage trong Firebase Console.`))return;
+  const st=fbApp.storage();let idx=0,ok=0,fail=0,firstErr=null;
+  const info=document.getElementById('fbImgInfo');
+  const worker=async()=>{
+    while(idx<items.length){
+      const [o,k]=items[idx++],dataUrl=o[k];
+      try{const ref=st.ref('phongtro/'+uid()+'.jpg');await ref.putString(dataUrl,'data_url');o[k]=await ref.getDownloadURL();ok++}
+      catch(e){fail++;firstErr=firstErr||e}
+      if(info)info.textContent=`Đang chuyển... ${ok+fail}/${items.length}`;
+    }
+  };
+  await Promise.all([worker(),worker(),worker()]);
+  save();renderAll();updateImgInfo();
+  if(fail)toast(`Đã chuyển ${ok}, lỗi ${fail}. ${firstErr&&firstErr.code==='storage/unauthorized'?'Chưa được phép: kiểm tra Storage Rules và đăng nhập.':(firstErr&&firstErr.message)||''}`,'warning',{duration:9000});
+  else toast(`✅ Đã chuyển ${ok} ảnh lên Storage`,'success');
+}
+
+/* ── PWA: cài đặt, offline, service worker ── */
+let installEvt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installEvt=e;updateP2Rows()});
+window.addEventListener('appinstalled',()=>{installEvt=null;updateP2Rows()});
+const isStandalone=()=>window.matchMedia&&matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+async function installApp(){
+  if(isStandalone()){toast('Ứng dụng đã được cài đặt','info');return}
+  if(installEvt){installEvt.prompt();try{await installEvt.userChoice}catch(e){}installEvt=null;updateP2Rows();return}
+  if(location.protocol==='file:'){toast('Cần đặt app lên https (Firebase Hosting, GitHub Pages…) mới cài được','warning',{duration:6000});return}
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  toast(ios?'Safari → nút Chia sẻ → Thêm vào MH chính':'Menu trình duyệt → Cài đặt ứng dụng / Thêm vào màn hình chính','info',{duration:6000});
+}
+function updateP2Rows(){
+  const b=document.getElementById('bankSettingRow');
+  if(b){const bk=getBank();b.textContent=bk.bin&&bk.acc?`${bankName(bk)} · ${bk.acc}${bk.enabled===false?' (đang tắt)':''}`:'Chưa cài — thêm để in QR trên hóa đơn'}
+  const i=document.getElementById('installSettingRow');
+  if(i)i.textContent=isStandalone()?'✅ Đã cài đặt':location.protocol==='file:'?'Cần đặt app lên https để cài':installEvt?'Nhấn để cài ngay':'Thêm vào màn hình chính';
+}
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+}
+(function(){
+  const bar=document.createElement('div');bar.id='ptOffline';
+  bar.style.cssText='position:fixed;left:0;right:0;top:0;z-index:9990;background:#f59e0b;color:#111;font-size:12px;font-weight:700;text-align:center;padding:4px 8px;display:none';
+  bar.textContent='📴 Đang offline — dữ liệu vẫn được lưu trên máy, QR và đồng bộ sẽ tạm ngưng';
+  const put=()=>{if(!bar.parentNode)document.body.appendChild(bar);bar.style.display=navigator.onLine?'none':'block'};
+  window.addEventListener('online',put);window.addEventListener('offline',put);
+  window.addEventListener('load',put);
+})();
+
+/* ══ BẢO MẬT: KHÓA PIN + HOÀN TÁC ══ */
+(function(){
+  const K_PIN='ptPin',K_AUTO='ptPinAuto',K_FAIL='ptPinFail';
+  const rd=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}};
+  const wr=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+  const hasPin=()=>{const o=rd(K_PIN,null);return !!(o&&o.h&&o.s)};
+  const autoMin=()=>{const m=rd(K_AUTO,5);return typeof m==='number'?m:5};
+  const getFail=()=>rd(K_FAIL,{n:0,until:0});
+
+  async function hashPin(pin,salt){
+    const data=salt+':'+pin;
+    try{if(window.crypto&&crypto.subtle){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(data));return 'a'+Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('')}}catch(e){}
+    let h1=0xdeadbeef,h2=0x41c6ce57;
+    for(let i=0;i<data.length;i++){const c=data.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}
+    h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+    h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+    return 'b'+(4294967296*(2097151&h2)+(h1>>>0)).toString(16);
+  }
+  async function savePin(pin){const salt=Math.random().toString(36).slice(2)+Date.now().toString(36);wr(K_PIN,{s:salt,h:await hashPin(pin,salt)});wr(K_FAIL,{n:0,until:0})}
+  async function checkPin(pin){const o=rd(K_PIN,null);if(!o)return true;return (await hashPin(pin,o.s))===o.h}
+
+  function css(){
+    if(document.getElementById('ptPinCss'))return;
+    const st=document.createElement('style');st.id='ptPinCss';
+    st.textContent=`
+    body.pt-locked #app{visibility:hidden}
+    #ptPinOv{position:fixed;inset:0;z-index:99999;background:var(--bg,#f8fafc);color:var(--text,#0f172a);display:flex;align-items:center;justify-content:center;padding:16px;font-family:inherit}
+    #ptPinOv .pp-box{width:100%;max-width:320px;text-align:center}
+    #ptPinOv .pp-ico{font-size:40px;margin-bottom:6px}
+    #ptPinOv .pp-t{font-size:19px;font-weight:800}
+    #ptPinOv .pp-s{font-size:13px;color:var(--text3,#64748b);margin:4px 0 14px;min-height:18px}
+    #ptPinOv .pp-dots{display:flex;gap:12px;justify-content:center;margin-bottom:8px;min-height:16px}
+    #ptPinOv .pp-dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--primary,#2563eb);display:block;transition:all .12s}
+    #ptPinOv .pp-dots i.on{background:var(--primary,#2563eb);transform:scale(1.1)}
+    #ptPinOv .pp-err{min-height:20px;font-size:12.5px;color:#ef4444;font-weight:600;margin-bottom:8px}
+    #ptPinOv .pp-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    #ptPinOv .pp-pad button{height:58px;border-radius:16px;border:1.5px solid var(--border,#e2e8f0);background:var(--bg2,#fff);color:inherit;font-size:22px;font-weight:700;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+    #ptPinOv .pp-pad button:active{background:var(--primary-bg,#dbeafe)}
+    #ptPinOv .pp-pad button.ok{background:var(--primary,#2563eb);border-color:var(--primary,#2563eb);color:#fff}
+    #ptPinOv .pp-links{display:flex;justify-content:space-between;margin-top:16px;font-size:13px}
+    #ptPinOv .pp-links a{color:var(--primary,#2563eb);cursor:pointer;font-weight:600}
+    #ptPinOv.shake .pp-dots{animation:ppShake .35s}
+    @keyframes ppShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+    #ptPinMenu .pm-btn{display:block;width:100%;text-align:left;padding:13px 14px;margin-top:8px;border-radius:12px;border:1.5px solid var(--border,#e2e8f0);background:var(--bg2,#fff);color:inherit;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+    #ptPinMenu .pm-btn.danger{color:#ef4444}`;
+    document.head.appendChild(st);
+  }
+
+  /* Hỏi một mã PIN, trả về chuỗi số hoặc null nếu hủy */
+  function ask(o){
+    css();
+    return new Promise(resolve=>{
+      const ov=document.createElement('div');ov.id='ptPinOv';ov.setAttribute('role','dialog');ov.setAttribute('aria-modal','true');
+      ov.innerHTML=`<div class="pp-box"><div class="pp-ico">🔒</div><div class="pp-t">${esc(o.title)}</div><div class="pp-s">${esc(o.sub||'')}</div>
+      <div class="pp-dots"></div><div class="pp-err">${esc(o.err||'')}</div>
+      <div class="pp-pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button type="button" data-k="${n}">${n}</button>`).join('')}<button type="button" data-k="del" aria-label="Xóa số">⌫</button><button type="button" data-k="0">0</button><button type="button" data-k="ok" class="ok" aria-label="Xác nhận">✓</button></div>
+      <div class="pp-links"><span>${o.cancel?'<a data-a="cancel">Hủy</a>':''}</span><span>${o.forgot?'<a data-a="forgot">Quên PIN?</a>':''}</span></div></div>`;
+      document.body.appendChild(ov);
+      let v='';const dots=ov.querySelector('.pp-dots');
+      const draw=()=>{dots.innerHTML=Array.from({length:Math.max(4,v.length)},(_,i)=>`<i class="${i<v.length?'on':''}"></i>`).join('')};
+      const done=val=>{document.removeEventListener('keydown',kd,true);ov.remove();resolve(val)};
+      const press=k=>{
+        if(k==='del')v=v.slice(0,-1);
+        else if(k==='ok'){if(v.length>=4){done(v);return}ov.querySelector('.pp-err').textContent='PIN gồm 4 đến 8 chữ số';ov.classList.remove('shake');void ov.offsetWidth;ov.classList.add('shake')}
+        else if(v.length<8)v+=k;
+        draw();
+      };
+      function kd(e){
+        if(/^[0-9]$/.test(e.key)){press(e.key);e.preventDefault()}
+        else if(e.key==='Backspace'){press('del');e.preventDefault()}
+        else if(e.key==='Enter'){press('ok');e.preventDefault()}
+        else if(e.key==='Escape'&&o.cancel){done(null)}
+      }
+      document.addEventListener('keydown',kd,true);
+      ov.addEventListener('click',e=>{
+        const b=e.target.closest('[data-k]');if(b){press(b.dataset.k);return}
+        const a=e.target.closest('[data-a]');if(!a)return;
+        if(a.dataset.a==='cancel')done(null);
+        else if(a.dataset.a==='forgot'&&o.forgot)o.forgot();
+      });
+      draw();
+    });
+  }
+
+  function forgotPin(){
+    if(!confirm('Quên PIN sẽ XÓA toàn bộ dữ liệu trên THIẾT BỊ NÀY để đặt lại.\nDữ liệu đã đồng bộ lên Firebase (nếu có) vẫn còn và có thể tải lại sau.\n\nTiếp tục?'))return;
+    if(!confirm('Xác nhận lần cuối: xóa dữ liệu trên thiết bị này?'))return;
+    [K_PIN,K_AUTO,K_FAIL,'pt3'].forEach(k=>localStorage.removeItem(k));
+    location.reload();
+  }
+
+  /* Vòng lặp xác thực có giới hạn số lần thử */
+  async function verifyPin(o){
+    let err='';
+    for(;;){
+      const f=getFail(),wait=Math.ceil((f.until-Date.now())/1000);
+      const pin=await ask({...o,forgot:o.forgot===false?null:forgotPin,err:wait>0?`Sai nhiều lần — thử lại sau ${wait} giây`:err});
+      if(pin===null)return false;
+      if(Date.now()<getFail().until){err='Đang bị khóa tạm thời, vui lòng chờ...';continue}
+      if(await checkPin(pin)){wr(K_FAIL,{n:0,until:0});return true}
+      const n=getFail().n+1;
+      wr(K_FAIL,{n,until:n>=5?Date.now()+Math.min(300000,30000*(n-4)):0});
+      err=n>=5?'Sai quá 5 lần — tạm khóa':`Sai mã PIN (${n}/5)`;
+    }
+  }
+
+  let locking=false,lastAct=Date.now();
+  async function lockNow(){
+    if(!hasPin()||locking)return;
+    locking=true;document.body.classList.add('pt-locked');
+    await verifyPin({title:'Ứng dụng đã khóa',sub:'Nhập mã PIN để tiếp tục'});
+    document.body.classList.remove('pt-locked');locking=false;lastAct=Date.now();
+  }
+  async function showPinLock(cb){
+    locking=true;document.body.classList.add('pt-locked');
+    await verifyPin({title:'Nhập mã PIN',sub:'Dữ liệu được bảo vệ'});
+    document.body.classList.remove('pt-locked');locking=false;lastAct=Date.now();
+    cb&&cb();
+  }
+
+  async function setupPin(){
+    if(hasPin()&&!(await verifyPin({title:'Nhập PIN hiện tại',cancel:true,forgot:false})))return;
+    let err='';
+    for(;;){
+      const a=await ask({title:'Tạo mã PIN mới',sub:'Từ 4 đến 8 chữ số',cancel:true,err});if(a===null)return;
+      const b=await ask({title:'Nhập lại mã PIN',sub:'Để xác nhận',cancel:true});if(b===null)return;
+      if(a===b){await savePin(a);toast('🔐 Đã bật khóa mã PIN','success');updatePinRow();return}
+      err='Hai lần nhập không khớp, hãy thử lại';
+    }
+  }
+  async function disablePin(){
+    if(!(await verifyPin({title:'Nhập PIN để tắt khóa',cancel:true,forgot:false})))return;
+    localStorage.removeItem(K_PIN);localStorage.removeItem(K_FAIL);toast('Đã tắt khóa mã PIN','info');updatePinRow();
+  }
+  function updatePinRow(){
+    const el=document.getElementById('pinSettingRow');if(!el)return;
+    const m=autoMin();
+    el.textContent=hasPin()?`🔐 Đang bật · ${m?'tự khóa sau '+m+' phút':'chỉ khóa khi mở lại'}`:'Chưa bật — dữ liệu khách đang để mở';
+  }
+  function openPinMenu(){
+    if(!hasPin()){setupPin();return}
+    css();
+    const ov=document.createElement('div');ov.id='ptPinMenu';
+    ov.style.cssText='position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;padding:12px';
+    const m=autoMin();
+    ov.innerHTML=`<div style="width:100%;max-width:420px;background:var(--bg,#fff);color:var(--text,#0f172a);border-radius:18px;padding:16px">
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px">🔐 Khóa mã PIN</div>
+      <button class="pm-btn" data-a="lock">🔒 Khóa ngay</button>
+      <button class="pm-btn" data-a="change">✏️ Đổi mã PIN</button>
+      <label style="display:block;margin-top:8px;font-size:13px;font-weight:600">Tự khóa khi không dùng
+        <select id="pmAuto" style="width:100%;margin-top:6px;padding:11px;border-radius:12px;border:1.5px solid var(--border,#e2e8f0);background:var(--bg2,#fff);color:inherit;font-size:14px;font-family:inherit">
+          ${[[1,'1 phút'],[5,'5 phút'],[15,'15 phút'],[0,'Chỉ khi mở lại ứng dụng']].map(([v,l])=>`<option value="${v}" ${v===m?'selected':''}>${l}</option>`).join('')}
+        </select></label>
+      <button class="pm-btn danger" data-a="off">🗑️ Tắt khóa PIN</button>
+      <button class="pm-btn" data-a="close" style="text-align:center">Đóng</button></div>`;
+    document.body.appendChild(ov);
+    const close=()=>ov.remove();
+    ov.addEventListener('click',e=>{
+      if(e.target===ov){close();return}
+      const a=e.target.closest('[data-a]');if(!a)return;close();
+      ({lock:lockNow,change:setupPin,off:disablePin,close(){}})[a.dataset.a]();
+    });
+    ov.querySelector('#pmAuto').addEventListener('change',e=>{wr(K_AUTO,+e.target.value);updatePinRow();toast('Đã lưu thời gian tự khóa','success')});
+  }
+  window.pinRequired=hasPin;window.showPinLock=showPinLock;window.openPinMenu=openPinMenu;window.lockNow=lockNow;window.updatePinRow=updatePinRow;
+
+  /* Tự khóa khi không thao tác / khi quay lại tab sau thời gian dài */
+  ['pointerdown','keydown','touchstart','scroll'].forEach(ev=>addEventListener(ev,()=>{if(!locking)lastAct=Date.now()},{passive:true,capture:true}));
+  const check=()=>{const m=autoMin();if(hasPin()&&!locking&&m>0&&Date.now()-lastAct>m*60000)lockNow()};
+  setInterval(check,10000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()});
+
+  /* ── Hoàn tác khi xóa ── */
+  function offerUndo(snap,msg){
+    toast(msg,'warning',{duration:9000,action:{label:'↩ Hoàn tác',fn:()=>{
+      try{S=JSON.parse(snap);save();renderAll();toast('↩️ Đã hoàn tác','success')}catch(e){toast('Không thể hoàn tác','error')}
+    }}});
+  }
+  ['deleteRoom','delTenant','delInv','deleteArchivedNow'].forEach(n=>{
+    const f=window[n];if(typeof f!=='function')return;
+    window[n]=function(...a){
+      const cnt=()=>S.rooms.length+S.tenants.length+S.invoices.length+(S.archived||[]).length+(S.contracts||[]).length;
+      const before=cnt();let snap=null;try{snap=JSON.stringify(S)}catch(e){}
+      const r=f.apply(this,a);
+      if(snap&&cnt()<before)offerUndo(snap,'🗑️ Đã xóa');
+      return r;
+    };
+  });
+})();
+
 /* ══ CẬP NHẬT & SẮP XẾP LẠI ══ */
 function _natCmp(a,b){return String(a??'').localeCompare(String(b??''),'vi',{numeric:true,sensitivity:'base'});}
 function refreshAndSort(silent){
@@ -5100,10 +5614,10 @@ async function connectFirebase(){
   try{
     const cfg={apiKey,authDomain:document.getElementById('fbAuthDomain').value.trim()||projectId+'.firebaseapp.com',databaseURL:dbUrl,projectId,appId:document.getElementById('fbAppId').value.trim(),storageBucket:document.getElementById('fbStorageBucket').value.trim()||projectId+'.firebasestorage.app',messagingSenderId:document.getElementById('fbSenderId').value.trim(),deviceName:document.getElementById('fbDeviceName').value.trim()||'Thiết bị chính',autoSync:fbAutoSync};
     localStorage.setItem('fbConfig',JSON.stringify(cfg));
-    if(fbApp){try{fbApp.delete();}catch(e){}}
-    const appName='pt_'+Date.now();
+    if(fbApp){try{await fbApp.delete();}catch(e){}fbApp=null;}
+    const appName='pt_main';
     fbApp=firebase.initializeApp(cfg,appName);
-    fbDb=fbApp.database();
+    fbDb=fbApp.database();try{hookFbAuth();}catch(e){}
     await fbDb.ref('.info/connected').once('value');
     fbConnected=true;
     fbAddLog('✅ Kết nối Firebase thành công!');
@@ -5265,8 +5779,8 @@ function autoReconnectFirebase(){
   if(syncBtn)syncBtn.style.display='flex';
   try{
     if(fbApp)return;
-    fbApp=firebase.initializeApp(cfg,'pt_auto_'+Date.now());
-    fbDb=fbApp.database();fbConnected=true;
+    fbApp=firebase.initializeApp(cfg,'pt_main');
+    fbDb=fbApp.database();fbConnected=true;try{hookFbAuth();}catch(e){}
     addFbActiveDot();
     updateFbStatus('connected');
     if(cfg.autoSync){fbAutoSync=true;startFbListener();}

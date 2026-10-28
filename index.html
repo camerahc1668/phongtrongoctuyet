@@ -1337,6 +1337,13 @@ html[data-font-size-mode="large"] .chip{padding-top:8px;padding-bottom:8px}
           </div>
           <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+        <div class="stg-row" onclick="openPortal()">
+          <div class="stg-row-icon" style="background:rgba(16,185,129,.12);color:#10b981">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="stg-row-body"><div class="stg-row-lbl">Cổng khách thuê</div><div class="stg-row-val" id="portalSettingRow">Khách xem hóa đơn, báo sự cố, gửi chỉ số</div></div>
+          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
         <div class="stg-row" onclick="openProps()">
           <div class="stg-row-icon" style="background:rgba(59,130,246,.12);color:#3b82f6">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -2004,6 +2011,7 @@ function save(){
   if(typeof scheduleFirebasePush==='function'&&typeof fbConnected!=='undefined'&&fbConnected&&fbAutoSync&&!window.fbApplyingRemote){
     scheduleFirebasePush();
   }
+  try{if(typeof v2Schedule==='function'&&!window.v2Applying)v2Schedule();}catch(e){}
 }
 function load(){try{const s=localStorage.getItem(PT_KEY());if(s){const parsed=JSON.parse(s);S={...S,...parsed};if(!S.contracts)S.contracts=[];if(!S.archived)S.archived=[];return true;}}catch(e){window.__loadError=true;try{localStorage.setItem('pt3_corrupt_backup',localStorage.getItem(PT_KEY())||'');}catch(_){}}return false;}
 function resetDemo(){if(!confirm('Reset về dữ liệu mẫu?'))return;const d=createDemo();S.rooms=d.rooms;S.tenants=d.tenants;S.invoices=d.invoices;S.payments=d.payments;save();renderAll();toast('Đã reset dữ liệu demo!','success')}
@@ -5073,6 +5081,17 @@ function cleanupArchived(){
         <div style="font-size:11px;color:var(--text3);margin-bottom:8px" id="fbImgInfo">—</div>
         <button class="btn btn-secondary btn-sm" type="button" onclick="fbMigrateImages()">Chuyển ảnh lên Firebase Storage</button>
       </div>
+      <div style="margin-top:10px;padding:12px;background:var(--bg2);border-radius:12px;border:1.5px solid var(--border)">
+        <div style="font-size:13px;font-weight:800;margin-bottom:2px">🔄 Đồng bộ theo bản ghi &amp; phân quyền</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">Chỉ gửi những bản ghi bị thay đổi, nhiều người sửa cùng lúc không đè nhau. Cần đăng nhập và đã dán Rules (xem HUONG_DAN_TRIEN_KHAI.md).</div>
+        <div style="font-size:12px;font-weight:700" id="v2Status">Chưa bật</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:8px" id="v2Role"></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" type="button" onclick="v2Enable()">Bật đồng bộ</button>
+          <button class="btn btn-secondary btn-sm" type="button" onclick="v2Disable()">Tắt</button>
+          <button class="btn btn-secondary btn-sm" type="button" id="v2MembersBtn" style="display:none" onclick="openMembers()">👥 Thành viên</button>
+        </div>
+      </div>
     </div>
     <div id="fbPanelSync" style="display:none">
       <div class="fb-sync-stats" id="fbSyncStats">
@@ -5276,7 +5295,7 @@ async function sendAct(act,phone){
 }
 
 /* ── Firebase Auth + Storage ── */
-function hookFbAuth(){if(fbApp&&firebase.auth){fbApp.auth().onAuthStateChanged(()=>updateAuthUi())}}
+function hookFbAuth(){if(fbApp&&firebase.auth){fbApp.auth().onAuthStateChanged(u=>{updateAuthUi();try{v2OnAuth(u)}catch(e){}})}}
 function updateAuthUi(){
   const st=document.getElementById('fbAuthStatus'),uid=document.getElementById('fbAuthUid');if(!st)return;
   const u=fbApp&&firebase.auth?fbApp.auth().currentUser:null;
@@ -5950,6 +5969,401 @@ window.showNotif=function(){
   });
 })();
 
+/* ══ GIAI ĐOẠN 4: ĐỒNG BỘ THEO BẢN GHI · PHÂN QUYỀN · CỔNG KHÁCH THUÊ ══ */
+const V2_COLS=['rooms','tenants','invoices','payments','contracts','archived','incidents','expenses','meterSubs'];
+const V2_LOCAL_SETTINGS=['darkMode','appFont','appFontName','appFontSize','hotelIcon','ownerCccd'];
+const ROLE_NAMES={owner:'Chủ trọ',manager:'Quản lý',staff:'Nhân viên thu tiền',pending:'Chờ duyệt',disabled:'Đã khóa'};
+window.ptRole='owner';
+window.v2Applying=false;
+const v2Flag=()=>localStorage.getItem('ptV2_'+PT_CUR())==='1';
+const v2Base=()=>fbPath()+'_v2';
+const dbRef=p=>p?fbDb.ref(p):fbDb.ref();
+let v2={on:false,starting:false,hashes:{},arrKeys:{},refs:[],roleRef:null,timer:null,blocked:{},pushing:false,setH:null,renderT:null,persistT:null,deniedShown:false};
+
+function h53(str){let h1=0xdeadbeef,h2=0x41c6ce57;for(let i=0;i<str.length;i++){const c=str.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return (4294967296*(2097151&h2)+(h1>>>0)).toString(36)+'.'+str.length.toString(36)}
+/* Chuẩn hóa giống Realtime Database (bỏ null/rỗng, sắp xếp khóa) để so sánh bản ghi ổn định */
+function rtNorm(v){
+  if(Array.isArray(v)){const a=v.map(rtNorm);return a.length?a:undefined}
+  if(v&&typeof v==='object'){const o={};for(const k of Object.keys(v).sort()){if(k==='_u')continue;const x=rtNorm(v[k]);if(x!==undefined&&x!==null)o[k]=x}return Object.keys(o).length?o:undefined}
+  if(v===undefined||v===null)return undefined;
+  if(typeof v==='number'&&!isFinite(v))return undefined;
+  return v;
+}
+const recHash=r=>h53(JSON.stringify(rtNorm(r)||{}));
+const cleanRec=r=>JSON.parse(JSON.stringify(r));
+const syncedSettings=()=>{const o={};Object.keys(S.settings||{}).forEach(k=>{if(!V2_LOCAL_SETTINGS.includes(k))o[k]=S.settings[k]});return o};
+const hKey=()=>'ptV2H_'+PT_CUR();
+function loadHashes(){try{const o=JSON.parse(localStorage.getItem(hKey()));if(o&&o.h){v2.hashes=o.h;v2.setH=o.s||null;return true}}catch(e){}return false}
+function persistHashes(){clearTimeout(v2.persistT);v2.persistT=setTimeout(()=>{try{localStorage.setItem(hKey(),JSON.stringify({h:v2.hashes,s:v2.setH}))}catch(e){}},400)}
+function fillDefaults(col,rec){(v2.arrKeys[col]||[]).forEach(k=>{if(rec[k]===undefined)rec[k]=[]});return rec}
+function scanArrKeys(){V2_COLS.forEach(col=>(S[col]||[]).forEach(r=>Object.keys(r).forEach(k=>{if(Array.isArray(r[k]))(v2.arrKeys[col]||(v2.arrKeys[col]=new Set())).add(k)})))}
+function v2Msg(e){return (e&&e.code==='PERMISSION_DENIED')||/permission_denied/i.test(String(e&&e.message))?'PERMISSION_DENIED':(e&&e.message)||String(e)}
+function v2Denied(what){if(!v2.deniedShown){v2.deniedShown=true;toast('🔒 Không có quyền '+what+' — kiểm tra Rules / vai trò tài khoản','warning',{duration:7000});setTimeout(()=>v2.deniedShown=false,30000)}}
+function v2Set(t){const e=document.getElementById('v2Status');if(e)e.textContent=t}
+
+/* ── Vai trò ── */
+const roleCan=cap=>{const r=window.ptRole;if(r==='owner')return true;if(r==='pending'||r==='disabled')return false;if(cap==='settings')return false;if(cap==='structure')return r==='manager';return r==='manager'||r==='staff'};
+const GUARD={structure:['openAddRoom','openEditRoom','saveRoom','deleteRoom','addZone','removeZone','openAddTenant','openEditTenant','saveTenant','delTenant','openTransfer','confirmTransfer','openCheckout','confirmCheckout','openCreateContract','saveContractHistory','saveContractFromPreview','deleteArchivedNow','restoreArchived','editExp','saveExp','delExp','openDepositSettle','saveDeposit','refreshAndSort'],
+  settings:['saveSetting','saveBank','saveLateFee','tierSave','resetDemo','restoreData']};
+Object.keys(GUARD).forEach(cap=>GUARD[cap].forEach(n=>{
+  const f=window[n];if(typeof f!=='function')return;
+  window[n]=function(...a){if(!roleCan(cap)){toast('🔒 Vai trò "'+(ROLE_NAMES[window.ptRole]||'')+'" không có quyền thực hiện thao tác này','warning');return}return f.apply(this,a)};
+}));
+function applyRoleUI(){
+  document.body.dataset.role=window.ptRole;
+  const hide=window.ptRole==='staff'?['expense','contracts','archived']:[];
+  document.querySelectorAll('#homeMenuGrid > *').forEach(c=>{c.style.display=hide.some(t=>(c.getAttribute('onclick')||'').includes("'"+t+"'"))?'none':''});
+  const m=document.getElementById('v2MembersBtn');if(m)m.style.display=window.ptRole==='owner'&&v2.on?'':'none';
+}
+const _renderAll=window.renderAll;
+window.renderAll=function(...a){const r=_renderAll.apply(this,a);try{applyRoleUI()}catch(e){}return r};
+function roleOverlay(show,msg){
+  let o=document.getElementById('ptRoleOv');
+  if(!show){if(o)o.remove();return}
+  if(!o){o=document.createElement('div');o.id='ptRoleOv';o.style.cssText='position:fixed;inset:0;z-index:99998;background:var(--bg,#f8fafc);color:var(--text,#0f172a);display:flex;align-items:center;justify-content:center;padding:24px;text-align:center';document.body.appendChild(o)}
+  o.innerHTML=`<div style="max-width:320px"><div style="font-size:42px">🔒</div><div style="font-size:18px;font-weight:800;margin:8px 0">${esc(msg)}</div><div style="font-size:13px;color:var(--text3,#64748b);margin-bottom:14px">Hãy liên hệ chủ trọ để được cấp quyền, sau đó bấm Kiểm tra lại.</div><button class="btn btn-primary" type="button" onclick="v2Recheck()">Kiểm tra lại</button> <button class="btn btn-secondary" type="button" onclick="fbSignOut()">Đăng xuất</button></div>`;
+}
+
+/* ── Đồng bộ: diff, đẩy lên ── */
+function v2Diff(){
+  const out={};
+  for(const col of V2_COLS){
+    if(v2.blocked[col])continue;
+    const cur=new Map();(S[col]||[]).forEach(r=>{if(!r.id)r.id=col.slice(0,3).toUpperCase()+uid();cur.set(r.id,r)});
+    const prev=v2.hashes[col]||(v2.hashes[col]={}),u={};
+    cur.forEach((r,id)=>{const h=recHash(r);if(prev[id]!==h)u[id]=h});
+    const del=Object.keys(prev).filter(id=>!cur.has(id));
+    if(Object.keys(u).length||del.length)out[col]={u,del};
+  }
+  return out;
+}
+function v2Schedule(){if(!v2.on)return;clearTimeout(v2.timer);v2.timer=setTimeout(v2Push,800)}
+async function withTimeout(p,ms){let t;return Promise.race([p,new Promise((_,rej)=>{t=setTimeout(()=>rej(new Error('timeout')),ms)})]).finally(()=>clearTimeout(t))}
+async function v2Push(){
+  if(!v2.on||v2.pushing)return;v2.pushing=true;let again=false;
+  try{
+    scanArrKeys();
+    const diff=v2Diff();
+    for(const col of Object.keys(diff)){
+      const {u,del}=diff[col],ids=Object.keys(u),now=Date.now();
+      for(let i=0;i<ids.length||(i===0&&!ids.length);i+=100){
+        const chunk=ids.slice(i,i+100),ups={};
+        chunk.forEach(id=>{const r=(S[col]||[]).find(x=>x.id===id);if(r){const c=cleanRec(r);c._u=now;ups[id]=c}});
+        if(i===0)del.forEach(id=>ups[id]=null);
+        if(!Object.keys(ups).length)break;
+        try{await withTimeout(dbRef(v2Base()+'/'+col).update(ups),15000);
+          chunk.forEach(id=>v2.hashes[col][id]=u[id]);if(i===0)del.forEach(id=>delete v2.hashes[col][id]);}
+        catch(e){
+          if(v2Msg(e)==='PERMISSION_DENIED'){v2.blocked[col]=true;v2Denied('ghi "'+col+'"')}
+          else{again=true;v2Set('⚠️ Lỗi đồng bộ: '+v2Msg(e)+' — sẽ thử lại')}
+          break;
+        }
+        if(!ids.length)break;
+      }
+    }
+    if(window.ptRole==='owner'){
+      const sh=h53(JSON.stringify(rtNorm(syncedSettings())||{}));
+      if(sh!==v2.setH){try{await withTimeout(dbRef(v2Base()+'/settings').set({...cleanRec(syncedSettings()),_u:Date.now()}),15000);v2.setH=sh}catch(e){if(v2Msg(e)==='PERMISSION_DENIED')v2Denied('ghi cài đặt');else again=true}}
+    }
+    persistHashes();v2Set('🟢 Đồng bộ theo bản ghi · '+new Date().toLocaleTimeString('vi-VN'));
+  }catch(e){again=true;v2Set('⚠️ '+v2Msg(e))}
+  finally{v2.pushing=false}
+  if(again)v2.timer=setTimeout(v2Push,10000);
+  else if(Object.keys(v2Diff()).length)v2Schedule();
+  try{portalSchedule()}catch(e){}
+}
+
+/* ── Đồng bộ: nhận về ── */
+function v2Render(){clearTimeout(v2.renderT);v2.renderT=setTimeout(()=>{window.v2Applying=true;try{save();renderAll()}finally{window.v2Applying=false}},200)}
+function v2Apply(col,id,val){
+  if(!v2.on&&!v2.starting)return;
+  if(!val||typeof val!=='object')return;
+  const hs=v2.hashes[col]||(v2.hashes[col]={}),arr=S[col]||(S[col]=[]);
+  const rec=cleanRec(val);delete rec._u;rec.id=id;
+  const rh=recHash(rec),idx=arr.findIndex(x=>x.id===id),local=idx>=0?arr[idx]:null,lh=local?recHash(local):null;
+  if(lh===rh){hs[id]=rh;persistHashes();return}
+  if(local&&lh!==hs[id])return;                     // máy này đang có thay đổi chưa gửi: ưu tiên bản local
+  fillDefaults(col,rec);
+  if(idx>=0)arr[idx]=rec;else arr.push(rec);
+  hs[id]=rh;persistHashes();v2Render();
+}
+function v2Remove(col,id){
+  const arr=S[col]||[],idx=arr.findIndex(x=>x.id===id),hs=v2.hashes[col]||(v2.hashes[col]={});
+  if(idx<0){delete hs[id];return}
+  if(hs[id]!==undefined&&recHash(arr[idx])!==hs[id])return;   // local đang sửa → giữ lại, sẽ đẩy lại
+  arr.splice(idx,1);delete hs[id];persistHashes();v2Render();
+}
+function v2ApplySettings(val){
+  if(!val)return;const rem=cleanRec(val);delete rem._u;
+  const mine=h53(JSON.stringify(rtNorm(syncedSettings())||{})),rh=h53(JSON.stringify(rtNorm(rem)||{}));
+  if(mine===rh){v2.setH=rh;return}
+  if(window.ptRole==='owner'&&v2.setH&&mine!==v2.setH)return;   // owner đang sửa dở
+  S.settings={...S.settings,...rem};v2.setH=rh;persistHashes();v2Render();
+}
+function v2Listen(){
+  v2Unlisten();
+  V2_COLS.forEach(col=>{
+    const r=dbRef(v2Base()+'/'+col);
+    const add=s=>v2Apply(col,s.key,s.val()),rem=s=>v2Remove(col,s.key),err=e=>{if(v2Msg(e)==='PERMISSION_DENIED'){v2.blocked[col]=true}};
+    r.on('child_added',add,err);r.on('child_changed',add,err);r.on('child_removed',rem,err);
+    v2.refs.push([r,'child_added',add],[r,'child_changed',add],[r,'child_removed',rem]);
+  });
+  const sr=dbRef(v2Base()+'/settings'),sf=s=>v2ApplySettings(s.val());
+  sr.on('value',sf,()=>{});v2.refs.push([sr,'value',sf]);
+}
+function v2Unlisten(){v2.refs.forEach(([r,ev,cb])=>{try{r.off(ev,cb)}catch(e){}});v2.refs=[]}
+
+/* ── Khởi động / dừng ── */
+async function v2FullUpload(){
+  for(const col of V2_COLS){
+    const o={},now=Date.now();(S[col]||[]).forEach(r=>{if(!r.id)r.id=col.slice(0,3).toUpperCase()+uid();const c=cleanRec(r);c._u=now;o[r.id]=c});
+    await dbRef(v2Base()+'/'+col).set(Object.keys(o).length?o:null);
+    v2.hashes[col]={};(S[col]||[]).forEach(r=>v2.hashes[col][r.id]=recHash(r));
+  }
+  if(window.ptRole==='owner'){await dbRef(v2Base()+'/settings').set({...cleanRec(syncedSettings()),_u:Date.now()});v2.setH=h53(JSON.stringify(rtNorm(syncedSettings())||{}))}
+  await dbRef(v2Base()+'/meta').set({initializedAt:Date.now(),by:(fbApp.auth().currentUser||{}).uid||''});
+}
+async function v2Pull(){
+  for(const col of V2_COLS){
+    try{
+      const snap=await dbRef(v2Base()+'/'+col).once('value'),val=snap.val()||{},arr=[];
+      v2.hashes[col]={};
+      Object.keys(val).forEach(id=>{const rec=cleanRec(val[id]);delete rec._u;rec.id=id;arr.push(rec);v2.hashes[col][id]=recHash(rec)});
+      if(arr.length){const keys=v2.arrKeys[col]||(v2.arrKeys[col]=new Set());arr.forEach(r=>Object.keys(r).forEach(k=>{if(Array.isArray(r[k]))keys.add(k)}))}
+      S[col]=arr.map(r=>fillDefaults(col,r));
+    }catch(e){if(v2Msg(e)==='PERMISSION_DENIED')v2.blocked[col]=true;else throw e}
+  }
+  try{const ss=await dbRef(v2Base()+'/settings').once('value');if(ss.exists()){const rem=cleanRec(ss.val());delete rem._u;S.settings={...S.settings,...rem};v2.setH=h53(JSON.stringify(rtNorm(rem)||{}))}}catch(e){}
+}
+function v2Choose(canPush){
+  return new Promise(res=>{
+    mkModal('mV2Choose','Chọn nguồn dữ liệu',`<div style="font-size:13px;line-height:1.6">Firebase đã có dữ liệu cho nhà trọ này và máy bạn cũng có dữ liệu riêng.<br>Hãy chọn bên nào là bản đúng — bên còn lại sẽ bị <b>thay thế</b>.</div>`,
+      `<button class="btn btn-secondary" id="v2ChCancel" type="button">Hủy</button>${canPush?'<button class="btn btn-danger" id="v2ChPush" type="button">Dữ liệu máy này đúng</button>':''}<button class="btn btn-primary" id="v2ChPull" type="button">Dữ liệu Firebase đúng</button>`);
+    openM('mV2Choose');
+    const done=v=>{closeM('mV2Choose');res(v)};
+    document.getElementById('v2ChPull').onclick=()=>done('pull');
+    document.getElementById('v2ChCancel').onclick=()=>done(null);
+    const p=document.getElementById('v2ChPush');if(p)p.onclick=()=>done('push');
+  });
+}
+async function v2ResolveRole(user){
+  const owner=await dbRef('meta/ownerUid').once('value'),mRef=dbRef('members/'+user.uid),snap=await mRef.once('value');
+  if(snap.exists()&&snap.val().role)return snap.val().role;
+  if(!owner.exists()){
+    if(confirm('Dự án Firebase này chưa có Chủ trọ.\nBạn muốn đặt tài khoản '+(user.email||'')+' làm Chủ trọ (toàn quyền)?')){
+      await dbRef('').update({'meta/ownerUid':user.uid,['members/'+user.uid]:{email:user.email||'',role:'owner',at:Date.now()}});return 'owner';
+    }
+    return 'pending';
+  }
+  await mRef.set({email:user.email||'',role:'pending',at:Date.now()});return 'pending';
+}
+function watchRole(user){
+  if(v2.roleRef){try{v2.roleRef[0].off('value',v2.roleRef[1])}catch(e){}}
+  const r=dbRef('members/'+user.uid+'/role'),cb=s=>{
+    const nr=s.val();if(!nr||nr===window.ptRole)return;
+    window.ptRole=nr;applyRoleUI();updateV2Ui();
+    if(nr==='pending'||nr==='disabled'){v2Stop(true);roleOverlay(true,nr==='disabled'?'Tài khoản đã bị khóa':'Tài khoản đang chờ chủ trọ duyệt')}
+    else{roleOverlay(false);if(!v2.on)v2Start(user)}
+  };
+  r.on('value',cb,()=>{});v2.roleRef=[r,cb];
+}
+async function v2Start(user){
+  if(v2.on||v2.starting||!fbDb)return;v2.starting=true;
+  try{
+    v2Set('⏳ Đang kiểm tra quyền...');
+    const role=await v2ResolveRole(user);window.ptRole=role;watchRole(user);applyRoleUI();
+    if(role==='pending'||role==='disabled'){roleOverlay(true,role==='disabled'?'Tài khoản đã bị khóa':'Tài khoản đang chờ chủ trọ duyệt');v2Set('🔒 '+ROLE_NAMES[role]);updateV2Ui();return}
+    roleOverlay(false);
+    const had=loadHashes(),meta=await dbRef(v2Base()+'/meta').once('value'),localHas=(S.rooms.length+S.tenants.length+S.invoices.length)>0;
+    scanArrKeys();
+    if(!meta.exists()){
+      if(role==='staff'){toast('Chưa có dữ liệu trên Firebase — nhờ Chủ trọ bật đồng bộ trước','warning');v2Set('Chưa có dữ liệu');return}
+      if(localHas&&!confirm('Firebase chưa có dữ liệu cho nhà trọ này.\nTải dữ liệu trên máy lên Firebase?')){v2Set('Đã hủy');return}
+      v2.hashes={};await v2FullUpload();
+    }else if(!had){
+      if(localHas){const c=await v2Choose(role==='owner'||role==='manager');if(!c){v2Set('Đã hủy');return}
+        if(c==='push'){if(!confirm('Dữ liệu trên Firebase sẽ bị THAY bằng dữ liệu máy này. Tiếp tục?'))return;v2.hashes={};await v2FullUpload()}
+        else{v2.hashes={};await v2Pull()}}
+      else{v2.hashes={};await v2Pull()}
+    }
+    v2.on=true;v2.blocked={};localStorage.setItem('ptV2_'+PT_CUR(),'1');
+    fbAutoSync=false;try{stopFbListener()}catch(e){}
+    v2Listen();persistHashes();v2Render();v2Schedule();
+    if(role==='owner'||role==='manager')portalListen();
+    v2Set('🟢 Đồng bộ theo bản ghi đã bật');updateV2Ui();
+  }catch(e){v2Set('⚠️ '+v2Msg(e));toast('Không bật được đồng bộ: '+v2Msg(e),'error',{duration:7000})}
+  finally{v2.starting=false}
+}
+function v2Stop(keepRole){
+  v2Unlisten();portalUnlisten();clearTimeout(v2.timer);v2.on=false;
+  if(!keepRole&&v2.roleRef){try{v2.roleRef[0].off('value',v2.roleRef[1])}catch(e){}v2.roleRef=null}
+  if(!keepRole)window.ptRole='owner';
+  applyRoleUI();updateV2Ui();
+}
+function v2OnAuth(u){
+  if(u&&v2Flag())v2Start(u);
+  else if(!u){v2Stop();roleOverlay(false)}
+  updateV2Ui();
+}
+async function v2Recheck(){const u=fbApp&&fbApp.auth().currentUser;if(!u)return;window.ptRole='owner';v2.on=false;await v2Start(u)}
+function v2Enable(){
+  if(!fbApp||!fbConnected){toast('Hãy kết nối Firebase trước','error');return}
+  const u=fbApp.auth&&fbApp.auth().currentUser;
+  if(!u){toast('Hãy đăng nhập Firebase (mục bên trên) trước','warning');return}
+  localStorage.setItem('ptV2_'+PT_CUR(),'1');v2Start(u);
+}
+function v2Disable(){
+  if(!confirm('Tắt đồng bộ theo bản ghi? Dữ liệu trên máy giữ nguyên, nhưng sẽ không còn tự đồng bộ.'))return;
+  localStorage.removeItem('ptV2_'+PT_CUR());v2Stop();v2Set('Đã tắt');
+}
+function updateV2Ui(){
+  const e=document.getElementById('v2Role');
+  if(e)e.textContent=v2.on||v2.starting||window.ptRole!=='owner'?'Vai trò: '+(ROLE_NAMES[window.ptRole]||window.ptRole):'';
+  const m=document.getElementById('v2MembersBtn');if(m)m.style.display=window.ptRole==='owner'&&v2.on?'':'none';
+  const row=document.getElementById('v2SettingRow');if(row)row.textContent=v2.on?'🟢 Đang bật · '+ROLE_NAMES[window.ptRole]:(v2Flag()?'Đang chờ đăng nhập':'Chưa bật');
+}
+
+/* ── Quản lý thành viên (chủ trọ) ── */
+async function openMembers(){
+  if(window.ptRole!=='owner'||!v2.on){toast('Chỉ Chủ trọ mới quản lý được thành viên','warning');return}
+  mkModal('mMembers','Thành viên & phân quyền','<div id="memBody" style="font-size:13px">Đang tải...</div>',
+    '<button class="btn btn-secondary" type="button" onclick="closeM(\'mMembers\')">Đóng</button>');openM('mMembers');await memRender();
+}
+async function memRender(){
+  const el=document.getElementById('memBody');if(!el)return;
+  try{
+    const snap=await dbRef('members').once('value'),m=snap.val()||{},me=fbApp.auth().currentUser.uid;
+    const rows=Object.keys(m).sort((a,b)=>(m[a].at||0)-(m[b].at||0)).map(uid=>{const x=m[uid],isMe=uid===me;
+      return `<div style="padding:10px 0;border-bottom:1px solid var(--border)"><div style="font-weight:700">${esc(x.email||'(không có email)')} ${isMe?'<span style="color:var(--primary)">(bạn)</span>':''}</div>
+        <div style="font-size:11px;color:var(--text3);word-break:break-all">UID: ${esc(uid)}</div>
+        ${isMe?`<div style="font-size:12px;margin-top:4px">${esc(ROLE_NAMES[x.role]||x.role)}</div>`:`<div style="display:flex;gap:6px;margin-top:6px"><select class="fc" style="flex:1" onchange="memSetRole('${esc(uid)}',this.value)">${['pending','staff','manager','disabled'].map(r=>`<option value="${r}" ${x.role===r?'selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select><button class="btn btn-danger btn-sm" type="button" onclick="memRemove('${esc(uid)}')">Xóa</button></div>`}</div>`}).join('');
+    el.innerHTML=(rows||'Chưa có thành viên nào.')+`<div style="font-size:11px;color:var(--text3);margin-top:10px">Người mới tự tạo tài khoản trong app (Cài đặt → Firebase → Tạo tài khoản), họ sẽ xuất hiện ở đây với trạng thái "Chờ duyệt". Chọn vai trò để cấp quyền.<br><b>Quản lý</b>: sửa phòng, khách, hợp đồng, chi phí, hóa đơn. <b>Nhân viên thu tiền</b>: tạo hóa đơn, thu tiền, ghi sự cố.</div>`;
+  }catch(e){el.textContent='Không tải được: '+v2Msg(e)}
+}
+async function memSetRole(uid,role){try{await dbRef('members/'+uid+'/role').set(role);toast('✅ Đã cập nhật vai trò','success')}catch(e){toast('Lỗi: '+v2Msg(e),'error')}memRender()}
+async function memRemove(uid){if(!confirm('Xóa thành viên này? Họ sẽ mất quyền truy cập.'))return;try{await dbRef('members/'+uid).remove();toast('Đã xóa','info')}catch(e){toast('Lỗi: '+v2Msg(e),'error')}memRender()}
+
+/* ── Cổng khách thuê ── */
+const portalSeen=new Set(),portalHash={};let portalT=null,portalRef=null;
+function newPortalCode(){const a=new Uint8Array(24);(window.crypto||{getRandomValues:x=>x.forEach((_,i)=>x[i]=Math.floor(Math.random()*256))}).getRandomValues(a);const al='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';return Array.from(a,b=>al[b%al.length]).join('')}
+function portalSnap(t){
+  const room=S.rooms.find(r=>r.id===t.roomId),b=getBank();
+  const keys=['id','month','total','paid','debt','status','roomFee','elecFee','waterFee','elecOld','elecNew','waterOld','waterNew','internet','serviceFee','garbage','parking','extra','discount','lateFee','createdAt'];
+  const invoices=S.invoices.filter(i=>i.tenantId===t.id).sort((x,y)=>String(y.month).localeCompare(String(x.month))).slice(0,12).map(i=>{const o={};keys.forEach(k=>{if(i[k]!==undefined&&i[k]!==null)o[k]=i[k]});return o});
+  return cleanRec({v:1,hotel:S.settings.hotelName||'',phone:S.settings.phone||'',tenant:t.name||'',room:room?room.name:'',bank:bankReady()?{bin:b.bin,acc:b.acc,name:b.name||'',bankName:bankName(b)}:null,invoices,at:Date.now()});
+}
+const portalCanPublish=()=>!!(v2.on&&fbDb&&fbConnected&&(window.ptRole==='owner'||window.ptRole==='manager'));
+function portalSchedule(){if(!portalCanPublish())return;if(!S.tenants.some(t=>t.portalCode)&&!(S.archived||[]).some(a=>a.portalCode))return;clearTimeout(portalT);portalT=setTimeout(()=>portalPublish(false),2000)}
+async function portalPublish(force){
+  if(!portalCanPublish())return 0;let n=0;
+  for(const t of S.tenants){
+    if(!t.portalCode)continue;const snap=portalSnap(t),h=h53(JSON.stringify({...snap,at:0}));
+    if(!force&&portalHash[t.portalCode]===h)continue;
+    try{await dbRef('portal/'+t.portalCode).set(snap);portalHash[t.portalCode]=h;n++}catch(e){if(v2Msg(e)==='PERMISSION_DENIED')v2Denied('ghi cổng khách');break}
+  }
+  let dirty=false;
+  for(const a of (S.archived||[])){if(!a.portalCode)continue;try{await dbRef('portal/'+a.portalCode).remove();delete portalHash[a.portalCode];delete a.portalCode;dirty=true}catch(e){}}
+  if(dirty)save();
+  return n;
+}
+function portalListen(){
+  portalUnlisten();if(!fbDb)return;
+  const r=dbRef('portal_in'),cb=s=>portalHandle(s.key,s.val());
+  r.on('child_added',cb,()=>{});r.on('child_changed',cb,()=>{});portalRef=[r,cb];
+}
+function portalUnlisten(){if(portalRef){try{portalRef[0].off('child_added',portalRef[1]);portalRef[0].off('child_changed',portalRef[1])}catch(e){}portalRef=null}}
+const clip=(v,n)=>String(v==null?'':v).replace(/[\u0000-\u001f\u007f]+/g,' ').trim().slice(0,n);
+function portalHandle(code,items){
+  if(!items||typeof items!=='object')return;
+  const t=S.tenants.find(x=>x.portalCode===code);let changed=0;
+  for(const id of Object.keys(items)){
+    if(portalSeen.has(id))continue;portalSeen.add(id);
+    const it=items[id]||{},del=()=>{try{dbRef('portal_in/'+code+'/'+id).remove()}catch(e){}};
+    if(!t){del();continue}
+    if(it.type==='incident'&&clip(it.title,100)){
+      if(!incs().some(i=>i.srcId===id)){incs().push({id:'INC'+uid(),srcId:id,roomId:t.roomId,title:clip(it.title,100),desc:clip(it.desc,500),priority:'normal',status:'open',cost:0,paidBy:'owner',date:today(),createdAt:new Date().toISOString(),fromPortal:true,tenantName:t.name});changed++}
+      del();
+    }else if(it.type==='meter'){
+      const e=+it.elec,w=+it.water;
+      if(isFinite(e)&&isFinite(w)&&e>=0&&w>=0&&!(S.meterSubs||[]).some(m=>m.srcId===id)){(S.meterSubs||(S.meterSubs=[])).push({id:'MS'+uid(),srcId:id,roomId:t.roomId,tenantId:t.id,tenantName:t.name,month:clip(it.month,7),elec:e,water:w,at:new Date().toISOString(),used:false});changed++}
+      del();
+    }else del();
+  }
+  if(changed){save();renderAll();toast('📲 Khách thuê vừa gửi '+changed+' yêu cầu / chỉ số','info',{duration:6000})}
+}
+const _fillInvRoom=window.fillInvRoom;
+window.fillInvRoom=function(...a){
+  const r=_fillInvRoom.apply(this,a);
+  try{
+    const rid=document.getElementById('invRoom').value,sub=(S.meterSubs||[]).filter(m=>m.roomId===rid&&!m.used).sort((x,y)=>String(y.at).localeCompare(String(x.at)))[0];
+    if(sub)toast(`📲 Khách đã gửi chỉ số: điện ${sub.elec}, nước ${sub.water}`,'info',{duration:9000,action:{label:'Dùng',fn:()=>{document.getElementById('invEN').value=sub.elec;document.getElementById('invWN').value=sub.water;sub.used=true;save();calcInv()}}});
+  }catch(e){}
+  return r;
+};
+function portalLink(code){
+  const c=getFbCfg(),k=btoa(unescape(encodeURIComponent(JSON.stringify({a:c.apiKey,d:c.databaseURL,p:c.projectId,i:c.appId,b:fbPath()})))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  return new URL('portal.html',location.href).href.split('#')[0].split('?')[0]+'#c='+code+'&k='+k;
+}
+function openPortal(){
+  if(!v2.on){toast('Hãy bật Đồng bộ theo bản ghi (Cài đặt → Firebase) trước','warning',{duration:6000});return}
+  if(!portalCanPublish()){toast('Chỉ Chủ trọ/Quản lý mới quản lý được cổng khách','warning');return}
+  const pend=(S.meterSubs||[]).filter(m=>!m.used).length;
+  const rows=S.tenants.map(t=>{const room=S.rooms.find(r=>r.id===t.roomId);
+    return `<div style="padding:10px 0;border-bottom:1px solid var(--border)"><div style="font-weight:700">${esc(t.name)} <span style="font-weight:400;color:var(--text3)">· ${room?'Phòng '+esc(room.name):'chưa có phòng'}</span></div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">${t.portalCode
+        ?`<button class="btn btn-secondary btn-xs" type="button" onclick="portalCopy('${esc(t.id)}')">📋 Chép link</button><button class="btn btn-primary btn-xs" type="button" onclick="portalSend('${esc(t.id)}')">💬 Gửi khách</button><button class="btn btn-secondary btn-xs" type="button" onclick="portalQR('${esc(t.id)}')">QR</button><button class="btn btn-secondary btn-xs" type="button" onclick="portalIssue('${esc(t.id)}',true)">↺ Đổi mã</button><button class="btn btn-danger btn-xs" type="button" onclick="portalRevoke('${esc(t.id)}')">Thu hồi</button>`
+        :`<button class="btn btn-primary btn-xs" type="button" onclick="portalIssue('${esc(t.id)}')">+ Tạo link</button>`}</div></div>`}).join('');
+  mkModal('mPortal','Cổng khách thuê',`
+    <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Mỗi khách có một link riêng để xem hóa đơn, quét QR thanh toán, báo sự cố và gửi chỉ số điện nước. <b>Ai có link đều xem được hóa đơn của phòng đó</b>, hãy chỉ gửi cho đúng người. Dữ liệu cổng được cập nhật khi app của bạn đang mở và có mạng.</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><button class="btn btn-secondary btn-sm" type="button" onclick="portalRefreshAll()">🔄 Cập nhật tất cả</button>${pend?`<button class="btn btn-primary btn-sm" type="button" onclick="portalShowMeters()">📲 Chỉ số khách gửi (${pend})</button>`:''}</div>
+    <div id="portalQrBox" style="text-align:center"></div>${rows||'<div>Chưa có người thuê nào.</div>'}`,
+    '<button class="btn btn-secondary" type="button" onclick="closeM(\'mPortal\')">Đóng</button>');
+  openM('mPortal');
+}
+async function portalIssue(tid,reset){
+  const t=S.tenants.find(x=>x.id===tid);if(!t)return;
+  if(reset&&!confirm('Đổi mã sẽ làm link cũ của khách này hết hiệu lực. Tiếp tục?'))return;
+  if(reset&&t.portalCode){try{await dbRef('portal/'+t.portalCode).remove()}catch(e){}delete portalHash[t.portalCode]}
+  t.portalCode=newPortalCode();save();
+  const n=await portalPublish(true);toast(n?'✅ Đã tạo link cho '+t.name:'Đã tạo mã, đang chờ đồng bộ','success');openPortal();
+}
+async function portalRevoke(tid){
+  const t=S.tenants.find(x=>x.id===tid);if(!t||!t.portalCode||!confirm('Thu hồi link của '+t.name+'? Khách sẽ không xem được nữa.'))return;
+  try{await dbRef('portal/'+t.portalCode).remove()}catch(e){toast('Lỗi: '+v2Msg(e),'error');return}
+  delete portalHash[t.portalCode];delete t.portalCode;save();toast('Đã thu hồi link','info');openPortal();
+}
+async function portalRefreshAll(){const n=await portalPublish(true);toast('🔄 Đã cập nhật '+n+' cổng khách','success')}
+async function portalCopy(tid){const t=S.tenants.find(x=>x.id===tid);if(t&&t.portalCode)copyAny(portalLink(t.portalCode),'Đã sao chép link cổng khách')}
+function portalSend(tid){
+  const t=S.tenants.find(x=>x.id===tid);if(!t||!t.portalCode)return;
+  const room=S.rooms.find(r=>r.id===t.roomId),phone=normPhone(t.phone);
+  const txt=`Chào ${t.name||'anh/chị'},\n${S.settings.hotelName||'Nhà trọ'} gửi anh/chị link riêng để xem hóa đơn phòng ${room?room.name:''}, thanh toán qua QR, báo sự cố và gửi chỉ số điện nước:\n${portalLink(t.portalCode)}\n\n(Link dành riêng cho phòng của anh/chị, vui lòng không chia sẻ cho người khác.)`;
+  mkModal('mSend','💬 Gửi link cổng khách',`<textarea class="fc" id="sendTxt" rows="9" style="font-size:13px">${esc(txt)}</textarea>`,
+    `<button class="btn btn-secondary" type="button" onclick="sendAct('copy','${phone}')">📋 Chép</button><button class="btn btn-primary" type="button" ${phone?'':'disabled'} onclick="sendAct('zalo','${phone}')">💬 Zalo</button><button class="btn btn-secondary" type="button" ${phone?'':'disabled'} onclick="sendAct('sms','${phone}')">✉️ SMS</button>`);
+  openM('mSend');
+}
+let qrLoading=null;
+function loadQRLib(){
+  if(window.QRCode)return Promise.resolve();
+  return qrLoading||(qrLoading=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';s.onload=res;s.onerror=()=>{qrLoading=null;rej(new Error('offline'))};document.head.appendChild(s)}));
+}
+async function portalQR(tid){
+  const t=S.tenants.find(x=>x.id===tid),box=document.getElementById('portalQrBox');if(!t||!t.portalCode||!box)return;
+  try{await loadQRLib();box.innerHTML='<div id="portalQrCanvas" style="display:inline-block;padding:10px;background:#fff;border-radius:10px"></div><div style="font-size:12px;margin:6px 0">'+esc(t.name)+'</div>';new QRCode(document.getElementById('portalQrCanvas'),{text:portalLink(t.portalCode),width:200,height:200,correctLevel:QRCode.CorrectLevel.M})}
+  catch(e){toast('Cần Internet để tạo mã QR — hãy dùng nút Chép link','warning')}
+}
+function portalShowMeters(){
+  const list=(S.meterSubs||[]).filter(m=>!m.used).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+  const room=id=>{const r=S.rooms.find(x=>x.id===id);return r?r.name:'?'};
+  mkModal('mMeters','Chỉ số khách gửi',list.map(m=>`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><b>Phòng ${esc(room(m.roomId))}</b> · ${esc(m.tenantName||'')} · tháng ${esc(m.month||'?')}<br>Điện: <b>${m.elec}</b> · Nước: <b>${m.water}</b> <button class="btn btn-secondary btn-xs" type="button" onclick="meterDismiss('${esc(m.id)}')">Bỏ qua</button></div>`).join('')||'Không có chỉ số nào chưa dùng.',
+    '<button class="btn btn-secondary" type="button" onclick="closeM(\'mMeters\')">Đóng</button>');openM('mMeters');
+}
+function meterDismiss(id){const m=(S.meterSubs||[]).find(x=>x.id===id);if(m){m.used=true;save()}portalShowMeters()}
+
+/* ── dòng trạng thái trong Cài đặt ── */
+const _updateP3Rows=window.updateP3Rows;
+window.updateP3Rows=function(){_updateP3Rows();const e=document.getElementById('portalSettingRow');if(e)e.textContent=S.tenants.some(t=>t.portalCode)?S.tenants.filter(t=>t.portalCode).length+' khách đang có link':'Khách xem hóa đơn, báo sự cố, gửi chỉ số';updateV2Ui()};
+window.addEventListener('online',()=>{try{v2Schedule()}catch(e){}});
 /* ══ CẬP NHẬT & SẮP XẾP LẠI ══ */
 function _natCmp(a,b){return String(a??'').localeCompare(String(b??''),'vi',{numeric:true,sensitivity:'base'});}
 function refreshAndSort(silent){
@@ -6045,6 +6459,7 @@ function loadFbConfig(){
 }
 
 function toggleFbAuto(){
+  if(typeof v2!=='undefined'&&v2.on){toast('Đang dùng Đồng bộ theo bản ghi — không cần bật chế độ cũ','info');return}
   fbAutoSync=!fbAutoSync;
   document.getElementById('fbAutoToggle')?.classList.toggle('on',fbAutoSync);
   const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
@@ -6093,6 +6508,7 @@ function addFbActiveDot(){
 }
 
 function disconnectFirebase(){
+  try{v2Stop()}catch(e){}
   stopFbListener();
   if(fbSaveTimer){clearTimeout(fbSaveTimer);fbSaveTimer=null;}
   if(fbApp){try{fbApp.delete();}catch(e){}}

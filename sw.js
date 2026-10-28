@@ -1,5 +1,5 @@
 /* Service Worker — PhòngTrọ Pro. Đổi VERSION mỗi khi cập nhật index.html để máy khách tải bản mới. */
-const VERSION='pt-v3-1';
+const VERSION='pt-v4-1';
 const CORE=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png'];
 const CDN=['cdn.jsdelivr.net','cdnjs.cloudflare.com','unpkg.com','www.gstatic.com','fonts.googleapis.com','fonts.gstatic.com'];
 
@@ -13,6 +13,8 @@ self.addEventListener('fetch',e=>{
   const req=e.request;
   if(req.method!=='GET')return;
   const url=new URL(req.url);
+  // Trang cổng khách (portal.html) luôn đi thẳng ra mạng, không lưu cache
+  if(url.origin===location.origin&&/portal\.html$/.test(url.pathname))return;
   // Trang chính: ưu tiên mạng (có bản mới thì lấy), mất mạng thì dùng bản đã lưu
   if(req.mode==='navigate'){
     e.respondWith(fetch(req).then(r=>{const cp=r.clone();caches.open(VERSION).then(c=>c.put('./index.html',cp));return r})

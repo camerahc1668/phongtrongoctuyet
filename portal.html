@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#16a34a">
+<title>Cổng khách thuê</title>
+<style>
+:root{--bg:#f1f5f9;--card:#fff;--text:#0f172a;--text3:#64748b;--border:#e2e8f0;--pri:#16a34a;--danger:#ef4444;--warn:#f59e0b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#162033;--text:#e5edf9;--text3:#94a3b8;--border:#26344d}}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:15px;line-height:1.45;min-height:100vh}
+.wrap{max-width:520px;margin:0 auto;padding:14px}
+.hdr{background:var(--pri);color:#fff;border-radius:18px;padding:16px;margin-bottom:12px}
+.hdr h1{margin:0;font-size:19px}.hdr p{margin:4px 0 0;font-size:13px;opacity:.92}
+.hdr a{color:#fff}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tab{flex:1;padding:10px 6px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.tab.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.row{display:flex;justify-content:space-between;gap:8px;font-size:14px;padding:3px 0}
+.muted{color:var(--text3);font-size:12px}
+.badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:700}
+.b-paid{background:#16a34a22;color:#16a34a}.b-debt{background:#ef444422;color:#ef4444}.b-part{background:#f59e0b22;color:#d97706}
+button.pri{background:var(--pri);color:#fff;border:0;border-radius:12px;padding:11px 14px;font:inherit;font-weight:700;cursor:pointer;width:100%}
+button.sec{background:transparent;color:var(--pri);border:1.5px solid var(--pri);border-radius:12px;padding:9px 12px;font:inherit;font-weight:700;cursor:pointer}
+button:disabled{opacity:.55;cursor:default}
+label{display:block;font-size:12px;font-weight:700;margin:10px 0 4px}
+input,textarea,select{width:100%;padding:11px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font:inherit}
+.qr{text-align:center;margin-top:10px}.qr img{width:100%;max-width:280px;border-radius:12px;background:#fff}
+.ok{background:#16a34a22;color:#16a34a;padding:10px;border-radius:12px;font-weight:700;margin-top:10px}
+.err{background:#ef444422;color:#ef4444;padding:10px;border-radius:12px;font-weight:700;margin-top:10px}
+.center{text-align:center;padding:40px 10px;color:var(--text3)}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="center">Đang tải...</div></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+(function(){
+  const $app=document.getElementById('app');
+  const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmt=n=>new Intl.NumberFormat('vi-VN').format(Math.round(+n||0))+'đ';
+  const strip=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D');
+  const monthName=m=>{const [y,mm]=String(m||'').split('-');return mm?'Tháng '+mm+'/'+y:'—'};
+  const use=(i,k)=>{const o=+i[k+'Old']||0,n=+i[k+'New']||0;return n<o?n:n-o};
+  let data=null,tab='inv',openId=null,qrId=null,db=null,code='',sent={};
+
+  function fail(msg){$app.innerHTML='<div class="center"><div style="font-size:42px">🔒</div><div style="font-weight:800;margin:8px 0;color:var(--text)">'+esc(msg)+'</div><div>Hãy liên hệ chủ trọ để nhận link mới.</div></div>'}
+  function parse(){
+    const h=new URLSearchParams(location.hash.replace(/^#/,''));
+    code=h.get('c')||'';const k=h.get('k')||'';
+    if(!/^[A-Za-z0-9]{24}$/.test(code)||!k)return null;
+    try{const j=JSON.parse(decodeURIComponent(escape(atob(k.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((k.length+3)%4)))));
+      if(!j.d||!j.a)return null;return {apiKey:j.a,databaseURL:j.d,projectId:j.p,appId:j.i}}catch(e){return null}
+  }
+  const cfg=parse();
+  if(!cfg){fail('Link không hợp lệ');return}
+  try{firebase.initializeApp(cfg);db=firebase.database()}catch(e){fail('Không kết nối được máy chủ');return}
+  db.ref('portal/'+code).on('value',s=>{data=s.val();if(!data){fail('Link đã hết hiệu lực hoặc chưa được kích hoạt');return}render()},()=>fail('Không đọc được dữ liệu'));
+
+  function note(inv){const rn=strip(data.room||'').trim(),lbl=/^p/i.test(rn)?rn:'P'+rn,[y,m]=String(inv.month||'').split('-');return (lbl+' T'+(m||'')+(y||'').slice(2)).replace(/[^A-Za-z0-9 ]/g,'').slice(0,25)}
+  function qrUrl(inv){const b=data.bank;if(!b||!(inv.debt>0))return '';return 'https://img.vietqr.io/image/'+encodeURIComponent(b.bin)+'-'+encodeURIComponent(b.acc)+'-compact2.png?amount='+Math.round(inv.debt)+'&addInfo='+encodeURIComponent(note(inv))+'&accountName='+encodeURIComponent(strip(b.name||'').toUpperCase())}
+  function invHtml(i){
+    const st=i.debt<=0?['b-paid','Đã thanh toán']:(i.paid>0?['b-part','Thanh toán một phần']:['b-debt','Chưa thanh toán']);
+    const open=openId===i.id,rows=[['Tiền phòng',i.roomFee],['Điện ('+use(i,'elec')+' kWh)',i.elecFee],['Nước ('+use(i,'water')+' m³)',i.waterFee],['Internet',i.internet],['Dịch vụ',i.serviceFee],['Rác',i.garbage],['Giữ xe',i.parking],['Phụ thu',i.extra],['Phí trễ hạn',i.lateFee]].filter(r=>+r[1]>0);
+    return '<div class="card"><div class="row" style="align-items:center"><b>'+esc(monthName(i.month))+'</b><span class="badge '+st[0]+'">'+st[1]+'</span></div>'
+      +'<div class="row"><span class="muted">Tổng cộng</span><b>'+fmt(i.total)+'</b></div>'
+      +(i.debt>0?'<div class="row"><span class="muted">Còn phải trả</span><b style="color:var(--danger)">'+fmt(i.debt)+'</b></div>':'')
+      +'<div style="display:flex;gap:8px;margin-top:8px"><button class="sec" data-a="det" data-id="'+esc(i.id)+'">'+(open?'Ẩn chi tiết':'Chi tiết')+'</button>'+(i.debt>0&&data.bank?'<button class="pri" style="flex:1" data-a="pay" data-id="'+esc(i.id)+'">Thanh toán QR</button>':'')+'</div>'
+      +(open?'<div style="margin-top:10px;border-top:1px solid var(--border);padding-top:8px">'+rows.map(r=>'<div class="row"><span>'+esc(r[0])+'</span><span>'+fmt(r[1])+'</span></div>').join('')+(+i.discount>0?'<div class="row"><span>Giảm giá</span><span>-'+fmt(i.discount)+'</span></div>':'')+(i.paid>0?'<div class="row"><span>Đã thanh toán</span><span>'+fmt(i.paid)+'</span></div>':'')+'</div>':'')
+      +(qrId===i.id&&qrUrl(i)?'<div class="qr"><img src="'+esc(qrUrl(i))+'" alt="QR chuyển khoản"><div style="font-size:13px;margin-top:6px"><b>'+esc(data.bank.bankName||'')+'</b> · '+esc(data.bank.acc)+'<br>'+esc(data.bank.name||'')+'<br>Nội dung: <b>'+esc(note(i))+'</b></div><button class="sec" style="margin-top:8px" data-a="copy" data-v="'+esc(data.bank.acc)+'">Chép số tài khoản</button></div>':'')
+      +'</div>';
+  }
+  function render(){
+    const invs=(data.invoices||[]).slice().sort((a,b)=>String(b.month).localeCompare(String(a.month)));
+    const totalDebt=invs.reduce((n,i)=>n+(+i.debt||0),0);
+    let h='<div class="hdr"><h1>'+esc(data.hotel||'Nhà trọ')+'</h1><p>'+esc(data.tenant||'')+(data.room?' · Phòng '+esc(data.room):'')+'</p>'+(data.phone?'<p>Liên hệ: <a href="tel:'+esc(String(data.phone).replace(/\s/g,''))+'">'+esc(data.phone)+'</a></p>':'')+'</div>'
+      +'<div class="tabs"><button class="tab '+(tab==='inv'?'on':'')+'" data-t="inv">Hóa đơn</button><button class="tab '+(tab==='meter'?'on':'')+'" data-t="meter">Gửi chỉ số</button><button class="tab '+(tab==='issue'?'on':'')+'" data-t="issue">Báo sự cố</button></div>';
+    if(tab==='inv'){
+      h+='<div class="card" style="text-align:center"><div class="muted">Tổng số tiền còn phải trả</div><div style="font-size:26px;font-weight:800;color:'+(totalDebt>0?'var(--danger)':'var(--pri)')+'">'+fmt(totalDebt)+'</div></div>'
+        +(invs.length?invs.map(invHtml).join(''):'<div class="center">Chưa có hóa đơn nào</div>')
+        +'<div class="muted" style="text-align:center;margin-top:6px">Cập nhật lúc '+esc(new Date(data.at||Date.now()).toLocaleString('vi-VN'))+'</div>';
+    }else if(tab==='meter'){
+      const d=new Date(),m=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+      h+='<div class="card"><b>Gửi chỉ số điện nước</b><div class="muted">Chủ trọ sẽ kiểm tra lại trước khi lập hóa đơn.</div><label>Tháng</label><input type="month" id="fM" value="'+m+'"><label>Chỉ số điện hiện tại (kWh)</label><input type="number" id="fE" min="0" inputmode="decimal"><label>Chỉ số nước hiện tại (m³)</label><input type="number" id="fW" min="0" inputmode="decimal"><div style="margin-top:12px"><button class="pri" data-a="meter" '+(sent.meter?'disabled':'')+'>Gửi chỉ số</button></div><div id="fMsg"></div></div>';
+    }else{
+      h+='<div class="card"><b>Báo sự cố / yêu cầu sửa chữa</b><label>Vấn đề <span style="color:var(--danger)">*</span></label><input id="fT" maxlength="100" placeholder="VD: Hỏng vòi nước, mất điện..."><label>Mô tả</label><textarea id="fD" rows="4" maxlength="500"></textarea><div style="margin-top:12px"><button class="pri" data-a="issue" '+(sent.issue?'disabled':'')+'>Gửi cho chủ trọ</button></div><div id="fMsg"></div></div>';
+    }
+    $app.innerHTML=h;
+  }
+  function submit(type,payload,btn){
+    const msg=document.getElementById('fMsg');
+    const ref=db.ref('portal_in/'+code).push();
+    ref.set(Object.assign({type:type,at:Date.now()},payload)).then(()=>{
+      sent[type==='meter'?'meter':'issue']=true;if(btn)btn.disabled=true;
+      msg.innerHTML='<div class="ok">✅ Đã gửi cho chủ trọ. Cảm ơn bạn!</div>';
+      setTimeout(()=>{sent[type==='meter'?'meter':'issue']=false;const b=document.querySelector('[data-a="'+(type==='meter'?'meter':'issue')+'"]');if(b)b.disabled=false},15000);
+    }).catch(()=>{msg.innerHTML='<div class="err">Không gửi được. Vui lòng thử lại sau.</div>'});
+  }
+  $app.addEventListener('click',e=>{
+    const t=e.target.closest('[data-t]');if(t){tab=t.dataset.t;render();return}
+    const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,id=b.dataset.id;
+    if(a==='det'){openId=openId===id?null:id;render()}
+    else if(a==='pay'){qrId=qrId===id?null:id;render()}
+    else if(a==='copy'){(navigator.clipboard?navigator.clipboard.writeText(b.dataset.v):Promise.reject()).then(()=>{b.textContent='Đã chép ✓'}).catch(()=>{b.textContent=b.dataset.v})}
+    else if(a==='meter'){
+      const m=document.getElementById('fM').value,el=document.getElementById('fE').value,wa=document.getElementById('fW').value,msg=document.getElementById('fMsg');
+      if(el===''||wa===''||+el<0||+wa<0){msg.innerHTML='<div class="err">Hãy nhập đủ chỉ số điện và nước.</div>';return}
+      submit('meter',{month:m,elec:+el,water:+wa},b);
+    }else if(a==='issue'){
+      const ti=document.getElementById('fT').value.trim(),msg=document.getElementById('fMsg');
+      if(!ti){msg.innerHTML='<div class="err">Hãy nhập nội dung vấn đề.</div>';return}
+      submit('incident',{title:ti.slice(0,100),desc:document.getElementById('fD').value.trim().slice(0,500)},b);
+    }
+  });
+})();
+</script>
+</body>
+</html>

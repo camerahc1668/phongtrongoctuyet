@@ -6520,6 +6520,17 @@ function disconnectFirebase(){
   toast('Đã ngắt kết nối Firebase','warning');
 }
 
+/* Rules mới (Giai đoạn 4) chặn chế độ đồng bộ cũ: tắt tự động đồng bộ cũ và hướng dẫn dùng đồng bộ theo bản ghi */
+function fbOldDenied(e){
+  if(!/permission_denied/i.test(String(e&&(e.code||e.message))))return false;
+  fbAutoSync=false;try{stopFbListener()}catch(_){}
+  if(fbSaveTimer){clearTimeout(fbSaveTimer);fbSaveTimer=null}
+  try{const c=JSON.parse(localStorage.getItem('fbConfig')||'null');if(c){c.autoSync=false;localStorage.setItem('fbConfig',JSON.stringify(c))}}catch(_){}
+  try{const t=document.getElementById('fbAutoToggle');if(t)t.classList.remove('on')}catch(_){}
+  fbAddLog('🔒 Rules hiện tại chặn chế độ đồng bộ cũ. Hãy đăng nhập rồi bấm "Bật đồng bộ" (đồng bộ theo bản ghi) ở tab Cấu hình.');
+  if(!window.__fbDeniedShown){window.__fbDeniedShown=true;toast('🔒 Firebase Rules mới chỉ cho đồng bộ theo bản ghi. Vào tab Cấu hình → đăng nhập → Bật đồng bộ.','warning',{duration:12000});try{fbTab('config')}catch(_){}}
+  return true;
+}
 function scheduleFirebasePush(){
   if(!fbConnected||!fbDb||!fbAutoSync)return;
   if(fbSaveTimer)clearTimeout(fbSaveTimer);
@@ -6537,7 +6548,7 @@ async function pushFirebaseSilently(){
     updateFbStatus('connected');updateFbSyncStats();
   }catch(e){
     updateFbStatus('error');
-    fbAddLog('❌ Auto sync lỗi: '+e.message);
+    if(!fbOldDenied(e))fbAddLog('❌ Auto sync lỗi: '+e.message);
   }
 }
 
@@ -6552,7 +6563,7 @@ async function syncToFirebase(){
     fbAddLog('⬆️ Đẩy lên thành công lúc '+now);
     updateFbStatus('connected');updateFbSyncStats();
     toast('✅ Đồng bộ lên Firebase thành công!','success');
-  }catch(e){updateFbStatus('error');fbAddLog('❌ Lỗi đẩy dữ liệu: '+e.message);toast('Lỗi: '+e.message,'error');}
+  }catch(e){updateFbStatus('error');if(!fbOldDenied(e)){fbAddLog('❌ Lỗi đẩy dữ liệu: '+e.message);toast('Lỗi: '+e.message,'error');}}
 }
 
 async function syncFromFirebase(){
@@ -6577,7 +6588,7 @@ Nguồn: ${(data.deviceName||'?')} · ${t2}`)){updateFbStatus('connected');retur
     fbAddLog('⬇️ Tải về thành công lúc '+now);
     updateFbStatus('connected');updateFbSyncStats();
     toast('✅ Đã tải dữ liệu từ Firebase!','success');
-  }catch(e){window.fbApplyingRemote=false;updateFbStatus('error');fbAddLog('❌ Lỗi tải: '+e.message);toast('Lỗi: '+e.message,'error');}
+  }catch(e){window.fbApplyingRemote=false;updateFbStatus('error');if(!fbOldDenied(e)){fbAddLog('❌ Lỗi tải: '+e.message);toast('Lỗi: '+e.message,'error');}}
 }
 
 function startFbListener(){
@@ -6610,7 +6621,7 @@ function updateFbStatus(state){
   const sub=document.getElementById('fbStatusSub');
   const footer=document.getElementById('fbFooter');
   if(!dot)return;
-  const M={connected:{d:'connected',t:'🔥 Đã kết nối Firebase',s:'Sẵn sàng đồng bộ dữ liệu'},syncing:{d:'syncing',t:'⏳ Đang đồng bộ...',s:'Vui lòng đợi...'},error:{d:'error',t:'❌ Lỗi kết nối',s:'Kiểm tra lại config Firebase'},disconnected:{d:'',t:'⭕ Chưa kết nối',s:'Nhập Firebase config để bắt đầu'}};
+  const M={connected:{d:'connected',t:'🔥 Đã kết nối Firebase',s:'Sẵn sàng đồng bộ dữ liệu'},syncing:{d:'syncing',t:'⏳ Đang đồng bộ...',s:'Vui lòng đợi...'},error:{d:'error',t:'❌ Lỗi kết nối',s:'Kiểm tra config. Nếu vừa đổi Rules: đăng nhập rồi bấm Bật đồng bộ (tab Cấu hình)'},disconnected:{d:'',t:'⭕ Chưa kết nối',s:'Nhập Firebase config để bắt đầu'}};
   const st=M[state]||M.disconnected;
   dot.className='fb-status-dot'+(st.d?' '+st.d:'');
   if(txt)txt.textContent=st.t;if(sub)sub.textContent=st.s;

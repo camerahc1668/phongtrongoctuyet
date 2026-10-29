@@ -6527,8 +6527,10 @@ function fbOldDenied(e){
   if(fbSaveTimer){clearTimeout(fbSaveTimer);fbSaveTimer=null}
   try{const c=JSON.parse(localStorage.getItem('fbConfig')||'null');if(c){c.autoSync=false;localStorage.setItem('fbConfig',JSON.stringify(c))}}catch(_){}
   try{const t=document.getElementById('fbAutoToggle');if(t)t.classList.remove('on')}catch(_){}
-  fbAddLog('🔒 Rules hiện tại chặn chế độ đồng bộ cũ. Hãy đăng nhập rồi bấm "Bật đồng bộ" (đồng bộ theo bản ghi) ở tab Cấu hình.');
-  if(!window.__fbDeniedShown){window.__fbDeniedShown=true;toast('🔒 Firebase Rules mới chỉ cho đồng bộ theo bản ghi. Vào tab Cấu hình → đăng nhập → Bật đồng bộ.','warning',{duration:12000});try{fbTab('config')}catch(_){}}
+  let who=null;try{who=fbApp&&fbApp.auth&&fbApp.auth().currentUser}catch(_){}
+  const why=who?'Tài khoản đang đăng nhập ('+(who.email||who.uid)+') không có quyền theo Rules hiện tại — kiểm tra UID trong Rules.':'Bạn CHƯA ĐĂNG NHẬP Firebase trên thiết bị/địa chỉ này nên Rules từ chối. Vào tab Cấu hình → mục Tài khoản đăng nhập → Đăng nhập.';
+  fbAddLog('🔒 '+why);
+  if(!window.__fbDeniedShown){window.__fbDeniedShown=true;toast('🔒 '+why,'warning',{duration:12000});setTimeout(()=>{try{fbTab('config');const e=document.getElementById('fbAuthEmail');if(e)e.scrollIntoView({block:'center'})}catch(_){}},700)}
   return true;
 }
 function scheduleFirebasePush(){

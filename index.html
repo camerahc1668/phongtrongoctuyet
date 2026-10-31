@@ -6534,10 +6534,14 @@ async function v2ResolveRole(user){
   if(snap.exists()&&snap.val().role)return snap.val().role;
   if(!owner.exists()){
     if(confirm('Dự án Firebase này chưa có Chủ trọ.\nBạn muốn đặt tài khoản '+(user.email||'')+' làm Chủ trọ (toàn quyền)?')){
-      await dbRef('').update({'meta/ownerUid':user.uid,['members/'+user.uid]:{email:user.email||'',role:'owner',at:Date.now()}});return 'owner';
+      const me={email:user.email||'',role:'owner',at:Date.now()};
+      try{await dbRef('').update({'meta/ownerUid':user.uid,['members/'+user.uid]:me})}
+      catch(e){await dbRef('meta/ownerUid').set(user.uid);await dbRef('members/'+user.uid).set(me)}
+      return 'owner';
     }
     return 'pending';
   }
+  if(owner.val()===user.uid){await mRef.set({email:user.email||'',role:'owner',at:Date.now()});return 'owner'}
   await mRef.set({email:user.email||'',role:'pending',at:Date.now()});return 'pending';
 }
 function watchRole(user){

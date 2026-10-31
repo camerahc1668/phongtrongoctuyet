@@ -236,6 +236,23 @@ input,select,textarea{font-family:inherit}
 .rp-people{display:flex;flex-direction:column;gap:6px;font-size:15px;font-weight:700}
 .rp-p{display:flex;align-items:baseline;gap:8px}.rp-p em{font-style:normal;font-size:12px;font-weight:600;opacity:.85;background:rgba(255,255,255,.18);padding:1px 8px;border-radius:99px;text-shadow:none}
 .rp-more,.rp-empty{font-size:13px;font-weight:600;opacity:.9}
+
+/* Cài đặt gọn: nhóm thu/mở, hàng thấp hơn, giá trị 1 dòng */
+#pg-settings{max-width:720px;margin-left:auto;margin-right:auto}
+#pg-settings .stg-group{margin-bottom:10px;border-radius:16px}
+#pg-settings .stg-group-label{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;padding:12px 14px;font-size:11px;letter-spacing:.7px;border-bottom:1px solid var(--border);transition:background .15s}
+#pg-settings .stg-group-label:hover{background:var(--primary-bg)}
+#pg-settings .stg-group-label .stg-cnt{margin-left:auto;font-size:10px;font-weight:800;background:var(--surface);border:1px solid var(--border);border-radius:99px;padding:1px 8px;color:var(--text3)}
+#pg-settings .stg-group-label::after{content:'';width:8px;height:8px;border-right:2px solid var(--text3);border-bottom:2px solid var(--text3);transform:rotate(45deg);margin:-3px 2px 0 6px;transition:transform .25s var(--ease);flex-shrink:0}
+#pg-settings .stg-group-label .stg-cnt{order:2}#pg-settings .stg-group-label::after{order:3}
+#pg-settings .stg-group.collapsed .stg-group-label{border-bottom-color:transparent}
+#pg-settings .stg-group.collapsed .stg-group-label::after{transform:rotate(-45deg);margin:0 4px 0 6px}
+#pg-settings .stg-group.collapsed>*:not(.stg-group-label){display:none!important}
+#pg-settings .stg-row{padding:10px 14px;gap:11px}
+#pg-settings .stg-row-icon{width:34px;height:34px;border-radius:10px}
+#pg-settings .stg-row-icon svg{width:17px;height:17px}
+#pg-settings .stg-row-lbl{font-size:13.5px}
+#pg-settings .stg-row-val{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Ô phòng nhỏ gọn — sơ đồ */
 .room-cell{
   aspect-ratio:1/1.05;
@@ -1167,6 +1184,36 @@ body[data-tab="settings"] .qa{display:none}
   .menu-card-icon svg *{stroke-dashoffset:0!important}
 }
 @media print{#splash,.qa,.qa-scrim{display:none!important}}
+
+/* ══ Chống tràn màn hình & chuyển trang êm (điện thoại / máy tính bảng / máy tính) ══ */
+html,body{max-width:100%;overflow-x:hidden}
+body{min-height:100vh;min-height:100dvh}
+#mainContent,.page{min-width:0;max-width:100%}
+.page{overflow-wrap:break-word}
+img,video,canvas,iframe{max-width:100%}
+img{height:auto}
+input,select,textarea,button{max-width:100%}
+input[type=date],input[type=month],input[type=time],input[type=datetime-local]{width:100%;min-width:0;-webkit-appearance:none;appearance:none}
+select{text-overflow:ellipsis}
+[class*="grid"]>*,[class*="-body"],[class*="-info"],[class*="-name"],[class*="-val"],[class*="-lbl"],[class*="-sub"],[class*="-title"],.stat-card>*{min-width:0}
+.modal{width:100%;max-width:min(540px,100vw);max-height:93vh;max-height:93dvh;overflow-x:hidden;overflow-wrap:break-word}
+.modal table{max-width:100%}
+.overlay{padding-top:env(safe-area-inset-top,0px)}
+.toast{max-width:min(340px,calc(100vw - 24px))}
+.home-logo-title{max-width:min(320px,70vw)}
+.home-summary-val,.stat-card .stat-val,.stat-val{font-size:clamp(16px,5.2vw,22px)}
+@media(min-width:768px){.home-summary-val,.stat-val{font-size:22px}}
+@media(max-width:359px){
+  :root{--app-font-size:13px}
+  .home-grid{grid-template-columns:minmax(0,1fr)}
+  .menu-card{min-height:96px;flex-direction:row;align-items:center}
+}
+/* Chuyển trang: chỉ mờ dần, không trượt/nhảy; menu chính chỉ hiện hiệu ứng vào ở lần đầu */
+@keyframes pgIn{from{opacity:0}to{opacity:1}}
+.page{animation:pgIn .18s ease-out}
+#homeMenuGrid.seen .menu-card{animation:none}
+@media(prefers-reduced-motion:reduce){.page{animation:none}.menu-card{animation:none!important}}
+.stg-select{max-width:46%;min-width:0;padding:8px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font:inherit;font-size:13px;font-weight:600;flex-shrink:1;cursor:pointer}
 </style>
 </head>
 <body>
@@ -1485,6 +1532,24 @@ body[data-tab="settings"] .qa{display:none}
           </div>
           <div class="toggle" id="darkToggle" onclick="toggleDark()"></div>
         </div>
+        <!-- Màn hình khi mở app -->
+        <div class="stg-row" style="cursor:default">
+          <div class="stg-row-icon" style="background:rgba(22,163,74,.12);color:#16a34a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18"/></svg></div>
+          <div class="stg-row-body"><div class="stg-row-lbl">Màn hình khi mở app</div><div class="stg-row-val">Trang hiện ra đầu tiên (riêng từng thiết bị)</div></div>
+          <select class="stg-select" id="uiStart" onchange="setUiPref('start',this.value)" aria-label="Màn hình khi mở app"><option value="menu">Menu chính</option><option value="dashboard">Tổng quan</option><option value="rooms">Phòng</option><option value="tenants">Người thuê</option><option value="payment">Thu tiền</option><option value="debt">Công nợ</option></select>
+        </div>
+        <!-- Dạng xem phòng mặc định -->
+        <div class="stg-row" style="cursor:default">
+          <div class="stg-row-icon" style="background:rgba(14,165,233,.12);color:#0ea5e9"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
+          <div class="stg-row-body"><div class="stg-row-lbl">Dạng xem phòng mặc định</div><div class="stg-row-val">Khi mở trang Phòng</div></div>
+          <select class="stg-select" id="uiRoomView" onchange="setUiPref('view',this.value)" aria-label="Dạng xem phòng mặc định"><option value="map">Sơ đồ</option><option value="grid">Lưới</option><option value="list">Danh sách</option></select>
+        </div>
+        <!-- Lời chào -->
+        <div class="stg-row" style="cursor:default">
+          <div class="stg-row-icon" style="background:rgba(245,158,11,.14);color:#f59e0b"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+          <div class="stg-row-body"><div class="stg-row-lbl">Lời chào khi mở app</div><div class="stg-row-val">Thông báo "Chào mừng đến…"</div></div>
+          <div class="toggle on" id="uiWelcome" onclick="setUiPref('welcome',null,this)"></div>
+        </div>
       </div>
 
       <!-- Nhóm: Kiểu chữ -->
@@ -1538,33 +1603,9 @@ body[data-tab="settings"] .qa{display:none}
         </div>
       </div>
 
-      <!-- Nhóm: Dữ liệu -->
+      <!-- Nhóm: Tính phí & thu tiền -->
       <div class="stg-group">
-        <div class="stg-group-label">💾 DỮ LIỆU</div>
-        <div class="stg-row" onclick="toggleFirebasePanel()">
-          <div class="stg-row-icon" style="background:rgba(249,115,22,.12);color:#f97316">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-          </div>
-          <div class="stg-row-body">
-            <div class="stg-row-lbl">Firebase Sync</div>
-            <div class="stg-row-val" id="fbSettingRow">Đồng bộ nhiều thiết bị real-time</div>
-          </div>
-          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="stg-row" onclick="optimizeStoredImages()">
-          <div class="stg-row-icon" style="background:rgba(14,165,233,.12);color:#0ea5e9">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-          </div>
-          <div class="stg-row-body"><div class="stg-row-lbl">Tối ưu ảnh đã lưu</div><div class="stg-row-val" id="imgSettingRow">—</div></div>
-          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-        <div class="stg-row" onclick="openPortal()">
-          <div class="stg-row-icon" style="background:rgba(16,185,129,.12);color:#10b981">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          </div>
-          <div class="stg-row-body"><div class="stg-row-lbl">Cổng khách thuê</div><div class="stg-row-val" id="portalSettingRow">Khách xem hóa đơn, báo sự cố, gửi chỉ số</div></div>
-          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
+        <div class="stg-group-label">💰 TÍNH PHÍ &amp; THU TIỀN</div>
         <div class="stg-row" onclick="openProps()">
           <div class="stg-row-icon" style="background:rgba(59,130,246,.12);color:#3b82f6">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -1596,13 +1637,25 @@ body[data-tab="settings"] .qa{display:none}
           </div>
           <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
-        <div class="stg-row" onclick="installApp()">
-          <div class="stg-row-icon" style="background:rgba(99,102,241,.12);color:#6366f1">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        <div class="stg-row" onclick="openPortal()">
+          <div class="stg-row-icon" style="background:rgba(16,185,129,.12);color:#10b981">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="stg-row-body"><div class="stg-row-lbl">Cổng khách thuê</div><div class="stg-row-val" id="portalSettingRow">Khách xem hóa đơn, báo sự cố, gửi chỉ số</div></div>
+          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <!-- Nhóm: Đồng bộ & bảo mật -->
+      <div class="stg-group">
+        <div class="stg-group-label">☁️ ĐỒNG BỘ &amp; BẢO MẬT</div>
+        <div class="stg-row" onclick="toggleFirebasePanel()">
+          <div class="stg-row-icon" style="background:rgba(249,115,22,.12);color:#f97316">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
           </div>
           <div class="stg-row-body">
-            <div class="stg-row-lbl">Cài ứng dụng lên màn hình</div>
-            <div class="stg-row-val" id="installSettingRow">Dùng như app, chạy offline</div>
+            <div class="stg-row-lbl">Firebase Sync</div>
+            <div class="stg-row-val" id="fbSettingRow">Đồng bộ nhiều thiết bị real-time</div>
           </div>
           <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
@@ -1616,16 +1669,11 @@ body[data-tab="settings"] .qa{display:none}
           </div>
           <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
-        <div class="stg-row" onclick="refreshAndSort()">
-          <div class="stg-row-icon" style="background:rgba(14,165,233,.12);color:#0ea5e9">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-          </div>
-          <div class="stg-row-body">
-            <div class="stg-row-lbl">Cập nhật &amp; sắp xếp lại</div>
-            <div class="stg-row-val">Phòng, người thuê, liên kết dữ liệu</div>
-          </div>
-          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
+      </div>
+
+      <!-- Nhóm: Sao lưu -->
+      <div class="stg-group">
+        <div class="stg-group-label">💾 SAO LƯU &amp; BÁO CÁO</div>
         <div class="stg-row" onclick="backupData()">
           <div class="stg-row-icon" style="background:rgba(22,163,74,.12);color:#16a34a">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1657,6 +1705,43 @@ body[data-tab="settings"] .qa{display:none}
           </div>
           <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+      </div>
+
+      <!-- Nhóm: Ứng dụng -->
+      <div class="stg-group">
+        <div class="stg-group-label">📱 ỨNG DỤNG</div>
+        <div class="stg-row" onclick="installApp()">
+          <div class="stg-row-icon" style="background:rgba(99,102,241,.12);color:#6366f1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+          </div>
+          <div class="stg-row-body">
+            <div class="stg-row-lbl">Cài ứng dụng lên màn hình</div>
+            <div class="stg-row-val" id="installSettingRow">Dùng như app, chạy offline</div>
+          </div>
+          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="stg-row" onclick="refreshAndSort()">
+          <div class="stg-row-icon" style="background:rgba(14,165,233,.12);color:#0ea5e9">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </div>
+          <div class="stg-row-body">
+            <div class="stg-row-lbl">Cập nhật &amp; sắp xếp lại</div>
+            <div class="stg-row-val">Phòng, người thuê, liên kết dữ liệu</div>
+          </div>
+          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+        <div class="stg-row" onclick="optimizeStoredImages()">
+          <div class="stg-row-icon" style="background:rgba(14,165,233,.12);color:#0ea5e9">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <div class="stg-row-body"><div class="stg-row-lbl">Tối ưu ảnh đã lưu</div><div class="stg-row-val" id="imgSettingRow">—</div></div>
+          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+      </div>
+
+      <!-- Nhóm: Vùng nguy hiểm -->
+      <div class="stg-group">
+        <div class="stg-group-label">⚠️ VÙNG NGUY HIỂM</div>
         <div class="stg-row" onclick="resetDemo()">
           <div class="stg-row-icon" style="background:rgba(239,68,68,.12);color:#ef4444">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
@@ -2294,12 +2379,13 @@ function renderHomeMenu(){
   const monthPaid=S.invoices.filter(i=>i.month===curMonth()).reduce((sum,i)=>sum+Number(i.paid||0),0);
   const summary=document.getElementById('homeSummary');
   if(summary){
-    summary.innerHTML=[
+    const _sh=[
       ['Phòng',total],
       ['Đang thuê',rented],
       ['Thu tháng này',fmtN(monthPaid)],
       ['Công nợ',fmtN(debt)]
     ].map(([label,value])=>`<div class="home-summary-item"><div class="home-summary-val">${value}</div><div class="home-summary-lbl">${label}</div></div>`).join('');
+    if(summary._h!==_sh){summary.innerHTML=_sh;summary._h=_sh}
   }
   const menus=[
     {tab:'dashboard',cls:'green',title:'Tổng quan',sub:'Thống kê doanh thu và lấp đầy',svg:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>'},
@@ -2316,7 +2402,8 @@ function renderHomeMenu(){
   ];
   const grid=document.getElementById('homeMenuGrid');
   if(grid){
-    grid.innerHTML=menus.map(m=>`<button class="menu-card ${m.cls}" onclick="switchTab('${m.tab}')"><span class="menu-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${m.svg}</svg></span><span><span class="menu-card-title">${m.title}</span><span class="menu-card-sub">${m.sub}</span></span></button>`).join('');
+    const _gh=menus.map(m=>`<button class="menu-card ${m.cls}" onclick="switchTab('${m.tab}')"><span class="menu-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${m.svg}</svg></span><span><span class="menu-card-title">${m.title}</span><span class="menu-card-sub">${m.sub}</span></span></button>`).join('');
+    if(grid._h!==_gh){grid.innerHTML=_gh;grid._h=_gh;setTimeout(()=>grid.classList.add('seen'),1400)}
   }
 }
 
@@ -2520,6 +2607,34 @@ function renderRoomsMap(rows){
 
   document.getElementById('roomGrid').innerHTML=`<div class="rmap-wrap"><div class="rmap-left">${legend+html}</div><aside class="rmap-peek" id="rmapPeek" aria-hidden="true"></aside></div>`;
 }
+
+
+/* ── Cài đặt: nhóm thu/mở, nhớ trạng thái ── */
+(function(){
+  const KEY='pt_stg_open';
+  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){return null}};
+  const save=o=>{try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}};
+  function init(){
+    const groups=[...document.querySelectorAll('#pg-settings .stg-group')];
+    if(!groups.length)return;
+    const saved=load()||{0:true};
+    groups.forEach((g,i)=>{
+      const lb=g.querySelector('.stg-group-label');if(!lb)return;
+      const n=g.querySelectorAll(':scope>.stg-row').length;
+      if(n>1&&!lb.querySelector('.stg-cnt')){const c=document.createElement('span');c.className='stg-cnt';c.textContent=n;lb.appendChild(c)}
+      g.dataset.gi=i;g.classList.toggle('collapsed',!saved[i]);
+      lb.setAttribute('role','button');lb.setAttribute('aria-expanded',saved[i]?'true':'false');
+    });
+  }
+  document.addEventListener('click',e=>{
+    const lb=e.target.closest&&e.target.closest('#pg-settings .stg-group-label');
+    if(!lb)return;
+    const g=lb.parentElement,c=g.classList.toggle('collapsed');
+    lb.setAttribute('aria-expanded',c?'false':'true');
+    const st=load()||{0:true};st[g.dataset.gi]=!c;save(st);
+  });
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
 
 /* ── Xem nhanh phòng khi rê chuột (chế độ Sơ đồ) ── */
 function peekHtml(room){
@@ -4698,7 +4813,7 @@ function bootUI(){
   populateZoneSelect();
   // Tự động kết nối lại Firebase nếu đã có config
   setTimeout(()=>autoReconnectFirebase(), 800);
-  setTimeout(()=>toast(`Chào mừng đến ${S.settings.hotelName}! 🏠`,'success'),500);
+  if(uiPref().welcome!==false)setTimeout(()=>toast(`Chào mừng đến ${S.settings.hotelName}! 🏠`,'success'),500);
   const dc=S.invoices.filter(i=>i.debt>0).length;
   const nc=S.contracts?.filter(c=>getContractStatus(c)==='near').length||0;
   if(dc>0){setTimeout(()=>toast(`⚠️ Có ${dc} hóa đơn chưa thu tiền!`,'warning'),2000);const nb=document.getElementById('notifBadge');if(nb)nb.textContent=dc+nc;}
@@ -7125,6 +7240,74 @@ function autoReconnectFirebase(){
     fbAddLog('♻️ Tự kết nối lại Firebase thành công');
   }catch(e){fbAddLog('⚠️ Auto-reconnect thất bại: '+e.message);}
 }
+
+/* ── Hiệu năng: không vẽ lại cả app mỗi lần lưu/đồng bộ (tránh chớp, giật, treo khi vào trang con) ── */
+(function(){
+  const PAGES={renderDash:'dashboard',renderRooms:'rooms',renderTenants:'tenants',renderPayment:'payment',renderDebt:'debt',renderReport:'report',renderContracts:'contracts',renderArchived:'archived',renderMaint:'maint',renderExpenses:'expense'};
+  const pend=new Map();let tm=0;
+  const idle=window.requestIdleCallback?f=>requestIdleCallback(f,{timeout:800}):f=>setTimeout(f,80);
+  function flush(){tm=0;const jobs=[...pend.values()];pend.clear();
+    (function next(){const j=jobs.shift();if(!j)return;try{j.fn.apply(j.ctx,j.a)}catch(e){}if(jobs.length)idle(next)})()}
+  function guard(name,tab){
+    const fn=window[name];if(typeof fn!=='function'||fn.__g)return;
+    const g=function(){
+      const p=document.getElementById('pg-'+tab);
+      if(p&&p.classList.contains('active')){pend.delete(name);return fn.apply(this,arguments)}
+      pend.set(name,{fn:fn,ctx:this,a:arguments});
+      if(!tm)tm=1,idle(flush);
+    };
+    g.__g=1;window[name]=g;
+  }
+  function install(){for(const n in PAGES)guard(n,PAGES[n])}
+  install();window.addEventListener('load',install);
+  // gộp các lần renderAll dồn dập (đồng bộ Firebase, lưu liên tục) thành 1 lần
+  const ra=window.renderAll;
+  if(typeof ra==='function'&&!ra.__c){
+    let last=0,t=0;
+    const c=function(){
+      const now=performance.now();clearTimeout(t);
+      if(now-last>150){last=now;return ra.apply(this,arguments)}
+      t=setTimeout(()=>{last=performance.now();try{ra()}catch(e){}},150);
+    };
+    c.__c=1;window.renderAll=c;
+  }
+})();
+
+/* ── Cài đặt giao diện khi mở app (lưu riêng từng thiết bị) ── */
+var UI_KEY='pt_ui_start';
+function uiPref(){try{return JSON.parse(localStorage.getItem(UI_KEY)||'{}')||{}}catch(e){return {}}}
+function setUiPref(k,v,el){
+  const p=uiPref();
+  if(k==='welcome'){v=p.welcome===false;if(el)el.classList.toggle('on',v)}  // đảo trạng thái
+  p[k]=v;try{localStorage.setItem(UI_KEY,JSON.stringify(p))}catch(e){}
+  if(k==='view'&&typeof setRoomView==='function')setRoomView(v);
+  toast('✅ Đã lưu','success',{duration:1500});
+}
+function syncUiPrefs(){
+  const p=uiPref();
+  const a=document.getElementById('uiStart'),b=document.getElementById('uiRoomView'),w=document.getElementById('uiWelcome');
+  if(a)a.value=p.start||'menu';
+  if(b)b.value=p.view||'map';
+  if(w)w.classList.toggle('on',p.welcome!==false);
+}
+(function(){
+  const rs=window.renderSettings;
+  if(typeof rs==='function'&&!rs.__u){const f=function(){const r=rs.apply(this,arguments);try{syncUiPrefs()}catch(e){}return r};f.__u=1;window.renderSettings=f}
+  const bu=window.bootUI;
+  if(typeof bu==='function'&&!bu.__u){
+    const f=function(){
+      const r=bu.apply(this,arguments);
+      try{
+        const p=uiPref();
+        if(p.view&&p.view!=='map'&&typeof setRoomView==='function')setRoomView(p.view);
+        if(p.start&&p.start!=='menu'&&document.getElementById('pg-'+p.start))switchTab(p.start);
+        syncUiPrefs();
+      }catch(e){}
+      return r;
+    };
+    f.__u=1;window.bootUI=f;
+  }
+})();
 </script>
 
 </body>

@@ -12,7 +12,7 @@
       ".read": "auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner')",
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('members').child(auth.uid).child('role').val() === 'owner')",
-        ".write": "auth != null && ((auth.uid === $uid && !data.exists() && newData.child('role').val() === 'pending') || (auth.uid === $uid && newData.child('role').val() === 'owner' && !root.child('meta/ownerUid').exists() && newRoot.child('meta/ownerUid').val() === auth.uid) || root.child('meta/ownerUid').val() === auth.uid)",
+        ".write": "auth != null && ((auth.uid === $uid && !data.exists() && newData.child('role').val() === 'pending') || (auth.uid === $uid && newData.child('role').val() === 'owner' && !root.child('meta/ownerUid').exists() && newData.parent().parent().child('meta/ownerUid').val() === auth.uid) || root.child('meta/ownerUid').val() === auth.uid)",
         "role": {
           ".validate": "newData.isString() && newData.val().matches(/^(owner|manager|staff|pending|disabled)$/)"
         },
@@ -116,7 +116,7 @@
       "$code": {
         "$id": {
           ".write": "$code.matches(/^[A-Za-z0-9]{24}$/) && !data.exists() && newData.exists() && root.child('portal').child($code).exists()",
-          ".validate": "newData.hasChildren(['type','at']) && newData.child('type').val().matches(/^(incident|meter)$/) && newData.child('at').isNumber()",
+          ".validate": "newData.hasChildren(['type','at']) && newData.child('type').val().matches(/^(incident|meter|join)$/) && newData.child('at').isNumber()",
           "type": {
             ".validate": "newData.isString()"
           },
@@ -137,6 +137,27 @@
           },
           "water": {
             ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000"
+          },
+          "name": {
+            ".validate": "newData.isString() && newData.val().length <= 100"
+          },
+          "phone": {
+            ".validate": "newData.isString() && newData.val().length <= 20"
+          },
+          "cccd": {
+            ".validate": "newData.isString() && newData.val().length <= 20"
+          },
+          "dob": {
+            ".validate": "newData.isString() && newData.val().length <= 10"
+          },
+          "gender": {
+            ".validate": "newData.isString() && newData.val().length <= 10"
+          },
+          "address": {
+            ".validate": "newData.isString() && newData.val().length <= 200"
+          },
+          "vehicle": {
+            ".validate": "newData.isString() && newData.val().length <= 20"
           },
           "$other": {
             ".validate": false

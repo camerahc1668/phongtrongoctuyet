@@ -2652,7 +2652,7 @@ function renderRoomsMap(rows){
         ${floors.map(({floor,rooms})=>{
           const avail=rooms.filter(r=>r.status==='available').length;
           const cells=rooms
-            .sort((a,b)=>(a.roomNum||0)-(b.roomNum||0))
+            .sort(roomCmp)
             .map(room=>{
               const t=getRoomTenant(room);
               const inv=S.invoices.find(i=>i.roomId===room.id&&i.month===curMonth());
@@ -7022,20 +7022,14 @@ window.updateP3Rows=function(){_updateP3Rows5();updateP5Rows()};
 function _natCmp(a,b){return String(a??'').localeCompare(String(b??''),'vi',{numeric:true,sensitivity:'base'});}
 function refreshAndSort(silent){
   let fixed=0;
-  // 1) Liên kết lại phòng ↔ người thuê
-  const tIds=new Set(S.tenants.map(t=>t.id));
+  // 1) Liên kết lại phòng ↔ người thuê (GIỮ NGUYÊN người đại diện đang có; mỗi phòng có thể nhiều người)
+  S.tenants.forEach(t=>{if(t.roomId&&!S.rooms.some(r=>r.id===t.roomId)){t.roomId='';fixed++;}});
   S.rooms.forEach(r=>{
-    if(r.tenantId&&!tIds.has(r.tenantId)){r.tenantId=null;if(r.status!=='available')r.status='available';fixed++;}
-  });
-  S.tenants.forEach(t=>{
-    const room=S.rooms.find(r=>r.id===t.roomId);
-    if(room){
-      if(room.tenantId!==t.id){room.tenantId=t.id;fixed++;}
-      if(room.status==='available'){room.status='rented';fixed++;}
-    }
-  });
-  S.rooms.forEach(r=>{
-    if(!r.tenantId&&r.status==='rented'){r.status='available';fixed++;}
+    const occ=S.tenants.filter(t=>t.roomId===r.id);
+    if(occ.length){
+      if(!occ.some(t=>t.id===r.tenantId)){r.tenantId=occ.slice().sort((x,y)=>String(x.moveIn||'').localeCompare(String(y.moveIn||'')))[0].id;fixed++;}
+      if(r.status==='available'){r.status='rented';fixed++;}
+    }else if(r.tenantId||r.status==='rented'){r.tenantId='';r.status='available';fixed++;}
   });
   // 2) Sắp xếp phòng: Khu → Tầng → Số phòng → Tên
   const zones=(S.settings.zones||[]);
@@ -8009,6 +8003,30 @@ function syncRentRow(){const e=document.getElementById('rentRemindRow');if(!e)re
   if(typeof bu==='function'&&!bu.__r){
     const f=function(){const r=bu.apply(this,arguments);setTimeout(()=>{try{autoRentInvoices();renderAll();dailyNotice()}catch(e){}},1800);return r};
     f.__r=1;f.__h=bu.__h;f.__u=bu.__u;window.bootUI=f;
+  }
+})();
+
+/* ══ Thứ tự phòng ổn định: Khu → Tầng → Số phòng → Tên (dữ liệu từ Firebase về theo thứ tự mã nên phải sắp xếp lại khi vẽ) ══ */
+function roomCmp(a,b){
+  const zones=(S.settings&&S.settings.zones)||[],za=zones.indexOf(a.zone),zb=zones.indexOf(b.zone);
+  if((za<0?999:za)!==(zb<0?999:zb))return(za<0?999:za)-(zb<0?999:zb);
+  const fa=+(a.floorNum??a.floor??0)||0,fb=+(b.floorNum??b.floor??0)||0;
+  if(fa!==fb)return fa-fb;
+  if((a.roomNum||0)!==(b.roomNum||0))return(a.roomNum||0)-(b.roomNum||0);
+  return _natCmp(a.name,b.name);
+}
+function sortDataInPlace(){
+  try{
+    S.rooms.sort(roomCmp);
+    const idx=new Map(S.rooms.map((r,i)=>[r.id,i]));
+    S.tenants.sort((a,b)=>{const ia=idx.has(a.roomId)?idx.get(a.roomId):1e6,ib=idx.has(b.roomId)?idx.get(b.roomId):1e6;return ia!==ib?ia-ib:_natCmp(a.name,b.name)});
+  }catch(e){}
+}
+(function(){
+  const ra=window.renderAll;
+  if(typeof ra==='function'&&!ra.__s){
+    const f=function(){sortDataInPlace();return ra.apply(this,arguments)};
+    f.__s=1;f.__r=ra.__r;f.__n=ra.__n;f.__c=ra.__c;window.renderAll=f;
   }
 })();
 </script>

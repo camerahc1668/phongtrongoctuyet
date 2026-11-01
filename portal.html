@@ -9,7 +9,7 @@
 <style>
 :root{--bg:#f1f5f9;--card:#fff;--text:#0f172a;--text3:#64748b;--border:#e2e8f0;--pri:#16a34a;--danger:#ef4444;--warn:#f59e0b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#162033;--text:#e5edf9;--text3:#94a3b8;--border:#26344d}}
-*{box-sizing:border-box}html,body{margin:0}
+*{box-sizing:border-box}html,body{margin:0;max-width:100%;overflow-x:hidden}
 body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:15px;line-height:1.45;min-height:100vh}
 .wrap{max-width:520px;margin:0 auto;padding:14px}
 .hdr{background:var(--pri);color:#fff;border-radius:18px;padding:16px;margin-bottom:12px}
@@ -27,11 +27,15 @@ button.pri{background:var(--pri);color:#fff;border:0;border-radius:12px;padding:
 button.sec{background:transparent;color:var(--pri);border:1.5px solid var(--pri);border-radius:12px;padding:9px 12px;font:inherit;font-weight:700;cursor:pointer}
 button:disabled{opacity:.55;cursor:default}
 label{display:block;font-size:12px;font-weight:700;margin:10px 0 4px}
-input,textarea,select{width:100%;padding:11px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font:inherit}
+input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-radius:12px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font:inherit}
 .qr{text-align:center;margin-top:10px}.qr img{width:100%;max-width:280px;border-radius:12px;background:#fff}
 .ok{background:#16a34a22;color:#16a34a;padding:10px;border-radius:12px;font-weight:700;margin-top:10px}
 .err{background:#ef444422;color:#ef4444;padding:10px;border-radius:12px;font-weight:700;margin-top:10px}
 .center{text-align:center;padding:40px 10px;color:var(--text3)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.two>*{min-width:0}
+.scanbox{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3;margin-top:10px;display:none}
+.scanbox video{width:100%;height:100%;object-fit:cover;display:block}
+.scanbox i{position:absolute;inset:12% 16%;border:3px solid #22c55e;border-radius:14px;box-shadow:0 0 0 999px rgba(0,0,0,.38);pointer-events:none}
 </style>
 </head>
 <body>
@@ -47,7 +51,7 @@ input,textarea,select{width:100%;padding:11px;border-radius:12px;border:1.5px so
   const strip=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D');
   const monthName=m=>{const [y,mm]=String(m||'').split('-');return mm?'Tháng '+mm+'/'+y:'—'};
   const use=(i,k)=>{const o=+i[k+'Old']||0,n=+i[k+'New']||0;return n<o?n:n-o};
-  let data=null,tab='inv',openId=null,qrId=null,db=null,code='',sent={};
+  let data=null,tab='inv',openId=null,qrId=null,db=null,code='',sent={},joinShown=false,joinDone=false;
 
   function fail(msg){$app.innerHTML='<div class="center"><div style="font-size:42px">🔒</div><div style="font-weight:800;margin:8px 0;color:var(--text)">'+esc(msg)+'</div><div>Hãy liên hệ chủ trọ để nhận link mới.</div></div>'}
   function parse(){
@@ -60,8 +64,92 @@ input,textarea,select{width:100%;padding:11px;border-radius:12px;border:1.5px so
   const cfg=parse();
   if(!cfg){fail('Link không hợp lệ');return}
   try{firebase.initializeApp(cfg);db=firebase.database()}catch(e){fail('Không kết nối được máy chủ');return}
-  db.ref('portal/'+code).on('value',s=>{data=s.val();if(!data){fail('Link đã hết hiệu lực hoặc chưa được kích hoạt');return}render()},()=>fail('Không đọc được dữ liệu'));
+  db.ref('portal/'+code).on('value',s=>{
+    data=s.val();
+    if(!data){joinShown=false;fail('Link đã hết hiệu lực hoặc chưa được kích hoạt');return}
+    if(data.kind==='join'){if(!joinShown){joinShown=true;renderJoin()}return}
+    render();
+  },()=>fail('Không đọc được dữ liệu'));
 
+  /* ───── Đăng ký vào phòng (QR của phòng) ───── */
+  let stream=null,raf=0,det=null,cv=null,cx=null,busy=false,lastT=0,jsqrP=null;
+  function loadJsQR(){
+    if(window.jsQR)return Promise.resolve();
+    if(jsqrP)return jsqrP;
+    jsqrP=new Promise((ok,no)=>{const e=document.createElement('script');e.src='https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';e.onload=ok;e.onerror=()=>{jsqrP=null;no()};document.head.appendChild(e)});
+    return jsqrP;
+  }
+  const tcase=n=>{n=String(n||'').trim().replace(/\s+/g,' ');if(n&&n===n.toLocaleUpperCase('vi'))n=n.toLocaleLowerCase('vi').replace(/(^|\s)(\S)/g,(m,a,b)=>a+b.toLocaleUpperCase('vi'));return n};
+  function parseCccd(txt){
+    const p=String(txt||'').split('|').map(x=>x.trim());
+    if(p.length<6||!/^\d{9}$|^\d{12}$/.test(p[0])||!p[2])return null;
+    const d=p[3]||'';
+    return {cccd:p[0],name:tcase(p[2]),dob:/^\d{8}$/.test(d)?d.slice(4)+'-'+d.slice(2,4)+'-'+d.slice(0,2):'',gender:/^n[ữu]$/i.test(p[4])?'Nữ':/^nam$/i.test(p[4])?'Nam':'Khác',address:p[5]||''};
+  }
+  function setMsg(t,cls){const m=document.getElementById('jMsg');if(m)m.innerHTML=t?'<div class="'+(cls||'muted')+'">'+esc(t)+'</div>':''}
+  function stopScan(){cancelAnimationFrame(raf);raf=0;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}const b=document.getElementById('scanBox');if(b)b.style.display='none'}
+  async function decode(v){
+    const w=v.videoWidth,h=v.videoHeight;if(!w)return null;
+    if(det){try{const r=await det.detect(v);if(r&&r.length&&r[0].rawValue)return r[0].rawValue}catch(e){}}
+    if(window.jsQR){const k=Math.min(1,1100/Math.max(w,h)),cw=Math.round(w*k),ch=Math.round(h*k);
+      if(!cv){cv=document.createElement('canvas');cx=cv.getContext('2d',{willReadFrequently:true})}
+      cv.width=cw;cv.height=ch;cx.drawImage(v,0,0,cw,ch);const d=cx.getImageData(0,0,cw,ch),r=jsQR(d.data,cw,ch,{inversionAttempts:'dontInvert'});return r&&r.data?r.data:null}
+    return null;
+  }
+  function tick(t){
+    if(!stream)return;
+    const v=document.getElementById('scanVideo');
+    if(v&&t-lastT>200&&!busy&&v.readyState>=2){lastT=t;busy=true;decode(v).then(x=>{busy=false;if(x)gotQr(x)}).catch(()=>{busy=false})}
+    raf=requestAnimationFrame(tick);
+  }
+  function gotQr(txt){
+    const r=parseCccd(txt);
+    if(!r){setMsg('Mã QR này không phải căn cước công dân. Hãy quét mã QR ở mặt trước thẻ.','err');return}
+    stopScan();
+    const set=(id,v)=>{const e=document.getElementById(id);if(e&&v)e.value=v};
+    set('jName',r.name);set('jCccd',r.cccd);set('jDob',r.dob);set('jGender',r.gender);set('jAddr',r.address);
+    setMsg('✅ Đã điền thông tin từ căn cước. Hãy nhập số điện thoại rồi bấm Gửi.','ok');
+    const p=document.getElementById('jPhone');if(p)p.focus();
+  }
+  async function startScan(){
+    const box=document.getElementById('scanBox');
+    try{det=('BarcodeDetector' in window)?new BarcodeDetector({formats:['qr_code']}):null}catch(e){det=null}
+    loadJsQR().catch(()=>{});
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){setMsg('Trình duyệt này không mở được camera. Bạn có thể nhập tay thông tin bên dưới.','err');return}
+    try{
+      stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+      box.style.display='block';const v=document.getElementById('scanVideo');v.srcObject=stream;v.setAttribute('playsinline','');v.muted=true;try{await v.play()}catch(e){}
+      setMsg('Đưa mã QR trên thẻ căn cước vào khung xanh');raf=requestAnimationFrame(tick);
+    }catch(e){setMsg('Không mở được camera. Hãy cho phép quyền camera hoặc nhập tay thông tin.','err')}
+  }
+  function renderJoin(){
+    $app.innerHTML='<div class="hdr"><h1>'+esc(data.hotel||'Nhà trọ')+'</h1><p>Đăng ký ở phòng '+esc(data.room||'')+'</p>'+(data.phone?'<p>Liên hệ: <a href="tel:'+esc(String(data.phone).replace(/\s/g,''))+'">'+esc(data.phone)+'</a></p>':'')+'</div>'
+      +'<div class="card"><b>Thông tin người ở</b><div class="muted">Chủ trọ sẽ kiểm tra và duyệt trước khi bạn được thêm vào phòng.</div>'
+      +'<div style="margin-top:10px"><button class="sec" type="button" id="jScan" style="width:100%">📷 Quét QR căn cước công dân để tự điền</button></div>'
+      +'<div class="scanbox" id="scanBox"><video id="scanVideo" playsinline muted></video><i></i></div><div id="jMsg" style="margin-top:6px"></div>'
+      +'<label>Họ và tên <span style="color:var(--danger)">*</span></label><input id="jName" maxlength="100" autocomplete="name">'
+      +'<label>Số điện thoại <span style="color:var(--danger)">*</span></label><input id="jPhone" type="tel" inputmode="tel" maxlength="20" autocomplete="tel">'
+      +'<div class="two"><div><label>Số CCCD</label><input id="jCccd" inputmode="numeric" maxlength="20"></div><div><label>Giới tính</label><select id="jGender"><option>Nam</option><option>Nữ</option><option>Khác</option></select></div></div>'
+      +'<label>Ngày sinh</label><input id="jDob" type="date">'
+      +'<label>Địa chỉ thường trú</label><input id="jAddr" maxlength="200">'
+      +'<label>Biển số xe (nếu có)</label><input id="jVeh" maxlength="20">'
+      +'<div style="margin-top:12px"><button class="pri" type="button" id="jSend">Gửi đăng ký</button></div><div id="jRes"></div></div>';
+    document.getElementById('jScan').onclick=startScan;
+    document.getElementById('jSend').onclick=sendJoin;
+  }
+  function sendJoin(){
+    const g=id=>document.getElementById(id).value.trim(),res=document.getElementById('jRes'),btn=document.getElementById('jSend');
+    const name=g('jName'),phone=g('jPhone').replace(/[^\d+]/g,'');
+    if(!name){res.innerHTML='<div class="err">Hãy nhập họ và tên.</div>';return}
+    if(phone.replace(/\D/g,'').length<9){res.innerHTML='<div class="err">Số điện thoại chưa đúng.</div>';return}
+    if(joinDone)return;
+    stopScan();btn.disabled=true;
+    db.ref('portal_in/'+code).push().set({type:'join',at:Date.now(),name:name.slice(0,100),phone:phone.slice(0,20),cccd:g('jCccd').slice(0,20),dob:g('jDob').slice(0,10),gender:document.getElementById('jGender').value.slice(0,10),address:g('jAddr').slice(0,200),vehicle:g('jVeh').slice(0,20)})
+      .then(()=>{joinDone=true;res.innerHTML='<div class="ok">✅ Đã gửi đăng ký. Vui lòng chờ chủ trọ duyệt. Cảm ơn bạn!</div>'})
+      .catch(()=>{btn.disabled=false;res.innerHTML='<div class="err">Không gửi được. Vui lòng thử lại sau.</div>'});
+  }
+
+  /* ───── Cổng hóa đơn của khách ───── */
   function note(inv){const rn=strip(data.room||'').trim(),lbl=/^p/i.test(rn)?rn:'P'+rn,[y,m]=String(inv.month||'').split('-');return (lbl+' T'+(m||'')+(y||'').slice(2)).replace(/[^A-Za-z0-9 ]/g,'').slice(0,25)}
   function qrUrl(inv){const b=data.bank;if(!b||!(inv.debt>0))return '';return 'https://img.vietqr.io/image/'+encodeURIComponent(b.bin)+'-'+encodeURIComponent(b.acc)+'-compact2.png?amount='+Math.round(inv.debt)+'&addInfo='+encodeURIComponent(note(inv))+'&accountName='+encodeURIComponent(strip(b.name||'').toUpperCase())}
   function invHtml(i){

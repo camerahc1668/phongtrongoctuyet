@@ -1231,6 +1231,31 @@ select{text-overflow:ellipsis}
 .nt-n{min-width:26px;height:26px;padding:0 7px;border-radius:99px;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
 .nt-ok{text-align:center;padding:30px 10px;color:var(--text3);font-weight:700}
 #notifBadge.nt-zero{display:none}
+
+/* Vương miện người đại diện + lấp lánh */
+.crown-wrap{position:relative;display:inline-block;flex-shrink:0;line-height:0}
+.crown-wrap .crown{position:absolute;top:-10px;right:-8px;width:42%;min-width:15px;max-width:26px;transform:rotate(16deg);z-index:2;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(180,83,9,.55));animation:crownShine 2.4s ease-in-out infinite}
+.crown-wrap .crown svg{width:100%;height:auto;display:block}
+@keyframes crownShine{0%,100%{filter:drop-shadow(0 1px 2px rgba(180,83,9,.55)) brightness(1)}50%{filter:drop-shadow(0 0 5px rgba(255,214,10,.95)) brightness(1.25)}}
+.crown-wrap .spk{position:absolute;width:9px;height:9px;background:#fff6b0;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);opacity:0;z-index:3;pointer-events:none;animation:spkTw 2.2s ease-in-out infinite}
+.crown-wrap .s1{top:-14px;right:4px}.crown-wrap .s2{top:2px;right:-15px;width:7px;height:7px;animation-delay:.7s}.crown-wrap .s3{top:-6px;right:20px;width:6px;height:6px;animation-delay:1.4s}
+@keyframes spkTw{0%,100%{opacity:0;transform:scale(.2) rotate(0)}45%{opacity:1;transform:scale(1) rotate(45deg)}70%{opacity:0;transform:scale(.4) rotate(90deg)}}
+@media(prefers-reduced-motion:reduce){.crown-wrap .crown,.crown-wrap .spk{animation:none}.crown-wrap .spk{display:none}}
+.rep-chk{display:flex;gap:9px;align-items:center;padding:10px 12px;border-radius:12px;border:1.5px solid rgba(245,158,11,.45);background:rgba(245,158,11,.1);font-size:13px;font-weight:700;cursor:pointer}
+.rep-chk input{width:18px;height:18px;accent-color:#f59e0b;flex-shrink:0}
+.rep-hint{font-size:11.5px;color:var(--text3);margin-top:5px;min-height:14px}
+.occ-sec{margin:12px 0}
+.occ-hdr{font-size:13px;font-weight:800;color:var(--info);margin-bottom:8px}
+.occ-row{display:flex;align-items:center;gap:10px;padding:8px;background:var(--bg2);border-radius:12px;margin-bottom:6px}
+.occ-av{flex-shrink:0;padding:6px 8px 0 0}
+.occ-info{flex:1;min-width:0}.occ-info b{font-size:13.5px;display:inline}.occ-info small{display:block;font-size:11.5px;color:var(--text3)}
+.occ-rep{font-style:normal;font-size:10.5px;font-weight:800;color:#b45309;background:rgba(245,158,11,.16);padding:1px 8px;border-radius:99px;margin-left:6px}
+.occ-act{display:flex;gap:4px;flex-shrink:0}
+.occ-btn{width:32px;height:32px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;font-size:14px}
+.occ-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.occ-empty{text-align:center;color:var(--text3);padding:12px;font-size:13px}
+.jr-item{padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.jr-item small{display:block;color:var(--text3);margin:2px 0 6px}
 </style>
 </head>
 <body>
@@ -1974,11 +1999,12 @@ select{text-overflow:ellipsis}
     <input type="file" id="cmndB" accept="image/*" style="display:none" onchange="prevCmnd(this,'cmndBPrev','back')">
 
     <div class="frow"><div class="fg"><label class="flbl">Phòng thuê <span>*</span></label><select class="fc" id="tRoom"><option value="">-- Chọn phòng --</option></select></div><div class="fg"><label class="flbl">Ngày vào ở</label><input class="fc" id="tMoveIn" type="date"></div></div>
+    <div class="fg"><label class="rep-chk"><input type="checkbox" id="tRep"><span>👑 Người đại diện ký hợp đồng của phòng</span></label><div class="rep-hint" id="tRepHint"></div></div>
     <div class="frow"><div class="fg"><label class="flbl">Tiền cọc (₫)</label><input class="fc" id="tDeposit" type="number" placeholder="2500000"></div><div class="fg"><label class="flbl">Số người ở</label><input class="fc" id="tPeople" type="number" value="1" min="1"></div></div>
     <div class="fg"><label class="flbl">Ghi chú</label><textarea class="fc" id="tNote" placeholder="Thêm ghi chú..."></textarea></div>
 
-    <div class="fsect">👥 Người Ở Cùng<button class="btn btn-secondary btn-xs" onclick="addRM();openCccdScan(rms.length-1)" style="margin-left:auto">📷 Quét thêm</button><button class="btn btn-primary btn-xs" onclick="addRM()">+ Thêm người</button></div>
-    <div id="rmList"></div>
+    <div id="rmSection" style="display:none"><div class="fsect">👥 Người Ở Cùng<button class="btn btn-secondary btn-xs" onclick="addRM();openCccdScan(rms.length-1)" style="margin-left:auto">📷 Quét thêm</button><button class="btn btn-primary btn-xs" onclick="addRM()">+ Thêm người</button></div>
+    <div id="rmList"></div></div>
   </div>
   <div class="mfoot"><button class="btn btn-secondary" onclick="closeM('mTenant')">Hủy</button><button class="btn btn-primary" onclick="saveTenant()">Lưu</button></div>
 </div></div>
@@ -2471,7 +2497,7 @@ function renderDash(){
     <div class="stat-card teal"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="stat-label">Còn trống</div><div class="stat-value">${avail}</div><div class="stat-sub">Sẵn sàng</div></div>
     <div class="stat-card orange"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><div class="stat-label">Doanh thu</div><div class="stat-value">${fmtN(Math.round(rev/1e6*10)/10)}M</div><div class="stat-sub up">T${now.getMonth()+1}/${now.getFullYear()}</div></div>
     <div class="stat-card red"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg></div><div class="stat-label">Công nợ</div><div class="stat-value">${fmtN(Math.round(tDebt/1e6*10)/10)}M</div><div class="stat-sub down">${dbt} phòng nợ</div></div>
-    <div class="stat-card purple"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="stat-label">Người ở cùng</div><div class="stat-value">${rmCnt}</div><div class="stat-sub">${S.tenants.length} chủ HĐ</div></div>
+    <div class="stat-card purple"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="stat-label">Người ở cùng</div><div class="stat-value">${rmCnt}</div><div class="stat-sub">${S.tenants.length} khách · ${S.rooms.filter(r=>r.tenantId).length} đại diện</div></div>
   `;
   renderCharts();
   document.getElementById('recentAct').innerHTML=[
@@ -2688,7 +2714,7 @@ function peekHtml(room){
     <div class="rp-body">
       <div class="rp-top"><div class="rp-name">${esc(room.name)}</div>
         <div class="rp-meta"><div>Giá phòng <b>${fmtN(Math.round((room.price||0)/1000))}K</b></div>${t&&t.moveIn?`<div>Ngày vào ở <b>${fmtDate(t.moveIn)}</b></div>`:''}</div></div>
-      <div class="rp-people">${shown.length?shown.map(p=>`<div class="rp-p"><span>${esc(p.n)}</span>${p.g?`<em>${esc(p.g)}</em>`:''}</div>`).join('')+(more>0?`<div class="rp-more">+${more} người nữa</div>`:''):`<div class="rp-empty">${st||'Phòng trống'}</div>`}</div>
+      <div class="rp-people">${shown.length?shown.map((p,ix)=>`<div class="rp-p"><span>${ix===0?'👑 ':''}${esc(p.n)}</span>${p.g?`<em>${esc(p.g)}</em>`:''}</div>`).join('')+(more>0?`<div class="rp-more">+${more} người nữa</div>`:''):`<div class="rp-empty">${st||'Phòng trống'}</div>`}</div>
     </div>`;
 }
 (function(){
@@ -3095,12 +3121,12 @@ function showRoomDet(id){
   const roomGallery=roomPhotos.length?`<div class="room-gallery">${roomPhotos.map((src,i)=>`<div class="room-gallery-item"><img src="${src}" alt="Ảnh phòng ${esc(room.name)} ${i+1}"></div>`).join('')}</div>`:'';
   document.getElementById('mRoomDetBody').innerHTML=`
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
-      ${t?avHtml(t,56,18):`<div style="width:56px;height:56px;border-radius:16px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:26px">🏠</div>`}
+      ${t?crownWrap(avHtml(t,56,18)):`<div style="width:56px;height:56px;border-radius:16px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:26px">🏠</div>`}
       <div><div style="font-size:22px;font-weight:900">${esc(room.name)}</div><span style="padding:3px 12px;border-radius:99px;background:${stBg};color:${stClr};font-size:11px;font-weight:700;margin-top:4px;display:inline-block">${stLbl(room.status)}</span></div>
     </div>
     ${roomGallery}
     <div class="card card-body mb-3"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${iR('Giá thuê',fmt(room.price))}${iR('Diện tích',room.area+' m²')}${iR('Tầng',room.floor)}${iR('Giá điện',fmtN(room.elecPrice)+' ₫/kWh')}${iR('Giá nước',fmtN(room.waterPrice)+' ₫/m³')}${iR('Internet',fmt(room.internet))}${iR('Dịch vụ',fmt(room.serviceFee))}${iR('Rác',fmt(room.garbage))}${iR('Giữ xe',fmt(room.parking))}${iR('CS Điện/Nước',fmtN(room.elecIndex)+' / '+fmtN(room.waterIndex))}</div></div>
-    ${t?`<div class="card card-body mb-3" style="background:var(--primary-bg);border-color:var(--primary)"><div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px">👤 Người thuê chính</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${iR('Họ tên',t.name)}${iR('SĐT',t.phone)}${iR('CCCD',t.cccd)}${iR('Vào ở',t.moveIn)}${iR('Cọc',fmt(t.deposit))}${iR('Số người',t.people)}</div>${rmHtml}</div>`:''}
+    ${t?`<div class="card card-body mb-3" style="background:var(--primary-bg);border-color:var(--primary)"><div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px">👑 Người đại diện ký hợp đồng</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${iR('Họ tên',t.name)}${iR('SĐT',t.phone)}${iR('CCCD',t.cccd)}${iR('Vào ở',t.moveIn)}${iR('Cọc',fmt(t.deposit))}${iR('Số người',occupants(room.id).length)}</div></div>`:''}
     ${invs.length?`<div style="font-size:14px;font-weight:700;margin-bottom:10px">📄 Hóa đơn gần đây</div>${invs.map(inv=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:13px;font-weight:600">${getMonthName(inv.month)}</div><div style="font-size:11px;color:${inv.status==='paid'?'var(--success)':inv.status==='partial'?'var(--warning)':'var(--danger)'}">${{paid:'✅ Đã trả',partial:'⚠️ Trả 1 phần',unpaid:'❌ Chưa trả'}[inv.status]}</div></div><div style="text-align:right"><div style="font-weight:800">${fmt(inv.total)}</div>${inv.debt>0?`<div style="font-size:11px;color:var(--danger)">Nợ ${fmt(inv.debt)}</div>`:''}</div></div>`).join('')}`:'<div style="text-align:center;color:var(--text3);font-size:13px;padding:12px">Chưa có hóa đơn</div>'}
     <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
       <button class="btn btn-secondary" style="flex:1" onclick="closeM('mRoomDet');openEditRoom('${id}')">✏️ Sửa</button>
@@ -3581,7 +3607,7 @@ function renderTenants(){
     const av=t.avatar?`<div class="t-avatar"><img src="${esc(t.avatar)}" alt="${esc(t.name)}"></div>`:`<div class="t-avatar" style="background:linear-gradient(135deg,${t.avatarColor},${t.avatarColor}99)">${getInits(t.name)}</div>`;
     return `<div class="tenant-card" onclick="showTenantDet('${t.id}')">
       <div style="display:flex;gap:14px;align-items:flex-start">
-        ${av}
+        ${isRep(t)?crownWrap(av):av}
         <div style="flex:1;min-width:0">
           <div class="t-name">${esc(t.name)}</div>
           <div class="t-meta">
@@ -3591,6 +3617,7 @@ function renderTenants(){
           <div class="t-badges">
             ${t.gender?`<span class="t-badge" style="background:${t.gender==='Nam'?'rgba(14,165,233,.12)':'rgba(236,72,153,.12)'};color:${t.gender==='Nam'?'var(--secondary)':'#ec4899'}">${esc(t.gender)}</span>`:''}
             ${room?`<span class="t-badge" style="background:rgba(22,163,74,.12);color:var(--primary)">Đang thuê</span>`:`<span class="t-badge" style="background:var(--bg2);color:var(--text3)">Chưa có phòng</span>`}
+            ${isRep(t)?'<span class="t-badge" style="background:rgba(245,158,11,.16);color:#b45309">👑 Đại diện</span>':''}
             ${rmCnt>0?`<span class="t-badge" style="background:rgba(99,102,241,.12);color:var(--info)">+${rmCnt} người cùng</span>`:''}
             ${inv?.debt>0?`<span class="t-badge" style="background:rgba(239,68,68,.12);color:var(--danger)">Nợ ${fmt(inv.debt)}</span>`:''}
           </div>
@@ -6677,7 +6704,7 @@ function newPortalCode(){const a=new Uint8Array(24);(window.crypto||{getRandomVa
 function portalSnap(t){
   const room=S.rooms.find(r=>r.id===t.roomId),b=getBank();
   const keys=['id','month','total','paid','debt','status','roomFee','elecFee','waterFee','elecOld','elecNew','waterOld','waterNew','internet','serviceFee','garbage','parking','extra','discount','lateFee','createdAt'];
-  const invoices=S.invoices.filter(i=>i.tenantId===t.id).sort((x,y)=>String(y.month).localeCompare(String(x.month))).slice(0,12).map(i=>{const o={};keys.forEach(k=>{if(i[k]!==undefined&&i[k]!==null)o[k]=i[k]});return o});
+  const invoices=S.invoices.filter(i=>i.tenantId===t.id||(t.roomId&&i.roomId===t.roomId)).sort((x,y)=>String(y.month).localeCompare(String(x.month))).slice(0,12).map(i=>{const o={};keys.forEach(k=>{if(i[k]!==undefined&&i[k]!==null)o[k]=i[k]});return o});
   return cleanRec({v:1,hotel:S.settings.hotelName||'',phone:S.settings.phone||'',tenant:t.name||'',room:room?room.name:'',bank:bankReady()?{bin:b.bin,acc:b.acc,name:b.name||'',bankName:bankName(b)}:null,invoices,at:Date.now()});
 }
 const portalCanPublish=()=>!!(v2.on&&fbDb&&fbConnected&&(window.ptRole==='owner'||window.ptRole==='manager'));
@@ -7492,6 +7519,7 @@ function notifItems(){
     const nr=S.tenants.filter(t=>!t.roomId||!S.rooms.some(r=>r.id===t.roomId));
     add('🛏️','#f97316','Khách chưa có phòng',nr.slice(0,3).map(t=>nm(t.name)).join(', '),nr.length,'tenants');
   }catch(e){}
+  try{const jq=Object.values(window.JOINQ||{});if(jq.length)L.unshift({ico:'🙋',bg:'#16a34a',title:'Khách đăng ký vào phòng (chờ duyệt)',sub:jq.slice(0,3).map(q=>q.name).join(', '),n:jq.length,act:'openJoinReqs()'})}catch(e){}
   return L;
 }
 function updateNotifBadge(){
@@ -7502,83 +7530,305 @@ function updateNotifBadge(){
 window.showNotif=function(){
   const L=notifItems(),total=L.reduce((a,x)=>a+x.n,0);
   document.getElementById('ntTitle').textContent='🔔 Việc cần làm'+(total?' ('+total+')':'');
-  document.getElementById('ntBody').innerHTML=L.length?L.map(x=>`<button class="nt-item" onclick="closeM('mNotif');switchTab('${x.tab}')"><div class="nt-ico" style="background:${x.bg}22">${x.ico}</div><div class="nt-txt"><b>${esc(x.title)}</b>${x.sub?`<small>${esc(x.sub)}</small>`:''}</div><div class="nt-n" style="background:${x.bg}">${x.n}</div></button>`).join(''):'<div class="nt-ok">✅ Hôm nay mọi việc đã ổn</div>';
+  document.getElementById('ntBody').innerHTML=L.length?L.map(x=>`<button class="nt-item" onclick="closeM('mNotif');${x.act||("switchTab('"+x.tab+"')")}"><div class="nt-ico" style="background:${x.bg}22">${x.ico}</div><div class="nt-txt"><b>${esc(x.title)}</b>${x.sub?`<small>${esc(x.sub)}</small>`:''}</div><div class="nt-n" style="background:${x.bg}">${x.n}</div></button>`).join(''):'<div class="nt-ok">✅ Hôm nay mọi việc đã ổn</div>';
   openM('mNotif');
 };
 
 /* ══ Giữ dữ liệu phòng/khách luôn nhất quán (không lỗi khi khách đi) ══ */
+
+/* ══ MÔ HÌNH MỚI: mỗi khách là hồ sơ độc lập, mỗi phòng có 1 người đại diện 👑 ══ */
+const CROWN_SVG='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 7.5l4.6 4.2L12 4l4.9 7.7 4.6-4.2-1.9 11.2H4.4z" fill="#FBBF24" stroke="#B45309" stroke-width="1.1" stroke-linejoin="round"/><path d="M6 17.2h12" stroke="#FFF3B0" stroke-width="1.2" stroke-linecap="round"/><circle cx="12" cy="3.6" r="1.4" fill="#FFF3B0" stroke="#B45309" stroke-width=".7"/><circle cx="2.5" cy="7" r="1.2" fill="#FFF3B0" stroke="#B45309" stroke-width=".7"/><circle cx="21.5" cy="7" r="1.2" fill="#FFF3B0" stroke="#B45309" stroke-width=".7"/></svg>';
+function crownWrap(inner){return `<span class="crown-wrap">${inner}<span class="crown">${CROWN_SVG}</span><i class="spk s1"></i><i class="spk s2"></i><i class="spk s3"></i></span>`}
+function occupants(roomId){return roomId?S.tenants.filter(t=>t.roomId===roomId):[]}
+function isRep(t){if(!t||!t.roomId)return false;const r=S.rooms.find(x=>x.id===t.roomId);return !!r&&r.tenantId===t.id}
+function roomOcc(room){return occupants(room.id).sort((a,b)=>(isRep(b)?1:0)-(isRep(a)?1:0))}
+const canWriteData=()=>!window.ptRole||window.ptRole==='owner'||window.ptRole==='manager';
+const syncBusy=()=>!!(window.v2Applying||(typeof v2!=='undefined'&&v2.starting));
+
+/* Dữ liệu cũ (người ở cùng nằm trong hồ sơ chủ hợp đồng) → mỗi người thành 1 hồ sơ riêng */
+function migrateRoommates(){
+  let ch=false;
+  S.tenants.slice().forEach(t=>{
+    const d=Object.getOwnPropertyDescriptor(t,'roommates');
+    if(!d||d.get)return;
+    (Array.isArray(d.value)?d.value:[]).forEach(rm=>{
+      if(!rm||!String(rm.name||'').trim())return;
+      const id=rm.id||('RM'+h53(t.id+'|'+rm.name+'|'+(rm.cccd||'')));
+      if(S.tenants.some(x=>x.id===id))return;
+      S.tenants.push({id,avatarColor:COLORS[S.tenants.length%COLORS.length],name:rm.name,phone:rm.phone||'',roomId:t.roomId||'',gender:rm.gender||'Nam',dob:rm.dob||'',cccd:rm.cccd||'',address:rm.address||'',vehicle:rm.vehicle||'',moveIn:t.moveIn||today(),deposit:0,people:1,note:'',relation:rm.relation||'',avatar:rm.avatar||'',cmndFront:rm.cmndFront||'',cmndBack:rm.cmndBack||''});
+    });
+    delete t.roommates;ch=true;
+  });
+  return ch;
+}
+/* Tương thích: các màn cũ vẫn đọc được t.roommates (= những người khác cùng phòng), không lưu vào dữ liệu */
+function attachCompat(){
+  S.tenants.forEach(t=>{
+    const d=Object.getOwnPropertyDescriptor(t,'roommates');
+    if(d&&(d.get||Array.isArray(d.value)))return;
+    Object.defineProperty(t,'roommates',{configurable:true,enumerable:false,set(){},get(){
+      if(!isRep(t))return [];
+      return S.tenants.filter(x=>x.roomId===t.roomId&&x.id!==t.id).map(x=>({id:x.id,name:x.name,phone:x.phone,gender:x.gender,dob:x.dob,cccd:x.cccd,address:x.address,vehicle:x.vehicle,avatar:x.avatar,cmndFront:x.cmndFront,cmndBack:x.cmndBack,relation:x.relation||''}));
+    }});
+  });
+}
+function reassignRoom(roomId){
+  const room=S.rooms.find(r=>r.id===roomId);if(!room)return;
+  const occ=occupants(roomId);
+  if(!occ.length){room.tenantId='';room.status='available';return}
+  if(!occ.some(t=>t.id===room.tenantId))room.tenantId=occ.slice().sort((a,b)=>String(a.moveIn||'').localeCompare(String(b.moveIn||'')))[0].id;
+  if(room.status==='available')room.status='rented';
+}
+function placeInRoom(tid,roomId,wantRep){
+  const t=S.tenants.find(x=>x.id===tid),room=S.rooms.find(r=>r.id===roomId);if(!t||!room)return;
+  t.roomId=roomId;
+  const hasRep=occupants(roomId).some(x=>x.id===room.tenantId&&x.id!==tid);
+  if(wantRep||!hasRep)room.tenantId=tid;
+  if(room.status==='available')room.status='rented';
+}
 function healRooms(){
   let ch=false;
-  S.rooms.forEach(r=>{
-    const t=S.tenants.find(x=>x.id===r.tenantId);
-    if(t){if(t.roomId!==r.id){t.roomId=r.id;ch=true}return}
-    const t2=S.tenants.find(x=>x.roomId===r.id);
-    if(t2){r.tenantId=t2.id;if(r.status==='available')r.status='rented';ch=true;return}
-    if(r.tenantId||r.status!=='available'){r.tenantId='';r.status='available';ch=true}
-  });
-  S.tenants.forEach(t=>{if(t.roomId&&!S.rooms.some(r=>r.id===t.roomId)){t.roomId='';ch=true}});
+  const w=canWriteData()&&!syncBusy();
+  if(w){
+    ch=migrateRoommates()||ch;
+    S.tenants.forEach(t=>{if(t.roomId&&!S.rooms.some(r=>r.id===t.roomId)&&!(typeof v2!=='undefined'&&v2.on)){t.roomId='';ch=true}});
+    S.rooms.forEach(r=>{
+      const occ=occupants(r.id),rep=occ.find(t=>t.id===r.tenantId);
+      if(occ.length){
+        if(!rep){r.tenantId=occ.slice().sort((a,b)=>String(a.moveIn||'').localeCompare(String(b.moveIn||'')))[0].id;ch=true}
+        if(r.status==='available'){r.status='rented';ch=true}
+      }else if(!(typeof v2!=='undefined'&&v2.on)&&(r.tenantId||r.status!=='available')){r.tenantId='';r.status='available';ch=true}
+    });
+  }
+  attachCompat();
   if(ch){try{save()}catch(e){}}
   return ch;
 }
+function chooseRep(roomId,excludeId){
+  const others=occupants(roomId).filter(x=>x.id!==excludeId);
+  if(!others.length)return null;
+  if(others.length===1)return others[0].id;
+  const ans=prompt('Chọn người đại diện mới của phòng (nhập số):\n'+others.map((r,i)=>(i+1)+'. '+r.name).join('\n'),'1');
+  if(ans===null)return null;
+  return others[Math.min(others.length,Math.max(1,parseInt(ans)||1))-1].id;
+}
+window.setRoomRep=function(roomId,tid){
+  if(!roleCan('structure')){toast('🔒 Vai trò "'+(ROLE_NAMES[window.ptRole]||'')+'" không có quyền thực hiện thao tác này','warning');return}
+  const room=S.rooms.find(r=>r.id===roomId),t=S.tenants.find(x=>x.id===tid);
+  if(!room||!t||t.roomId!==roomId)return;
+  room.tenantId=tid;if(room.status==='available')room.status='rented';
+  save();renderAll();toast('👑 '+t.name+' là người đại diện phòng '+room.name,'success');
+  const b=document.getElementById('mRoomDetBody');if(b&&b.closest('.overlay').classList.contains('open'))showRoomDet(roomId);
+};
+window.leaveRoom=function(id){
+  if(!roleCan('structure')){toast('🔒 Vai trò "'+(ROLE_NAMES[window.ptRole]||'')+'" không có quyền thực hiện thao tác này','warning');return}
+  const t=S.tenants.find(x=>x.id===id);if(!t)return;
+  const room=S.rooms.find(r=>r.id===t.roomId);if(!room)return;
+  const others=occupants(room.id).filter(x=>x.id!==id);
+  let nr=null;
+  if(room.tenantId===id&&others.length){nr=chooseRep(room.id,id);if(!nr)return}
+  if(!confirm(t.name+' rời phòng '+room.name+'?'+(others.length?' Phòng vẫn còn '+others.length+' người.':'')))return;
+  const del=new Date();del.setMonth(del.getMonth()+3);
+  (S.archived||(S.archived=[])).push({...t,archivedAt:new Date().toISOString(),deleteAt:del.toISOString(),checkoutDate:today(),checkoutNote:'Rời phòng (phòng vẫn còn người ở)',roomName:room.name,totalPaidOnCheckout:0,totalDebtOnCheckout:0});
+  S.tenants=S.tenants.filter(x=>x.id!==id);
+  if(nr){room.tenantId=nr;S.invoices.forEach(i=>{if(i.tenantId===id)i.tenantId=nr})}
+  reassignRoom(room.id);save();renderAll();toast('🚪 '+t.name+' đã rời phòng '+room.name,'info');
+};
+window.moveGuest=function(id){
+  const t=S.tenants.find(x=>x.id===id);if(!t)return;
+  const targets=S.rooms.filter(r=>r.id!==t.roomId);
+  if(!targets.length){toast('Chưa có phòng khác','warning');return}
+  mkModal('mMoveGuest','↔ Chuyển '+t.name+' sang phòng khác',
+    '<label class="flbl">Phòng mới</label><select class="fc" id="mgRoom">'+targets.map(r=>{const n=occupants(r.id).length;return `<option value="${esc(r.id)}">Phòng ${esc(r.name)} — ${n?n+' người':'trống'}</option>`}).join('')+'</select><label class="rep-chk" style="margin-top:12px"><input type="checkbox" id="mgRep"><span>👑 Làm người đại diện của phòng mới</span></label>',
+    `<button class="btn btn-secondary" type="button" onclick="closeM('mMoveGuest')">Hủy</button><button class="btn btn-primary" type="button" onclick="doMoveGuest('${esc(id)}')">Chuyển</button>`);
+  openM('mMoveGuest');
+};
+window.doMoveGuest=function(id){
+  if(!roleCan('structure')){toast('🔒 Vai trò "'+(ROLE_NAMES[window.ptRole]||'')+'" không có quyền thực hiện thao tác này','warning');return}
+  const t=S.tenants.find(x=>x.id===id),nr=S.rooms.find(r=>r.id===document.getElementById('mgRoom').value);
+  if(!t||!nr)return;
+  const oldId=t.roomId,old=S.rooms.find(r=>r.id===oldId);let np=null;
+  if(old&&old.tenantId===id&&occupants(oldId).length>1){np=chooseRep(oldId,id);if(!np)return}
+  const want=document.getElementById('mgRep').checked;
+  if(np){old.tenantId=np;S.invoices.forEach(i=>{if(i.tenantId===id&&i.roomId===oldId)i.tenantId=np})}
+  t.moveIn=today();placeInRoom(id,nr.id,want);reassignRoom(oldId);
+  save();closeM('mMoveGuest');renderAll();toast('↔ '+t.name+' đã chuyển sang phòng '+nr.name,'success');
+};
+window.addGuestToRoom=function(roomId,scan){
+  openAddTenant();const sel=document.getElementById('tRoom');sel.value=roomId;tRoomChanged();
+  if(scan)setTimeout(()=>openCccdScan(),250);
+};
+
+/* Form khách: chọn bất kỳ phòng nào, tick người đại diện */
+function buildRoomOptions(selected){
+  const sel=document.getElementById('tRoom');if(!sel)return;
+  sel.innerHTML='<option value="">-- Chưa xếp phòng --</option>'+S.rooms.map(r=>{const n=occupants(r.id).length;return `<option value="${esc(r.id)}">Phòng ${esc(r.name)} (${n?n+' người':'trống'})</option>`}).join('');
+  sel.value=selected||'';
+}
+window.tRoomChanged=function(){
+  const rid=document.getElementById('tRoom').value,cb=document.getElementById('tRep'),hint=document.getElementById('tRepHint'),eid=document.getElementById('tEditId').value;
+  if(!cb)return;
+  const room=S.rooms.find(r=>r.id===rid);
+  if(!room){cb.checked=false;cb.disabled=true;hint.textContent='Chọn phòng để đặt người đại diện';return}
+  const others=occupants(rid).filter(x=>x.id!==eid);
+  if(!others.length){cb.checked=true;cb.disabled=true;hint.textContent='Phòng đang trống: người này là người đại diện ký hợp đồng.'}
+  else{cb.disabled=false;cb.checked=!!eid&&room.tenantId===eid;const rp=others.find(x=>x.id===room.tenantId);hint.textContent=rp?'Người đại diện hiện tại: '+rp.name:''}
+};
+window.saveTenant=function(){
+  if(!roleCan('structure')){toast('🔒 Vai trò "'+(ROLE_NAMES[window.ptRole]||'')+'" không có quyền thực hiện thao tác này','warning');return}
+  const g=id=>document.getElementById(id);
+  const name=g('tName').value.trim(),phone=g('tPhone').value.trim();
+  if(!name||!phone){toast('Nhập họ tên và SĐT!','error');return}
+  const id=g('tEditId').value,roomId=g('tRoom').value,want=!!(g('tRep')&&g('tRep').checked);
+  const data={name,phone,roomId:'',gender:g('tGender').value,dob:g('tDob').value,cccd:g('tCccd').value,address:g('tAddr').value,vehicle:g('tVehicle').value,moveIn:g('tMoveIn').value,deposit:+g('tDeposit').value||0,people:+g('tPeople').value||1,note:g('tNote').value,avatar:avUrl,cmndFront:cmndFUrl,cmndBack:cmndBUrl};
+  let tid=id,oldRoom='';
+  if(id){
+    const idx=S.tenants.findIndex(t=>t.id===id),old=S.tenants[idx];if(idx<0)return;
+    oldRoom=old.roomId||'';
+    const wasRep=isRep(old),oldR=S.rooms.find(r=>r.id===oldRoom);
+    if(oldRoom&&oldRoom!==roomId&&wasRep&&oldR){const np=occupants(oldRoom).find(x=>x.id!==id);if(np)oldR.tenantId=np.id}
+    S.tenants[idx]={...old,...data,roomId:oldRoom};
+  }else{
+    tid='T'+uid();S.tenants.push({id:tid,avatarColor:COLORS[S.tenants.length%COLORS.length],...data});
+  }
+  if(roomId){placeInRoom(tid,roomId,want)}else{const t=S.tenants.find(x=>x.id===tid);if(t)t.roomId=''}
+  if(oldRoom&&oldRoom!==roomId)reassignRoom(oldRoom);
+  const dup=S.tenants.find(t=>t.id!==tid&&t.cccd&&t.cccd===data.cccd);
+  healRooms();save();closeM('mTenant');renderTenants();renderAll();
+  toast(id?'Đã cập nhật!':'Đã thêm '+name+(roomId?' vào phòng '+(S.rooms.find(r=>r.id===roomId)||{}).name:''),'success');
+  if(dup)setTimeout(()=>toast('⚠️ CCCD này trùng với '+dup.name,'warning'),600);
+};
+
 (function(){
-  const g=window.getRoomTenant;
   window.getRoomTenant=function(room){return (room&&S.tenants.find(t=>t.id===room.tenantId))||(room&&S.tenants.find(t=>t.roomId===room.id))||undefined};
-  /* Chuyển 1 người ở cùng thành người đại diện, giữ phòng không bị trống */
-  window.promoteRoommate=function(old,roomId,idx){
-    const rm=(old.roommates||[])[idx];if(!rm)return null;
-    const room=S.rooms.find(r=>r.id===roomId);if(!room)return null;
-    const rest=(old.roommates||[]).filter((_,i)=>i!==idx);
-    const nid='T'+uid();
-    S.tenants.push({id:nid,avatarColor:COLORS[S.tenants.length%COLORS.length],name:rm.name||'Khách',phone:rm.phone||'',roomId:roomId,gender:rm.gender||'Nam',dob:rm.dob||'',cccd:rm.cccd||'',address:rm.address||'',vehicle:rm.vehicle||'',moveIn:old.moveIn||today(),deposit:0,people:Math.max(1,rest.length+1),note:'Thay '+old.name+' làm người đại diện',avatar:rm.avatar||'',cmndFront:rm.cmndFront||'',cmndBack:rm.cmndBack||'',roommates:JSON.parse(JSON.stringify(rest))});
-    room.tenantId=nid;room.status='rented';
-    return nid;
-  };
-  function pick(t){
-    const rms=(t.roommates||[]).filter(r=>r&&r.name);
-    if(!rms.length)return -1;
-    const msg='Phòng còn '+rms.length+' người ở cùng. Giữ phòng và chuyển người ở cùng thành người đại diện?\n\nOK = giữ phòng, Hủy = cả phòng cùng dọn đi';
-    if(!confirm(msg))return -1;
-    let k=0;
-    if(rms.length>1){
-      const ans=prompt('Chọn người đại diện mới (nhập số):\n'+rms.map((r,i)=>(i+1)+'. '+r.name).join('\n'),'1');
-      if(ans===null)return -1;
-      k=Math.min(rms.length,Math.max(1,parseInt(ans)||1))-1;
-    }
-    return (t.roommates||[]).indexOf(rms[k]);
-  }
-  /* Dọn đi */
-  const cc=window.confirmCheckout;
-  if(typeof cc==='function'){
-    window.confirmCheckout=function(){
-      const id=document.getElementById('coTenantId').value;
-      const t=S.tenants.find(x=>x.id===id);
-      let plan=null;
-      if(t&&t.roomId&&(t.roommates||[]).length){const idx=pick(t);if(idx>=0)plan={old:JSON.parse(JSON.stringify(t)),roomId:t.roomId,idx:idx}}
-      const r=cc.apply(this,arguments);
-      if(plan&&!S.tenants.some(x=>x.id===id)){
-        const nid=promoteRoommate(plan.old,plan.roomId,plan.idx);
-        if(nid){healRooms();save();renderAll();toast('👥 Phòng được giữ cho '+(plan.old.roommates[plan.idx].name||'người ở cùng')+'. Nhớ lập hợp đồng mới nếu cần.','info',{duration:5000})}
-      }
-      healRooms();
-      return r;
-    };
-  }
-  /* Xóa người thuê */
+  const tr=document.getElementById('tRoom');if(tr)tr.addEventListener('change',()=>tRoomChanged());
+  const oat=window.openAddTenant;window.openAddTenant=function(){const r=oat.apply(this,arguments);buildRoomOptions('');tRoomChanged();return r};
+  const oet=window.openEditTenant;window.openEditTenant=function(id){const r=oet.apply(this,arguments);const t=S.tenants.find(x=>x.id===id);buildRoomOptions(t?t.roomId:'');tRoomChanged();return r};
+  /* Chuyển phòng / dọn đi: phòng còn người khác → thao tác riêng cho từng người */
+  const ot=window.openTransfer;
+  window.openTransfer=function(id){const t=S.tenants.find(x=>x.id===id);if(t&&t.roomId&&occupants(t.roomId).length>1)return moveGuest(id);return ot.apply(this,arguments)};
+  const oc=window.openCheckout;
+  window.openCheckout=function(id){const t=S.tenants.find(x=>x.id===id);if(t&&t.roomId&&occupants(t.roomId).length>1)return leaveRoom(id);return oc.apply(this,arguments)};
   const dt=window.delTenant;
-  if(typeof dt==='function'){
-    window.delTenant=function(id){
-      const t=S.tenants.find(x=>x.id===id);
-      const snap=t?JSON.parse(JSON.stringify(t)):null;
-      const r=dt.apply(this,arguments);
-      if(snap&&snap.roomId&&(snap.roommates||[]).length&&!S.tenants.some(x=>x.id===id)){
-        const idx=pick(snap);
-        if(idx>=0){const nid=promoteRoommate(snap,snap.roomId,idx);if(nid){healRooms();save();renderAll()}}
-      }
-      healRooms();
-      return r;
-    };
+  window.delTenant=function(id){
+    const t=S.tenants.find(x=>x.id===id);if(!t)return dt.apply(this,arguments);
+    const rid=t.roomId,room=S.rooms.find(r=>r.id===rid);let keep=room?room.tenantId:'';
+    if(room&&isRep(t)&&occupants(rid).length>1){keep=chooseRep(rid,id);if(!keep)return}
+    const r=dt.apply(this,arguments);
+    if(room&&!S.tenants.some(x=>x.id===id)){
+      if(keep&&keep!==id&&S.tenants.some(x=>x.id===keep)){room.tenantId=keep;S.invoices.forEach(i=>{if(i.tenantId===id)i.tenantId=keep})}
+      reassignRoom(rid);save();renderAll();
+    }
+    return r;
+  };
+  /* Chi tiết phòng: danh sách người + nút thêm khách */
+  const srd=window.showRoomDet;
+  window.showRoomDet=function(id){
+    const r=srd.apply(this,arguments);
+    try{
+      const room=S.rooms.find(x=>x.id===id),body=document.getElementById('mRoomDetBody');if(!room||!body)return r;
+      const occ=roomOcc(room),rid=esc(room.id);
+      const rows=occ.map(t=>{const rep=isRep(t),av=rep?crownWrap(avHtml(t,40,30)):avHtml(t,40,30),tid=esc(t.id);
+        return `<div class="occ-row"><div class="occ-av">${av}</div><div class="occ-info"><b>${esc(t.name)}</b>${rep?'<em class="occ-rep">👑 Đại diện</em>':''}<small>${esc(t.phone||'')}${t.gender?' · '+esc(t.gender):''}</small></div><div class="occ-act">${rep?'':`<button class="occ-btn" title="Đặt làm người đại diện" onclick="setRoomRep('${rid}','${tid}')">👑</button>`}<button class="occ-btn" title="Chuyển sang phòng khác" onclick="closeM('mRoomDet');moveGuest('${tid}')">↔</button><button class="occ-btn" title="Rời phòng" onclick="closeM('mRoomDet');leaveRoom('${tid}')">🚪</button></div></div>`}).join('');
+      const sec=document.createElement('div');sec.className='occ-sec';
+      sec.innerHTML=`<div class="occ-hdr">👥 Người trong phòng (${occ.length})</div>${rows||'<div class="occ-empty">Phòng chưa có ai</div>'}<div class="occ-btns"><button class="btn btn-primary btn-sm" type="button" onclick="closeM('mRoomDet');addGuestToRoom('${rid}',true)">📷 Quét CCCD thêm khách</button><button class="btn btn-secondary btn-sm" type="button" onclick="closeM('mRoomDet');addGuestToRoom('${rid}',false)">➕ Nhập tay</button><button class="btn btn-secondary btn-sm" type="button" onclick="openRoomJoinQR('${rid}')">🔗 QR đăng ký cho khách</button></div>`;
+      const repCard=[...body.children].find(c=>/Người đại diện ký hợp đồng/.test(c.textContent||''));
+      if(repCard)repCard.after(sec);else body.appendChild(sec);
+    }catch(e){}
+    return r;
+  };
+})();
+
+/* ══ QR đăng ký theo phòng: khách tự quét, điền thông tin → chủ trọ duyệt ══ */
+window.JOINQ=window.JOINQ||{};
+const joinHash={};
+async function roomJoinPublish(force){
+  if(!portalCanPublish())return 0;let n=0;
+  for(const r of S.rooms){
+    if(!r.joinCode)continue;
+    const snap=cleanRec({v:1,kind:'join',hotel:S.settings.hotelName||'',phone:S.settings.phone||'',room:r.name||'',at:Date.now()}),h=h53(JSON.stringify({...snap,at:0}));
+    if(!force&&joinHash[r.joinCode]===h)continue;
+    try{await dbRef('portal/'+r.joinCode).set(snap);joinHash[r.joinCode]=h;n++}catch(e){if(v2Msg(e)==='PERMISSION_DENIED'){v2Denied('ghi cổng khách');break}}
   }
-  /* Sau khi mở app và mỗi lần vẽ lại: sửa dữ liệu lệch + cập nhật huy hiệu chuông */
+  return n;
+}
+(function(){
+  const pp=window.portalPublish;
+  if(typeof pp==='function')window.portalPublish=async function(force){let n=await pp.call(this,force);try{n+=await roomJoinPublish(force)}catch(e){}return n};
+  window.portalSchedule=function(){
+    if(!portalCanPublish())return;
+    if(!S.tenants.some(t=>t.portalCode)&&!S.rooms.some(r=>r.joinCode)&&!(S.archived||[]).some(a=>a.portalCode))return;
+    clearTimeout(portalT);portalT=setTimeout(()=>window.portalPublish(false),2000);
+  };
+  const ph=window.portalHandle;
+  window.portalHandle=function(code,items){
+    const room=S.rooms.find(r=>r.joinCode===code);
+    if(!room)return ph.apply(this,arguments);
+    if(!items||typeof items!=='object')return;
+    let added=0;
+    for(const id of Object.keys(items)){
+      if(window.JOINQ[id])continue;
+      const it=items[id]||{};
+      if(it.type==='join'&&clip(it.name,100)&&clip(it.phone,20)){
+        window.JOINQ[id]={id,code,roomId:room.id,name:clip(it.name,100),phone:clip(it.phone,20),cccd:clip(it.cccd,20),dob:clip(it.dob,10),gender:clip(it.gender,10),address:clip(it.address,200),vehicle:clip(it.vehicle,20),at:+it.at||Date.now()};added++;
+      }else{try{dbRef('portal_in/'+code+'/'+id).remove()}catch(e){}}
+    }
+    if(added){try{updateNotifBadge()}catch(e){}toast('🙋 '+added+' khách đăng ký vào phòng '+room.name+' — chờ bạn duyệt','info',{duration:7000,action:{label:'Xem',fn:()=>openJoinReqs()}})}
+  };
+})();
+window.openRoomJoinQR=async function(roomId){
+  const room=S.rooms.find(r=>r.id===roomId);if(!room)return;
+  if(!v2.on){toast('Hãy bật Đồng bộ theo bản ghi (Cài đặt → Firebase) để dùng QR đăng ký','warning',{duration:6000});return}
+  if(!portalCanPublish()){toast('Chỉ Chủ trọ/Quản lý tạo được QR đăng ký','warning');return}
+  if(!room.joinCode){room.joinCode=newPortalCode();save()}
+  roomJoinPublish(true).catch(()=>{});
+  mkModal('mRoomJoin','🔗 QR đăng ký — Phòng '+room.name,
+    `<div style="font-size:12px;color:var(--text3);margin-bottom:10px">Khách quét mã bằng camera điện thoại, điền thông tin (hoặc quét QR căn cước). Bạn nhận thông báo 🔔 để duyệt, khách sẽ vào phòng <b>${esc(room.name)}</b>. Mã chỉ dùng cho phòng này.</div><div style="text-align:center"><div id="joinQrCanvas" style="display:inline-block;padding:10px;background:#fff;border-radius:10px;min-width:120px;min-height:120px"></div></div>`,
+    `<button class="btn btn-secondary btn-sm" type="button" onclick="joinCopy('${esc(room.id)}')">📋 Chép link</button><button class="btn btn-secondary btn-sm" type="button" onclick="joinReset('${esc(room.id)}')">↺ Đổi mã</button><button class="btn btn-danger btn-sm" type="button" onclick="joinRevoke('${esc(room.id)}')">Thu hồi</button><button class="btn btn-primary btn-sm" type="button" onclick="closeM('mRoomJoin')">Đóng</button>`);
+  openM('mRoomJoin');
+  try{await loadQRLib();const box=document.getElementById('joinQrCanvas');box.innerHTML='';new QRCode(box,{text:portalLink(room.joinCode),width:240,height:240,correctLevel:QRCode.CorrectLevel.L})}
+  catch(e){const b=document.getElementById('joinQrCanvas');if(b)b.textContent='Cần Internet để tạo QR. Hãy dùng nút Chép link.'}
+};
+window.joinCopy=function(roomId){const r=S.rooms.find(x=>x.id===roomId);if(r&&r.joinCode)copyAny(portalLink(r.joinCode),'Đã sao chép link đăng ký')};
+window.joinReset=async function(roomId){
+  const r=S.rooms.find(x=>x.id===roomId);if(!r||!confirm('Đổi mã sẽ làm QR/link cũ của phòng này hết hiệu lực. Tiếp tục?'))return;
+  if(r.joinCode){try{await dbRef('portal/'+r.joinCode).remove()}catch(e){}delete joinHash[r.joinCode]}
+  r.joinCode=newPortalCode();save();await roomJoinPublish(true);openRoomJoinQR(roomId);
+};
+window.joinRevoke=async function(roomId){
+  const r=S.rooms.find(x=>x.id===roomId);if(!r||!r.joinCode||!confirm('Thu hồi QR đăng ký của phòng '+r.name+'?'))return;
+  try{await dbRef('portal/'+r.joinCode).remove()}catch(e){toast('Lỗi: '+v2Msg(e),'error');return}
+  delete joinHash[r.joinCode];delete r.joinCode;save();closeM('mRoomJoin');toast('Đã thu hồi QR đăng ký','info');
+};
+window.openJoinReqs=function(){
+  const list=Object.values(window.JOINQ).sort((a,b)=>a.at-b.at);
+  mkModal('mJoin','🙋 Khách đăng ký chờ duyệt ('+list.length+')',
+    list.map(q=>{const r=S.rooms.find(x=>x.id===q.roomId);return `<div class="jr-item"><b>${esc(q.name)}</b> · ${esc(q.phone)}<small>Phòng ${esc(r?r.name:'?')}${q.cccd?' · CCCD '+esc(q.cccd):''}${q.dob?' · '+esc(q.dob):''}${q.address?'<br>'+esc(q.address):''}</small><div style="display:flex;gap:6px"><button class="btn btn-primary btn-xs" type="button" onclick="approveJoin('${esc(q.id)}')">✅ Duyệt vào phòng</button><button class="btn btn-secondary btn-xs" type="button" onclick="rejectJoin('${esc(q.id)}')">Từ chối</button></div></div>`}).join('')||'<div class="occ-empty">Không có yêu cầu nào.</div>',
+    '<button class="btn btn-secondary" type="button" onclick="closeM(\'mJoin\')">Đóng</button>');
+  openM('mJoin');
+};
+window.approveJoin=function(id){
+  if(!roleCan('structure')){toast('🔒 Vai trò "'+(ROLE_NAMES[window.ptRole]||'')+'" không có quyền thực hiện thao tác này','warning');return}
+  const q=window.JOINQ[id];if(!q)return;
+  const room=S.rooms.find(r=>r.id===q.roomId);if(!room){rejectJoin(id);return}
+  const dup=S.tenants.find(t=>q.cccd&&t.cccd===q.cccd);
+  if(dup&&!confirm('CCCD này đã có trong danh sách: '+dup.name+'. Vẫn thêm?'))return;
+  const nid='T'+uid();
+  S.tenants.push({id:nid,avatarColor:COLORS[S.tenants.length%COLORS.length],name:q.name,phone:q.phone,roomId:'',gender:/^n[ữu]$/i.test(q.gender)?'Nữ':/^nam$/i.test(q.gender)?'Nam':'Khác',dob:/^\d{4}-\d{2}-\d{2}$/.test(q.dob)?q.dob:'',cccd:q.cccd,address:q.address,vehicle:q.vehicle,moveIn:today(),deposit:0,people:1,note:'Đăng ký qua QR phòng',avatar:'',cmndFront:'',cmndBack:''});
+  placeInRoom(nid,room.id,false);
+  try{dbRef('portal_in/'+q.code+'/'+id).remove()}catch(e){}
+  delete window.JOINQ[id];save();renderAll();updateNotifBadge();
+  toast('✅ '+q.name+' đã vào phòng '+room.name,'success');
+  if(Object.keys(window.JOINQ).length)openJoinReqs();else closeM('mJoin');
+};
+window.rejectJoin=function(id){
+  const q=window.JOINQ[id];if(!q)return;
+  try{dbRef('portal_in/'+q.code+'/'+id).remove()}catch(e){}
+  delete window.JOINQ[id];updateNotifBadge();
+  if(Object.keys(window.JOINQ).length)openJoinReqs();else closeM('mJoin');
+};
+
+(function(){
   const bu=window.bootUI;
   if(typeof bu==='function'&&!bu.__h){
     const f=function(){try{healRooms()}catch(e){}const r=bu.apply(this,arguments);setTimeout(updateNotifBadge,0);return r};
@@ -7586,7 +7836,7 @@ function healRooms(){
   }
   const ra=window.renderAll;
   if(typeof ra==='function'&&!ra.__n){
-    const f=function(){const r=ra.apply(this,arguments);try{updateNotifBadge()}catch(e){}return r};
+    const f=function(){try{healRooms()}catch(e){}const r=ra.apply(this,arguments);try{updateNotifBadge()}catch(e){}return r};
     f.__n=1;f.__c=ra.__c;window.renderAll=f;
   }
 })();

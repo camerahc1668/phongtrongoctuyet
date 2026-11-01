@@ -1214,6 +1214,23 @@ select{text-overflow:ellipsis}
 #homeMenuGrid.seen .menu-card{animation:none}
 @media(prefers-reduced-motion:reduce){.page{animation:none}.menu-card{animation:none!important}}
 .stg-select{max-width:46%;min-width:0;padding:8px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);color:var(--text);font:inherit;font-size:13px;font-weight:600;flex-shrink:1;cursor:pointer}
+.scan-btn{display:flex;align-items:center;gap:12px;width:100%;margin:0 0 12px;padding:12px 14px;border-radius:14px;border:1.5px dashed var(--primary);background:var(--primary-bg);color:var(--primary);font:inherit;text-align:left;cursor:pointer}
+.scan-btn svg{width:26px;height:26px;flex-shrink:0}
+.scan-btn span{display:flex;flex-direction:column;min-width:0}.scan-btn b{font-size:14px}.scan-btn small{font-size:11.5px;opacity:.85;font-weight:500}
+.scan-view{position:relative;border-radius:16px;overflow:hidden;background:#000;aspect-ratio:4/3;width:100%}
+.scan-view video{width:100%;height:100%;object-fit:cover;display:block}
+.scan-frame{position:absolute;inset:12% 16%;border:3px solid #22c55e;border-radius:16px;box-shadow:0 0 0 999px rgba(0,0,0,.38);pointer-events:none;overflow:hidden}
+.scan-frame i{position:absolute;left:0;right:0;height:2px;background:#22c55e;box-shadow:0 0 10px #22c55e;animation:scanLine 1.8s ease-in-out infinite}
+@keyframes scanLine{0%,100%{top:6%}50%{top:94%}}
+.scan-msg{margin-top:10px;font-size:13px;text-align:center;color:var(--text3);min-height:20px}
+.rm-scan{margin-left:auto;margin-right:34px;padding:6px 10px;border-radius:10px;border:1.5px solid var(--primary);background:var(--primary-bg);color:var(--primary);font:inherit;font-size:11.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.nt-item{display:flex;align-items:center;gap:12px;width:100%;padding:12px;margin-bottom:8px;border-radius:14px;border:1.5px solid var(--border);background:var(--bg2);font:inherit;color:var(--text);text-align:left;cursor:pointer}
+.nt-item:active{transform:scale(.99)}
+.nt-ico{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.nt-txt{flex:1;min-width:0}.nt-txt b{display:block;font-size:14px}.nt-txt small{display:block;font-size:12px;color:var(--text3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nt-n{min-width:26px;height:26px;padding:0 7px;border-radius:99px;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
+.nt-ok{text-align:center;padding:30px 10px;color:var(--text3);font-weight:700}
+#notifBadge.nt-zero{display:none}
 </style>
 </head>
 <body>
@@ -1938,6 +1955,10 @@ select{text-overflow:ellipsis}
     </div>
     <input type="file" id="avInput" accept="image/*" style="display:none" onchange="prevAvatar(this)">
 
+    <button type="button" class="scan-btn" onclick="openCccdScan()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="4" height="4"/><rect x="13" y="7" width="4" height="4"/><rect x="7" y="13" width="4" height="4"/><path d="M13 13h4v4"/></svg>
+      <span><b>Quét QR căn cước công dân</b><small>Tự điền họ tên, số CCCD, ngày sinh, giới tính, địa chỉ</small></span>
+    </button>
     <div class="fsect">👤 Thông Tin Chủ Hợp Đồng</div>
     <div class="frow"><div class="fg"><label class="flbl">Họ và tên <span>*</span></label><input class="fc" id="tName" placeholder="Nguyễn Văn A"></div><div class="fg"><label class="flbl">Giới tính</label><select class="fc" id="tGender"><option>Nam</option><option>Nữ</option><option>Khác</option></select></div></div>
     <div class="frow"><div class="fg"><label class="flbl">Số điện thoại <span>*</span></label><input class="fc" id="tPhone" type="tel" placeholder="0901234567"></div><div class="fg"><label class="flbl">Ngày sinh</label><input class="fc" id="tDob" type="date"></div></div>
@@ -1956,10 +1977,29 @@ select{text-overflow:ellipsis}
     <div class="frow"><div class="fg"><label class="flbl">Tiền cọc (₫)</label><input class="fc" id="tDeposit" type="number" placeholder="2500000"></div><div class="fg"><label class="flbl">Số người ở</label><input class="fc" id="tPeople" type="number" value="1" min="1"></div></div>
     <div class="fg"><label class="flbl">Ghi chú</label><textarea class="fc" id="tNote" placeholder="Thêm ghi chú..."></textarea></div>
 
-    <div class="fsect">👥 Người Ở Cùng<button class="btn btn-primary btn-xs" onclick="addRM()" style="margin-left:auto">+ Thêm người</button></div>
+    <div class="fsect">👥 Người Ở Cùng<button class="btn btn-secondary btn-xs" onclick="addRM();openCccdScan(rms.length-1)" style="margin-left:auto">📷 Quét thêm</button><button class="btn btn-primary btn-xs" onclick="addRM()">+ Thêm người</button></div>
     <div id="rmList"></div>
   </div>
   <div class="mfoot"><button class="btn btn-secondary" onclick="closeM('mTenant')">Hủy</button><button class="btn btn-primary" onclick="saveTenant()">Lưu</button></div>
+</div></div>
+
+<!-- ═══ MODAL: VIỆC CẦN LÀM (CHUÔNG) ═══ -->
+<div class="overlay" id="mNotif"><div class="modal">
+  <div class="mhandle"></div>
+  <div class="mhdr"><div class="mtitle" id="ntTitle">🔔 Việc cần làm</div><button class="mclose" onclick="closeM('mNotif')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+  <div class="mbody" id="ntBody"></div>
+</div></div>
+
+<!-- ═══ MODAL: QUÉT QR CCCD ═══ -->
+<div class="overlay" id="mScan"><div class="modal">
+  <div class="mhandle"></div>
+  <div class="mhdr"><div class="mtitle">📷 Quét QR căn cước</div><button class="mclose" onclick="closeCccdScan()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+  <div class="mbody">
+    <div class="scan-view"><video id="scanVideo" playsinline muted autoplay></video><div class="scan-frame"><i></i></div></div>
+    <div class="scan-msg" id="scanMsg">Đang mở camera…</div>
+    <input type="file" id="scanFile" accept="image/*" style="display:none" onchange="scanCccdImage(this)">
+  </div>
+  <div class="mfoot"><button class="btn btn-secondary" onclick="document.getElementById('scanFile').click()">🖼️ Chọn ảnh QR</button><button class="btn btn-primary" onclick="closeCccdScan()">Đóng</button></div>
 </div></div>
 
 <!-- ═══ MODAL: HÓA ĐƠN ═══ -->
@@ -3091,6 +3131,7 @@ function renderRMs(){
         </div>
         <input type="file" id="rmAv${i}" accept="image/*" style="display:none" onchange="loadRmAv(this,${i})">
         <div><div style="font-size:12px;font-weight:700;color:var(--primary)">Người ở cùng ${i+1}</div><div style="font-size:11px;color:var(--text3)">Nhấn số để đổi ảnh đại diện</div></div>
+        <button type="button" class="rm-scan" onclick="openCccdScan(${i})">📷 Quét QR</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <div><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px">Họ và tên *</div><input class="fc" style="font-size:12px;padding:8px 10px" placeholder="Họ tên..." value="${esc(rm.name)}" oninput="rms[${i}].name=this.value"></div>
@@ -6885,6 +6926,7 @@ function renderHomeExtras(){
   if(!t){t=document.createElement('div');t.id='homeToday';t.className='home-today';document.getElementById('homeSummary').before(t)}
   const chips=[],add=(n,txt,cls,tab)=>{if(n>0)chips.push(`<button class="today-chip ${cls}" type="button" onclick="switchTab('${tab}')"><b>${n}</b>${txt}</button>`)};
   try{
+    add(S.tenants.filter(t=>!t.roomId||!S.rooms.some(r=>r.id===t.roomId)).length,'khách chưa có phòng','tc-orange','tenants');
     add(S.invoices.filter(i=>i.debt>0).length,'khoản công nợ','tc-red','debt');
     add((S.contracts||[]).filter(c=>getContractStatus(c)==='near').length,'hợp đồng sắp hết hạn','tc-orange','contracts');
     add((S.incidents||[]).filter(i=>i.status!=='done').length,'sự cố đang mở','tc-purple','maint');
@@ -7310,6 +7352,242 @@ function syncUiPrefs(){
       return r;
     };
     f.__u=1;window.bootUI=f;
+  }
+})();
+
+/* ── Quét QR căn cước công dân → tự điền form người thuê ── */
+(function(){
+  const $=id=>document.getElementById(id);
+  const sc={stream:null,raf:0,det:null,busy:false,last:0,lastTxt:'',lastAt:0};
+  let cv=null,cx=null,jsqrP=null;
+  function loadJsQR(){
+    if(window.jsQR)return Promise.resolve();
+    if(jsqrP)return jsqrP;
+    jsqrP=new Promise((ok,no)=>{const e=document.createElement('script');e.src='https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js';e.onload=ok;e.onerror=()=>{jsqrP=null;no(new Error('jsQR'))};document.head.appendChild(e)});
+    return jsqrP;
+  }
+  const msg=t=>{const m=$('scanMsg');if(m)m.textContent=t};
+  function titleCase(n){
+    n=String(n||'').trim().replace(/\s+/g,' ');
+    if(n&&n===n.toLocaleUpperCase('vi'))n=n.toLocaleLowerCase('vi').replace(/(^|\s)(\S)/g,(m,a,b)=>a+b.toLocaleUpperCase('vi'));
+    return n;
+  }
+  /* Định dạng QR CCCD: SốCCCD|SốCMND cũ|Họ tên|ddMMyyyy|Giới tính|Địa chỉ thường trú|Ngày cấp ddMMyyyy */
+  window.parseCccdQr=function(txt){
+    const p=String(txt||'').split('|').map(x=>x.trim());
+    if(p.length<6||!/^\d{9}$|^\d{12}$/.test(p[0])||!p[2])return null;
+    const d=p[3]||'',dob=/^\d{8}$/.test(d)?`${d.slice(4)}-${d.slice(2,4)}-${d.slice(0,2)}`:'';
+    const g=/^n[ữu]$/i.test(p[4])?'Nữ':/^nam$/i.test(p[4])?'Nam':'Khác';
+    return {cccd:p[0],oldId:p[1]||'',name:titleCase(p[2]),dob:dob,gender:g,address:p[5]||''};
+  };
+  function fillRoommate(r,i){
+    const rm=rms[i];if(!rm)return;
+    rm.name=r.name;rm.cccd=r.cccd;rm.gender=r.gender;if(r.dob)rm.dob=r.dob;if(r.address)rm.address=r.address;
+    renderRMs();
+    const editId=$('tEditId').value;
+    const dup=S.tenants.find(t=>t.id!==editId&&(t.cccd===r.cccd||(t.roommates||[]).some(x=>x.cccd===r.cccd)))||rms.find((x,k)=>k!==i&&x.cccd===r.cccd)||($('tCccd').value===r.cccd?{name:'chủ hợp đồng'}:null);
+    if(navigator.vibrate)try{navigator.vibrate(60)}catch(e){}
+    toast(dup?`⚠️ CCCD này đã có: ${dup.name}`:`✅ Đã điền người ở cùng ${i+1}: ${r.name}`,dup?'warning':'success');
+    setTimeout(()=>{const el=document.getElementById('rmI'+i);if(el)el.scrollIntoView({block:'center',behavior:'smooth'})},200);
+  }
+  function fill(r){
+    if(sc.target>=0){fillRoommate(r,sc.target);return}
+    $('tName').value=r.name;$('tCccd').value=r.cccd;
+    if(r.dob)$('tDob').value=r.dob;
+    $('tGender').value=r.gender;
+    if(r.address)$('tAddr').value=r.address;
+    const editId=$('tEditId').value;
+    const dup=S.tenants.find(t=>t.cccd&&t.cccd===r.cccd&&t.id!==editId);
+    if(navigator.vibrate)try{navigator.vibrate(60)}catch(e){}
+    toast(dup?`⚠️ CCCD này đã có trong danh sách: ${dup.name}`:`✅ Đã điền thông tin: ${r.name}`,dup?'warning':'success');
+    if(!$('tPhone').value)setTimeout(()=>{try{$('tPhone').focus()}catch(e){}},350);
+  }
+  function onText(txt){
+    const now=Date.now();
+    if(txt===sc.lastTxt&&now-sc.lastAt<2500)return;
+    sc.lastTxt=txt;sc.lastAt=now;
+    const r=window.parseCccdQr(txt);
+    if(!r){msg('Mã QR này không phải căn cước công dân. Hãy quét mã QR ở mặt trước thẻ.');return}
+    stop();closeM('mScan');document.body.style.overflow='hidden';fill(r);
+  }
+  async function decode(src,w,h,mode){
+    if(sc.det){try{const r=await sc.det.detect(src);if(r&&r.length&&r[0].rawValue)return r[0].rawValue}catch(e){}}
+    if(window.jsQR){
+      const cap=mode==='img'?1600:1100,k=Math.min(1,cap/Math.max(w,h)),cw=Math.max(1,Math.round(w*k)),ch=Math.max(1,Math.round(h*k));
+      if(!cv){cv=document.createElement('canvas');cx=cv.getContext('2d',{willReadFrequently:true})}
+      cv.width=cw;cv.height=ch;cx.drawImage(src,0,0,cw,ch);
+      const d=cx.getImageData(0,0,cw,ch),r=jsQR(d.data,cw,ch,{inversionAttempts:mode==='img'?'attemptBoth':'dontInvert'});
+      return r&&r.data?r.data:null;
+    }
+    return null;
+  }
+  function stop(){
+    cancelAnimationFrame(sc.raf);sc.raf=0;
+    if(sc.stream){sc.stream.getTracks().forEach(t=>t.stop());sc.stream=null}
+    const v=$('scanVideo');if(v){try{v.pause()}catch(e){}v.srcObject=null}
+  }
+  function tick(t){
+    if(!sc.stream)return;
+    const ov=$('mScan');
+    if(!ov||!ov.classList.contains('open')){stop();return}
+    const v=$('scanVideo');
+    if(t-sc.last>200&&!sc.busy&&v.readyState>=2&&v.videoWidth){
+      sc.last=t;sc.busy=true;
+      decode(v,v.videoWidth,v.videoHeight,'video').then(x=>{sc.busy=false;if(x)onText(x)}).catch(()=>{sc.busy=false});
+    }
+    sc.raf=requestAnimationFrame(tick);
+  }
+  window.openCccdScan=async function(target){
+    sc.target=(typeof target==='number'&&target>=0)?target:-1;
+    openM('mScan');msg('Đang mở camera…');sc.lastTxt='';
+    try{sc.det=('BarcodeDetector' in window)?new BarcodeDetector({formats:['qr_code']}):null}catch(e){sc.det=null}
+    loadJsQR().catch(()=>{});
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){msg('Kết nối này không mở được camera (cần https). Hãy bấm "Chọn ảnh QR" hoặc dùng bản đã đưa lên hosting.');return}
+    try{
+      const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+      if(!$('mScan').classList.contains('open')){st.getTracks().forEach(t=>t.stop());return}
+      stop();sc.stream=st;
+      const v=$('scanVideo');v.srcObject=st;v.setAttribute('playsinline','');v.muted=true;
+      try{await v.play()}catch(e){}
+      msg('Đưa mã QR trên thẻ căn cước vào khung xanh');
+      sc.raf=requestAnimationFrame(tick);
+    }catch(e){
+      msg('Không mở được camera. Hãy cho phép quyền camera cho trang web, hoặc bấm "Chọn ảnh QR".');
+    }
+  };
+  window.closeCccdScan=function(){stop();closeM('mScan');document.body.style.overflow='hidden'};
+  window.scanCccdImage=async function(inp){
+    const f=inp.files&&inp.files[0];inp.value='';if(!f)return;
+    msg('Đang đọc ảnh…');
+    try{
+      try{await loadJsQR()}catch(e){}
+      let bmp;
+      try{bmp=await createImageBitmap(f)}catch(e){
+        bmp=await new Promise((ok,no)=>{const im=new Image();im.onload=()=>ok(im);im.onerror=no;im.src=URL.createObjectURL(f)});
+      }
+      const w=bmp.width||bmp.naturalWidth,h=bmp.height||bmp.naturalHeight;
+      const x=await decode(bmp,w,h,'img');
+      if(x)onText(x);else msg('Không đọc được mã QR trong ảnh. Hãy chụp gần, rõ nét, đủ sáng và thấy trọn mã QR.');
+    }catch(e){msg('Không đọc được ảnh này.')}
+  };
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)stop()});
+})();
+
+/* ══ Chuông "Việc cần làm" thật ══ */
+function notifItems(){
+  const L=[],nm=n=>(n||'').toString();
+  const add=(ico,bg,title,sub,n,tab)=>{if(n>0)L.push({ico,bg,title,sub,n,tab})};
+  try{
+    const debts=S.invoices.filter(i=>i.debt>0),tot=debts.reduce((a,i)=>a+(+i.debt||0),0);
+    add('💰','#ef4444','Hóa đơn còn nợ','Tổng '+fmt(tot),debts.length,'debt');
+    const late=pendingLate();add('⏰','#ef4444','Hóa đơn đủ điều kiện tính phí trễ',late.length+' hóa đơn chưa áp phí',late.length,'debt');
+    const near=(S.contracts||[]).filter(c=>getContractStatus(c)==='near');
+    add('📄','#f97316','Hợp đồng sắp hết hạn',near.slice(0,3).map(c=>nm(c.tenantName)+(c.roomName?' (P'+nm(c.roomName).replace(/^P/i,'')+')':'')).join(', '),near.length,'contracts');
+    const exp=(S.contracts||[]).filter(c=>getContractStatus(c)==='expired');
+    add('⚠️','#f97316','Hợp đồng đã hết hạn',exp.slice(0,3).map(c=>nm(c.tenantName)).join(', '),exp.length,'contracts');
+    const inc=(S.incidents||[]).filter(i=>i.status!=='done');
+    add('🔧','#8b5cf6','Sự cố đang mở',inc.slice(0,3).map(i=>nm(i.title||i.desc||'Sự cố')).join(', '),inc.length,'maint');
+    const ms=(S.meterSubs||[]).filter(m=>!m.used);add('⚡','#0ea5e9','Chỉ số điện nước khách gửi','Dùng khi lập hóa đơn',ms.length,'payment');
+    const dep=(S.archived||[]).filter(a=>(+a.deposit||0)>0&&!a.depositSettle);add('🏦','#0ea5e9','Tiền cọc chưa quyết toán','Khách đã dọn đi',dep.length,'archived');
+    const nr=S.tenants.filter(t=>!t.roomId||!S.rooms.some(r=>r.id===t.roomId));
+    add('🛏️','#f97316','Khách chưa có phòng',nr.slice(0,3).map(t=>nm(t.name)).join(', '),nr.length,'tenants');
+  }catch(e){}
+  return L;
+}
+function updateNotifBadge(){
+  const b=document.getElementById('notifBadge');if(!b)return;
+  const n=notifItems().reduce((a,x)=>a+x.n,0);
+  b.textContent=n>99?'99+':n;b.classList.toggle('nt-zero',n===0);
+}
+window.showNotif=function(){
+  const L=notifItems(),total=L.reduce((a,x)=>a+x.n,0);
+  document.getElementById('ntTitle').textContent='🔔 Việc cần làm'+(total?' ('+total+')':'');
+  document.getElementById('ntBody').innerHTML=L.length?L.map(x=>`<button class="nt-item" onclick="closeM('mNotif');switchTab('${x.tab}')"><div class="nt-ico" style="background:${x.bg}22">${x.ico}</div><div class="nt-txt"><b>${esc(x.title)}</b>${x.sub?`<small>${esc(x.sub)}</small>`:''}</div><div class="nt-n" style="background:${x.bg}">${x.n}</div></button>`).join(''):'<div class="nt-ok">✅ Hôm nay mọi việc đã ổn</div>';
+  openM('mNotif');
+};
+
+/* ══ Giữ dữ liệu phòng/khách luôn nhất quán (không lỗi khi khách đi) ══ */
+function healRooms(){
+  let ch=false;
+  S.rooms.forEach(r=>{
+    const t=S.tenants.find(x=>x.id===r.tenantId);
+    if(t){if(t.roomId!==r.id){t.roomId=r.id;ch=true}return}
+    const t2=S.tenants.find(x=>x.roomId===r.id);
+    if(t2){r.tenantId=t2.id;if(r.status==='available')r.status='rented';ch=true;return}
+    if(r.tenantId||r.status!=='available'){r.tenantId='';r.status='available';ch=true}
+  });
+  S.tenants.forEach(t=>{if(t.roomId&&!S.rooms.some(r=>r.id===t.roomId)){t.roomId='';ch=true}});
+  if(ch){try{save()}catch(e){}}
+  return ch;
+}
+(function(){
+  const g=window.getRoomTenant;
+  window.getRoomTenant=function(room){return (room&&S.tenants.find(t=>t.id===room.tenantId))||(room&&S.tenants.find(t=>t.roomId===room.id))||undefined};
+  /* Chuyển 1 người ở cùng thành người đại diện, giữ phòng không bị trống */
+  window.promoteRoommate=function(old,roomId,idx){
+    const rm=(old.roommates||[])[idx];if(!rm)return null;
+    const room=S.rooms.find(r=>r.id===roomId);if(!room)return null;
+    const rest=(old.roommates||[]).filter((_,i)=>i!==idx);
+    const nid='T'+uid();
+    S.tenants.push({id:nid,avatarColor:COLORS[S.tenants.length%COLORS.length],name:rm.name||'Khách',phone:rm.phone||'',roomId:roomId,gender:rm.gender||'Nam',dob:rm.dob||'',cccd:rm.cccd||'',address:rm.address||'',vehicle:rm.vehicle||'',moveIn:old.moveIn||today(),deposit:0,people:Math.max(1,rest.length+1),note:'Thay '+old.name+' làm người đại diện',avatar:rm.avatar||'',cmndFront:rm.cmndFront||'',cmndBack:rm.cmndBack||'',roommates:JSON.parse(JSON.stringify(rest))});
+    room.tenantId=nid;room.status='rented';
+    return nid;
+  };
+  function pick(t){
+    const rms=(t.roommates||[]).filter(r=>r&&r.name);
+    if(!rms.length)return -1;
+    const msg='Phòng còn '+rms.length+' người ở cùng. Giữ phòng và chuyển người ở cùng thành người đại diện?\n\nOK = giữ phòng, Hủy = cả phòng cùng dọn đi';
+    if(!confirm(msg))return -1;
+    let k=0;
+    if(rms.length>1){
+      const ans=prompt('Chọn người đại diện mới (nhập số):\n'+rms.map((r,i)=>(i+1)+'. '+r.name).join('\n'),'1');
+      if(ans===null)return -1;
+      k=Math.min(rms.length,Math.max(1,parseInt(ans)||1))-1;
+    }
+    return (t.roommates||[]).indexOf(rms[k]);
+  }
+  /* Dọn đi */
+  const cc=window.confirmCheckout;
+  if(typeof cc==='function'){
+    window.confirmCheckout=function(){
+      const id=document.getElementById('coTenantId').value;
+      const t=S.tenants.find(x=>x.id===id);
+      let plan=null;
+      if(t&&t.roomId&&(t.roommates||[]).length){const idx=pick(t);if(idx>=0)plan={old:JSON.parse(JSON.stringify(t)),roomId:t.roomId,idx:idx}}
+      const r=cc.apply(this,arguments);
+      if(plan&&!S.tenants.some(x=>x.id===id)){
+        const nid=promoteRoommate(plan.old,plan.roomId,plan.idx);
+        if(nid){healRooms();save();renderAll();toast('👥 Phòng được giữ cho '+(plan.old.roommates[plan.idx].name||'người ở cùng')+'. Nhớ lập hợp đồng mới nếu cần.','info',{duration:5000})}
+      }
+      healRooms();
+      return r;
+    };
+  }
+  /* Xóa người thuê */
+  const dt=window.delTenant;
+  if(typeof dt==='function'){
+    window.delTenant=function(id){
+      const t=S.tenants.find(x=>x.id===id);
+      const snap=t?JSON.parse(JSON.stringify(t)):null;
+      const r=dt.apply(this,arguments);
+      if(snap&&snap.roomId&&(snap.roommates||[]).length&&!S.tenants.some(x=>x.id===id)){
+        const idx=pick(snap);
+        if(idx>=0){const nid=promoteRoommate(snap,snap.roomId,idx);if(nid){healRooms();save();renderAll()}}
+      }
+      healRooms();
+      return r;
+    };
+  }
+  /* Sau khi mở app và mỗi lần vẽ lại: sửa dữ liệu lệch + cập nhật huy hiệu chuông */
+  const bu=window.bootUI;
+  if(typeof bu==='function'&&!bu.__h){
+    const f=function(){try{healRooms()}catch(e){}const r=bu.apply(this,arguments);setTimeout(updateNotifBadge,0);return r};
+    f.__h=1;f.__u=bu.__u;window.bootUI=f;
+  }
+  const ra=window.renderAll;
+  if(typeof ra==='function'&&!ra.__n){
+    const f=function(){const r=ra.apply(this,arguments);try{updateNotifBadge()}catch(e){}return r};
+    f.__n=1;f.__c=ra.__c;window.renderAll=f;
   }
 })();
 </script>

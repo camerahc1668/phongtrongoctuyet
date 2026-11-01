@@ -1662,6 +1662,13 @@ select{text-overflow:ellipsis}
           <div class="stg-row-body"><div class="stg-row-lbl">Giá điện bậc thang</div><div class="stg-row-val" id="elecSettingRow">—</div></div>
           <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
+        <div class="stg-row" onclick="openRentRemind()">
+          <div class="stg-row-icon" style="background:rgba(249,115,22,.14);color:#f97316">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          </div>
+          <div class="stg-row-body"><div class="stg-row-lbl">Nhắc đóng tiền nhà (Zalo)</div><div class="stg-row-val" id="rentRemindRow">—</div></div>
+          <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
         <div class="stg-row" onclick="openLateFee()">
           <div class="stg-row-icon" style="background:rgba(239,68,68,.12);color:#ef4444">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -6953,6 +6960,7 @@ function renderHomeExtras(){
   if(!t){t=document.createElement('div');t.id='homeToday';t.className='home-today';document.getElementById('homeSummary').before(t)}
   const chips=[],add=(n,txt,cls,tab)=>{if(n>0)chips.push(`<button class="today-chip ${cls}" type="button" onclick="switchTab('${tab}')"><b>${n}</b>${txt}</button>`)};
   try{
+    try{const du=rentDueList().filter(x=>!(x.inv&&x.inv.zaloSent));if(du.length)chips.unshift(`<button class="today-chip tc-orange" type="button" onclick="openRentDue()"><b>${du.length}</b>phòng sắp đến hạn đóng tiền nhà</button>`)}catch(e){}
     add(S.tenants.filter(t=>!t.roomId||!S.rooms.some(r=>r.id===t.roomId)).length,'khách chưa có phòng','tc-orange','tenants');
     add(S.invoices.filter(i=>i.debt>0).length,'khoản công nợ','tc-red','debt');
     add((S.contracts||[]).filter(c=>getContractStatus(c)==='near').length,'hợp đồng sắp hết hạn','tc-orange','contracts');
@@ -7520,6 +7528,7 @@ function notifItems(){
     add('🛏️','#f97316','Khách chưa có phòng',nr.slice(0,3).map(t=>nm(t.name)).join(', '),nr.length,'tenants');
   }catch(e){}
   try{const jq=Object.values(window.JOINQ||{});if(jq.length)L.unshift({ico:'🙋',bg:'#16a34a',title:'Khách đăng ký vào phòng (chờ duyệt)',sub:jq.slice(0,3).map(q=>q.name).join(', '),n:jq.length,act:'openJoinReqs()'})}catch(e){}
+  try{const du=rentDueList().filter(x=>!(x.inv&&x.inv.zaloSent));if(du.length)L.unshift({ico:'⏰',bg:'#f97316',title:'Sắp đến hạn đóng tiền nhà',sub:du.slice(0,3).map(x=>x.room.name+(x.daysLeft<=0?' (hôm nay)':' (còn '+x.daysLeft+' ngày)')).join(', '),n:du.length,act:'openRentDue()'})}catch(e){}
   return L;
 }
 function updateNotifBadge(){
@@ -7838,6 +7847,168 @@ window.rejectJoin=function(id){
   if(typeof ra==='function'&&!ra.__n){
     const f=function(){try{healRooms()}catch(e){}const r=ra.apply(this,arguments);try{updateNotifBadge()}catch(e){}return r};
     f.__n=1;f.__c=ra.__c;window.renderAll=f;
+  }
+})();
+
+/* ══ Nhắc đóng tiền nhà trước hạn + hóa đơn tiền nhà có QR + gửi Zalo ══ */
+const rrCfg=()=>Object.assign({enabled:true,days:2,defaultDay:5,auto:true},(S.settings&&S.settings.rentRemind)||{});
+function dueDayOf(room,rep){
+  const ct=(S.contracts||[]).filter(c=>c.status!=='cancelled'&&(c.roomId===room.id||(rep&&c.tenantId===rep.id))).sort((a,b)=>String(b.startDate).localeCompare(String(a.startDate)))[0];
+  const d=parseInt(ct&&ct.payDay);return d>=1&&d<=31?d:rrCfg().defaultDay;
+}
+function dueDateOf(y,m,day){const last=new Date(y,m+1,0).getDate();return new Date(y,m,Math.min(day,last))}
+function rentDueList(){
+  const c=rrCfg();if(!c.enabled)return [];
+  const now=new Date(),t0=new Date(now.getFullYear(),now.getMonth(),now.getDate()),out=[];
+  S.rooms.forEach(room=>{
+    if(room.status==='available')return;
+    const rep=S.tenants.find(t=>t.id===room.tenantId&&t.roomId===room.id);if(!rep)return;
+    const day=dueDayOf(room,rep);
+    let due=dueDateOf(t0.getFullYear(),t0.getMonth(),day);
+    if(due<t0)due=dueDateOf(t0.getFullYear(),t0.getMonth()+1,day);
+    const daysLeft=Math.round((due-t0)/86400000);
+    if(daysLeft>c.days)return;
+    const period=due.getFullYear()+'-'+String(due.getMonth()+1).padStart(2,'0');
+    const inv=S.invoices.find(i=>i.roomId===room.id&&i.month===period&&i.debt>0)||S.invoices.find(i=>i.roomId===room.id&&i.month===period);
+    if(inv&&inv.debt<=0)return;
+    out.push({room,rep,due,daysLeft,period,inv});
+  });
+  return out.sort((a,b)=>a.daysLeft-b.daysLeft);
+}
+function makeRentInvoice(room,rep,period){
+  const id='INVR_'+room.id+'_'+period;
+  let inv=S.invoices.find(i=>i.id===id);if(inv)return inv;
+  const ei=room.elecIndex||0,wi=room.waterIndex||0;
+  inv={id,roomId:room.id,tenantId:rep.id,month:period,elecOld:ei,elecNew:ei,waterOld:wi,waterNew:wi,roomFee:room.price||0,elecFee:0,waterFee:0,serviceFee:room.serviceFee||0,internet:room.internet||0,garbage:room.garbage||0,parking:room.parking||0,extra:0,discount:0,total:0,paid:0,debt:0,status:'unpaid',payMethod:'',note:'Hóa đơn tiền nhà (điện, nước tính sau)',createdAt:new Date().toISOString(),rentOnly:true};
+  inv.total=inv.roomFee+inv.serviceFee+inv.internet+inv.garbage+inv.parking;inv.debt=inv.total;
+  S.invoices.push(inv);return inv;
+}
+function autoRentInvoices(){
+  const c=rrCfg();if(!c.enabled||!c.auto||!canWriteData()||syncBusy()||!roleCan('invoice'))return false;
+  let ch=false;
+  rentDueList().forEach(x=>{if(!x.inv&&x.room.price>0){makeRentInvoice(x.room,x.rep,x.period);ch=true}});
+  if(ch){try{save()}catch(e){}}
+  return ch;
+}
+const vnDate=d=>d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
+function buildRentMsg(inv,due,daysLeft){
+  const t=S.tenants.find(x=>x.id===inv.tenantId),room=S.rooms.find(r=>r.id===inv.roomId);
+  const hotel=S.settings.hotelName||'Nhà trọ',when=daysLeft<=0?'hôm nay':'còn '+daysLeft+' ngày';
+  const L=[`Chào ${t&&t.name?t.name:'anh/chị'},`,`${hotel} xin nhắc anh/chị tiền phòng ${room?room.name:''} ${getMonthName(inv.month)} đến hạn đóng vào ngày ${vnDate(due)} (${when}).`,'',`• Tiền phòng: ${fmt(inv.roomFee)}`];
+  [['internet','Internet'],['serviceFee','Dịch vụ'],['garbage','Rác'],['parking','Giữ xe']].forEach(([k,l])=>{if(inv[k])L.push(`• ${l}: ${fmt(inv[k])}`)});
+  if(!inv.rentOnly){L.push(`• Điện (${meterUse(inv,'elec')} kWh): ${fmt(inv.elecFee)}`,`• Nước (${meterUse(inv,'water')} m³): ${fmt(inv.waterFee)}`);if(inv.extra)L.push(`• Phụ thu: ${fmt(inv.extra)}`);if(inv.discount)L.push(`• Giảm giá: -${fmt(inv.discount)}`)}
+  L.push(`Tổng cộng: ${fmt(inv.total)}`);
+  if(inv.paid>0)L.push(`Đã thanh toán: ${fmt(inv.paid)}`);
+  L.push(`Còn phải đóng: ${fmt(inv.debt)}`);
+  if(inv.rentOnly)L.push('(Điện, nước sẽ được tính và báo sau khi chốt chỉ số.)');
+  if(inv.debt>0&&bankReady()){const b=getBank();L.push('',`Chuyển khoản: ${bankName(b)} - STK ${b.acc} - ${b.name}`,`Số tiền: ${fmt(inv.debt)}`,`Nội dung: ${transferNote(inv)}`,`Mã QR thanh toán: ${qrUrl(inv)}`)}
+  try{if(t&&t.portalCode&&v2.on){L.push('',`Xem hóa đơn & thanh toán: ${portalLink(t.portalCode)}`)}}catch(e){}
+  L.push('','Cảm ơn anh/chị!');
+  return L.join('\n');
+}
+window.sendRent=function(key){
+  const x=rentDueList().find(i=>i.room.id===key);if(!x)return;
+  let inv=x.inv;
+  if(!inv){inv=makeRentInvoice(x.room,x.rep,x.period);save();renderAll()}
+  const phone=normPhone(x.rep.phone);
+  mkModal('mSend','💬 Nhắc đóng tiền nhà — '+x.room.name,
+    `<div style="font-size:12px;color:var(--text3);margin-bottom:6px">Gửi tới người đại diện: <b>${esc(x.rep.name)}</b> ${phone?'· '+esc(phone):'· <span style="color:#ef4444">chưa có số điện thoại</span>'}</div>
+     <textarea class="fc" id="sendTxt" rows="14" style="font-size:13px;line-height:1.5">${esc(buildRentMsg(inv,x.due,x.daysLeft))}</textarea>
+     <div style="font-size:11px;color:var(--text3);margin-top:6px">Zalo không cho ứng dụng tự gửi hay điền sẵn tin nhắn. Bấm "Gửi Zalo": app chép sẵn tin nhắn và mở khung chat, bạn chỉ cần dán và gửi.${bankReady()?'':' <b style="color:#ef4444">Chưa cài tài khoản nhận tiền nên chưa có mã QR (Cài đặt → Tài khoản nhận tiền).</b>'}</div>`,
+    `<button class="btn btn-secondary" type="button" onclick="sendAct('copy','${phone}')">📋 Chép</button>
+     <button class="btn btn-primary" type="button" ${phone?'':'disabled'} onclick="sendAct('zalo','${phone}');markRentSent('${esc(inv.id)}')">💬 Gửi Zalo</button>
+     <button class="btn btn-secondary" type="button" onclick="shareRentQR('${esc(inv.id)}')">🖼️ Ảnh QR</button>
+     <button class="btn btn-secondary" type="button" onclick="printInv('${esc(inv.id)}')">🖨️ In/PDF</button>`);
+  if(bankReady()&&inv.debt>0)document.querySelector('#mSend .mbody').insertAdjacentHTML('afterbegin',`<div style="text-align:center;margin-bottom:8px"><img src="${esc(qrUrl(inv))}" alt="QR" style="height:140px;border-radius:8px;background:#fff" onerror="this.remove()"></div>`);
+  closeM('mRentDue');openM('mSend');
+};
+window.markRentSent=function(id){const inv=S.invoices.find(i=>i.id===id);if(!inv)return;inv.zaloSent=new Date().toISOString();save();try{updateNotifBadge();renderHomeExtras()}catch(e){}};
+window.shareRentQR=async function(id){
+  const inv=S.invoices.find(i=>i.id===id);if(!inv)return;const url=qrUrl(inv);
+  if(!url){toast('Hãy cài tài khoản nhận tiền trước','warning');return}
+  try{
+    const b=await (await fetch(url)).blob(),f=new File([b],'QR-'+transferNote(inv).replace(/\s+/g,'-')+'.png',{type:b.type||'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:'QR thanh toán tiền phòng'});return}
+    const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=f.name;a.click();toast('Đã tải ảnh QR, hãy gửi ảnh này qua Zalo','info');
+  }catch(e){window.open(url,'_blank','noopener')}
+};
+window.openRentDue=function(){
+  autoRentInvoices();
+  const L=rentDueList(),c=rrCfg();
+  mkModal('mRentDue','⏰ Sắp đến hạn đóng tiền nhà ('+L.length+')',
+    (L.length?L.map(x=>{const sent=x.inv&&x.inv.zaloSent,tot=x.inv?x.inv.debt:(x.room.price||0);
+      return `<div class="jr-item"><b>Phòng ${esc(x.room.name)}</b> · ${esc(x.rep.name)}<small>Hạn ${vnDate(x.due)} · ${x.daysLeft<=0?'<b style="color:#ef4444">hôm nay</b>':'còn '+x.daysLeft+' ngày'} · ${x.inv?(x.inv.rentOnly?'HĐ tiền nhà ':'HĐ ')+fmt(tot):'chưa có hóa đơn'}${sent?' · ✅ đã gửi Zalo':''}</small><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-primary btn-xs" type="button" onclick="sendRent('${esc(x.room.id)}')">💬 ${sent?'Gửi lại':'Tạo HĐ & gửi Zalo'}</button>${x.inv?`<button class="btn btn-secondary btn-xs" type="button" onclick="closeM('mRentDue');showQR('${esc(x.inv.id)}')">QR</button>`:''}</div></div>`}).join('')
+      :'<div class="occ-empty">✅ Chưa có phòng nào đến hạn trong '+c.days+' ngày tới.</div>')
+    +`<div style="font-size:11px;color:var(--text3);margin-top:10px">App nhắc khi bạn mở app (không có máy chủ nên không tự gửi tin Zalo). Hạn đóng lấy theo "ngày thanh toán" trong hợp đồng, mặc định ngày ${c.defaultDay} hàng tháng.</div>`,
+    '<button class="btn btn-secondary" type="button" onclick="closeM(\'mRentDue\')">Đóng</button>');
+  openM('mRentDue');
+};
+window.openRentRemind=function(){
+  const c=rrCfg(),perm=('Notification' in window)?Notification.permission:'unsupported';
+  mkModal('mRentCfg','⏰ Nhắc đóng tiền nhà',`
+    <label class="rep-chk" style="margin-bottom:10px;border-color:var(--border);background:var(--bg2)"><input type="checkbox" id="rrOn" ${c.enabled?'checked':''}><span>Bật nhắc đóng tiền nhà</span></label>
+    <div class="fg"><label class="flbl">Nhắc trước hạn (ngày)</label><input class="fc" id="rrDays" type="number" min="0" max="15" value="${c.days}"></div>
+    <div class="fg"><label class="flbl">Ngày đóng tiền mặc định (khi hợp đồng không ghi)</label><input class="fc" id="rrDay" type="number" min="1" max="31" value="${c.defaultDay}"></div>
+    <label class="rep-chk" style="margin-bottom:10px;border-color:var(--border);background:var(--bg2)"><input type="checkbox" id="rrAuto" ${c.auto?'checked':''}><span>Tự tạo hóa đơn tiền nhà khi đến ngày nhắc</span></label>
+    <div style="font-size:12px;color:var(--text3)">Hóa đơn tiền nhà gồm tiền phòng và các khoản cố định (internet, dịch vụ, rác, giữ xe). Điện nước tính sau; khi bạn lập hóa đơn đầy đủ cho tháng đó, hóa đơn tiền nhà chưa thu sẽ được thay thế, còn nếu khách đã đóng thì khoản đó được trừ vào hóa đơn mới.</div>
+    <div style="margin-top:12px"><button class="btn btn-secondary btn-sm" type="button" ${perm==='unsupported'||perm==='granted'?'disabled':''} onclick="rrAskNotif()">${perm==='granted'?'✅ Đã bật thông báo trên máy này':'🔔 Bật thông báo trên máy này'}</button></div>`,
+    `<button class="btn btn-secondary" type="button" onclick="closeM('mRentCfg')">Hủy</button><button class="btn btn-primary" type="button" onclick="saveRentRemind()">Lưu</button>`);
+  openM('mRentCfg');
+};
+window.rrAskNotif=async function(){try{const p=await Notification.requestPermission();toast(p==='granted'?'✅ Đã bật thông báo':'Bạn đã từ chối thông báo','info');openRentRemind()}catch(e){}};
+window.saveRentRemind=function(){
+  if(!roleCan('settings')){toast('🔒 Chỉ Chủ trọ đổi được cài đặt này','warning');return}
+  const n=id=>+document.getElementById(id).value;
+  S.settings.rentRemind={enabled:document.getElementById('rrOn').checked,days:Math.min(15,Math.max(0,Math.round(n('rrDays')))),defaultDay:Math.min(31,Math.max(1,Math.round(n('rrDay'))||5)),auto:document.getElementById('rrAuto').checked};
+  save();closeM('mRentCfg');syncRentRow();renderAll();toast('✅ Đã lưu cài đặt nhắc đóng tiền','success');
+};
+function syncRentRow(){const e=document.getElementById('rentRemindRow');if(!e)return;const c=rrCfg();e.textContent=c.enabled?`Nhắc trước ${c.days} ngày · mặc định ngày ${c.defaultDay}${c.auto?' · tự tạo hóa đơn':''}`:'Đang tắt'}
+
+/* Lập hóa đơn đầy đủ: thay hóa đơn tiền nhà tạm */
+(function(){
+  const si=window.saveInv;
+  if(typeof si==='function')window.saveInv=function(){
+    const roomId=document.getElementById('invRoom').value,month=document.getElementById('invMonth').value;
+    const old=S.invoices.find(i=>i.rentOnly&&i.roomId===roomId&&i.month===month);
+    if(!old)return si.apply(this,arguments);
+    const idx=S.invoices.indexOf(old);S.invoices.splice(idx,1);
+    const before=S.invoices.length;
+    const r=si.apply(this,arguments);
+    const nw=S.invoices.length>before?S.invoices[S.invoices.length-1]:null;
+    if(!nw){S.invoices.splice(idx,0,old);return r}
+    if(old.paid>0){
+      nw.paid=Math.min(nw.total,old.paid);nw.debt=Math.max(0,nw.total-nw.paid);nw.status=nw.debt<=0?'paid':'partial';nw.payMethod=old.payMethod||'';
+      (S.payments||[]).forEach(p=>{if(p.invId===old.id)p.invId=nw.id});
+    }
+    if(old.zaloSent)nw.zaloSent=old.zaloSent;
+    save();try{renderPayment()}catch(e){}
+    toast('Đã thay hóa đơn tiền nhà tạm bằng hóa đơn đầy đủ','info');
+    return r;
+  };
+  /* Mở app / vẽ lại: tạo hóa đơn tiền nhà tới hạn, nhắc 1 lần mỗi ngày */
+  const ra=window.renderAll;
+  if(typeof ra==='function'&&!ra.__r){
+    const f=function(){try{autoRentInvoices()}catch(e){}const r=ra.apply(this,arguments);try{syncRentRow()}catch(e){}return r};
+    f.__r=1;f.__c=ra.__c;f.__n=ra.__n;window.renderAll=f;
+  }
+  function dailyNotice(){
+    try{
+      const L=rentDueList().filter(x=>!(x.inv&&x.inv.zaloSent));if(!L.length)return;
+      const key='pt_rr_'+new Date().toISOString().slice(0,10);
+      if(localStorage.getItem(key))return;localStorage.setItem(key,'1');
+      const msg=L.length+' phòng sắp đến hạn đóng tiền nhà: '+L.slice(0,4).map(x=>x.room.name).join(', ');
+      toast('⏰ '+msg,'warning',{duration:9000,action:{label:'Xem',fn:()=>openRentDue()}});
+      if('Notification' in window&&Notification.permission==='granted'){
+        const o={body:msg,icon:'icon-192.png',tag:'rent-due'};
+        if(navigator.serviceWorker&&navigator.serviceWorker.ready)navigator.serviceWorker.ready.then(r=>r.showNotification('Nhắc đóng tiền nhà',o)).catch(()=>{try{new Notification('Nhắc đóng tiền nhà',o)}catch(e){}});
+        else{try{new Notification('Nhắc đóng tiền nhà',o)}catch(e){}}
+      }
+    }catch(e){}
+  }
+  const bu=window.bootUI;
+  if(typeof bu==='function'&&!bu.__r){
+    const f=function(){const r=bu.apply(this,arguments);setTimeout(()=>{try{autoRentInvoices();renderAll();dailyNotice()}catch(e){}},1800);return r};
+    f.__r=1;f.__h=bu.__h;f.__u=bu.__u;window.bootUI=f;
   }
 })();
 </script>

@@ -1256,6 +1256,23 @@ select{text-overflow:ellipsis}
 .occ-empty{text-align:center;color:var(--text3);padding:12px;font-size:13px}
 .jr-item{padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
 .jr-item small{display:block;color:var(--text3);margin:2px 0 6px}
+
+/* Nút thao tác nhanh: kéo di chuyển được, thu nhỏ được, và luôn chừa chỗ cuộn để không che nút cuối trang */
+.page::after{content:"";display:block;height:calc(92px + env(safe-area-inset-bottom,0px))}
+.qa-fab{touch-action:none;cursor:grab}
+.qa.dragging .qa-fab{cursor:grabbing;transform:scale(1.06);transition:none}
+.qa.dragging .qa-menu{opacity:0}
+.qa.left{align-items:flex-start}
+.qa.left .qa-menu{align-items:flex-start}
+.qa.left .qa-item{flex-direction:row-reverse}
+.qa.mini .qa-menu{display:none}
+.qa.mini .qa-fab{width:34px;height:34px;border-radius:12px;opacity:.5;box-shadow:0 4px 10px rgba(2,132,199,.3)}
+.qa.mini .qa-fab svg{width:16px;height:16px}
+.qa.mini .qa-fab:active{opacity:.9}
+
+.hg-user{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:4px 12px;border-radius:99px;background:var(--primary-bg);color:var(--primary);font-size:12.5px;font-weight:700;cursor:pointer;max-width:100%}
+.hg-user b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.hg-user em{font-style:normal;font-weight:600;opacity:.8;white-space:nowrap}
+.stg-profile-user{display:inline-block;margin-top:6px;padding:2px 10px;border-radius:99px;background:rgba(255,255,255,.22);font-size:12px;font-weight:700;color:#fff;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -8028,6 +8045,126 @@ function sortDataInPlace(){
     const f=function(){sortDataInPlace();return ra.apply(this,arguments)};
     f.__s=1;f.__r=ra.__r;f.__n=ra.__n;f.__c=ra.__c;window.renderAll=f;
   }
+})();
+
+/* ── Nút thao tác nhanh: kéo để di chuyển, thu nhỏ khi cần ── */
+(function(){
+  const q=document.getElementById('qa'),fab=document.getElementById('qaFab');
+  if(!q||!fab)return;
+  const KEY='pt_qa_pos',SZ=58;
+  let st={side:'right',off:null,b:null,mini:false};
+  try{st=Object.assign(st,JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){}
+  const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
+  const W=()=>document.documentElement.clientWidth||innerWidth,H=()=>innerHeight;
+  const size=()=>st.mini?34:SZ;
+  function apply(){
+    q.classList.toggle('mini',!!st.mini);
+    q.classList.toggle('left',st.side==='left');
+    if(st.off==null||st.b==null){q.style.left=q.style.right=q.style.bottom='';return}
+    const off=Math.min(Math.max(6,st.off),Math.max(6,W()-size()-6)),b=Math.min(Math.max(6,st.b),Math.max(6,H()-size()-60));
+    q.style.bottom=b+'px';
+    if(st.side==='left'){q.style.left=off+'px';q.style.right='auto'}else{q.style.right=off+'px';q.style.left='auto'}
+  }
+  apply();addEventListener('resize',apply);addEventListener('orientationchange',()=>setTimeout(apply,200));
+  /* kéo thả */
+  let sx=0,sy=0,r0=null,drag=false,down=false,suppress=false;
+  fab.addEventListener('pointerdown',e=>{
+    if(e.button>0)return;
+    down=true;drag=false;sx=e.clientX;sy=e.clientY;r0=fab.getBoundingClientRect();
+    try{fab.setPointerCapture(e.pointerId)}catch(x){}
+  });
+  fab.addEventListener('pointermove',e=>{
+    if(!down)return;
+    const dx=e.clientX-sx,dy=e.clientY-sy;
+    if(!drag&&Math.hypot(dx,dy)<8)return;
+    if(!drag){drag=true;qaClose();q.classList.add('dragging','left')}
+    const sz=size(),l=Math.min(Math.max(6,r0.left+dx),W()-sz-6),t=Math.min(Math.max(50,r0.top+dy),H()-sz-6);
+    q.style.left=l+'px';q.style.right='auto';q.style.bottom=(H()-(t+sz))+'px';
+  });
+  const end=e=>{
+    if(!down)return;down=false;
+    try{fab.releasePointerCapture(e.pointerId)}catch(x){}
+    if(!drag)return;
+    drag=false;suppress=true;setTimeout(()=>{suppress=false},120);
+    const r=fab.getBoundingClientRect(),sz=size();
+    st.side=(r.left+sz/2<W()/2)?'left':'right';
+    st.off=12;                                   // hít sát mép gần nhất
+    st.b=Math.max(6,H()-r.bottom);
+    q.classList.remove('dragging');apply();save();
+  };
+  fab.addEventListener('pointerup',end);fab.addEventListener('pointercancel',end);
+  /* chạm khi đang thu nhỏ → phóng to lại; vừa kéo xong thì không bật menu */
+  const tog=window.qaToggle;
+  window.qaToggle=function(){
+    if(suppress)return;
+    if(st.mini){st.mini=false;apply();save();return}
+    return tog.apply(this,arguments);
+  };
+  window.qaMinimize=function(){qaClose();st.mini=true;apply();save();toast('Đã thu nhỏ nút. Chạm vào nút để hiện lại.','info',{duration:2500})};
+  window.qaReset=function(){st={side:'right',off:null,b:null,mini:false};apply();save()};
+  /* mục "Thu nhỏ nút" ở cuối menu */
+  const menu=q.querySelector('.qa-menu');
+  if(menu&&!menu.querySelector('[data-qa-min]'))menu.insertAdjacentHTML('beforeend','<button class="qa-item" type="button" data-qa-min style="--d:0" onclick="qaMinimize()"><span>Thu nhỏ nút</span><i style="background:linear-gradient(135deg,#94a3b8,#64748b)">🙈</i></button>');
+  if(!localStorage.getItem('pt_qa_hint')){try{localStorage.setItem('pt_qa_hint','1')}catch(e){}setTimeout(()=>toast('💡 Kéo nút ➕ để đặt ở chỗ không che nội dung','info',{duration:5000}),4000)}
+})();
+
+/* ══ Hiển thị người đang đăng nhập (trang chủ + Cài đặt) ══ */
+window.ptUser=null;
+(function(){
+  const nameKey=uid=>'pt_uname_'+uid;
+  const getLocal=uid=>{try{return localStorage.getItem(nameKey(uid))||''}catch(e){return ''}};
+  function nameOf(u,mName){
+    const em=String(u.email||'').split('@')[0];
+    return getLocal(u.uid)||mName||u.displayName||((window.ptRole==='owner'&&S.settings&&S.settings.ownerName)||'')||em||'Người dùng';
+  }
+  function greet(){const h=new Date().getHours();return h<11?'Chào buổi sáng':h<14?'Chào buổi trưa':h<18?'Chào buổi chiều':'Chào buổi tối'}
+  window.renderUserChips=function(){
+    const u=window.ptUser,role=(typeof ROLE_NAMES!=='undefined'&&ROLE_NAMES[window.ptRole])||'';
+    if(u)u.name=nameOf(u,u.mName);
+    const g=document.getElementById('homeGreet');
+    if(g){
+      let el=g.querySelector('.hg-user');
+      if(!u){if(el)el.remove()}
+      else{
+        if(!el){el=document.createElement('div');el.className='hg-user';el.onclick=()=>editUserName();g.appendChild(el)}
+        el.title=u.email||'';el.innerHTML='<span>👤</span><b>'+esc(u.name)+'</b>'+(role?'<em>· '+esc(role)+'</em>':'');
+        const hello=g.querySelector('.hg-hello');if(hello)hello.textContent=greet()+', '+u.name.trim().split(/\s+/).pop()+' 👋';
+      }
+    }
+    const sp=document.querySelector('#pg-settings .stg-profile-info');
+    if(sp){
+      let el=document.getElementById('stgUser');
+      if(!u){if(el)el.remove()}
+      else{
+        if(!el){el=document.createElement('div');el.id='stgUser';el.className='stg-profile-user';el.onclick=()=>editUserName();sp.appendChild(el)}
+        el.title=(u.email||'')+' — chạm để đổi tên hiển thị';el.textContent='👤 '+u.name+(role?' · '+role:'');
+      }
+    }
+  };
+  window.editUserName=function(){
+    const u=window.ptUser;if(!u)return;
+    const v=prompt('Tên hiển thị của bạn (chỉ đổi trên máy này'+(window.ptRole==='owner'?' và lưu cho tài khoản':'')+'):',u.name);
+    if(v===null)return;
+    const n=v.trim().slice(0,100);
+    try{if(n)localStorage.setItem('pt_uname_'+u.uid,n);else localStorage.removeItem('pt_uname_'+u.uid)}catch(e){}
+    if(n&&window.ptRole==='owner'){try{dbRef('members/'+u.uid+'/name').set(n)}catch(e){}u.mName=n}
+    renderUserChips();
+  };
+  function setUser(u){
+    if(!u){window.ptUser=null;renderUserChips();return}
+    window.ptUser={uid:u.uid,email:u.email||'',displayName:u.displayName||'',name:''};
+    window.ptUser.name=nameOf(u,'');renderUserChips();
+    try{dbRef('members/'+u.uid+'/name').once('value').then(sn=>{const n=sn.val();if(n&&window.ptUser&&window.ptUser.uid===u.uid){window.ptUser.mName=String(n);renderUserChips()}}).catch(()=>{})}catch(e){}
+  }
+  const oa=window.v2OnAuth;
+  if(typeof oa==='function')window.v2OnAuth=function(u){try{setUser(u)}catch(e){}return oa.apply(this,arguments)};
+  /* nếu đã đăng nhập từ trước khi script này chạy */
+  try{if(typeof fbApp!=='undefined'&&fbApp&&firebase.auth&&fbApp.auth().currentUser)setUser(fbApp.auth().currentUser)}catch(e){}
+  ['renderHomeExtras','renderSettings','applyRoleUI'].forEach(n=>{
+    const f=window[n];if(typeof f!=='function'||f.__u2)return;
+    const w=function(){const r=f.apply(this,arguments);try{renderUserChips()}catch(e){}return r};
+    w.__u2=1;for(const k of ['__g','__u','__h','__n','__c','__r','__s'])if(f[k])w[k]=f[k];window[n]=w;
+  });
 })();
 </script>
 

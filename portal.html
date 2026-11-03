@@ -128,8 +128,8 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
       +'<div style="margin-top:10px"><button class="sec" type="button" id="jScan" style="width:100%">📷 Quét QR căn cước công dân để tự điền</button></div>'
       +'<div class="scanbox" id="scanBox"><video id="scanVideo" playsinline muted></video><i></i></div><div id="jMsg" style="margin-top:6px"></div>'
       +'<label>Họ và tên <span style="color:var(--danger)">*</span></label><input id="jName" maxlength="100" autocomplete="name">'
-      +'<label>Số điện thoại <span style="color:var(--danger)">*</span></label><input id="jPhone" type="tel" inputmode="tel" maxlength="20" autocomplete="tel">'
-      +'<div class="two"><div><label>Số CCCD</label><input id="jCccd" inputmode="numeric" maxlength="20"></div><div><label>Giới tính</label><select id="jGender"><option>Nam</option><option>Nữ</option><option>Khác</option></select></div></div>'
+      +'<label>Số điện thoại <span class="muted">(không bắt buộc)</span></label><input id="jPhone" type="tel" inputmode="tel" maxlength="20" autocomplete="tel">'
+      +'<div class="two"><div><label>Số CCCD <span style="color:var(--danger)">*</span></label><input id="jCccd" inputmode="numeric" maxlength="20"></div><div><label>Giới tính</label><select id="jGender"><option>Nam</option><option>Nữ</option><option>Khác</option></select></div></div>'
       +'<label>Ngày sinh</label><input id="jDob" type="date">'
       +'<label>Địa chỉ thường trú</label><input id="jAddr" maxlength="200">'
       +'<label>Biển số xe (nếu có)</label><input id="jVeh" maxlength="20">'
@@ -139,12 +139,13 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
   }
   function sendJoin(){
     const g=id=>document.getElementById(id).value.trim(),res=document.getElementById('jRes'),btn=document.getElementById('jSend');
-    const name=g('jName'),phone=g('jPhone').replace(/[^\d+]/g,'');
+    const name=g('jName'),phone=g('jPhone').replace(/[^\d+]/g,''),cccd=g('jCccd').replace(/\s/g,'');
     if(!name){res.innerHTML='<div class="err">Hãy nhập họ và tên.</div>';return}
-    if(phone.replace(/\D/g,'').length<9){res.innerHTML='<div class="err">Số điện thoại chưa đúng.</div>';return}
+    if(!/^\d{9}$|^\d{12}$/.test(cccd)){res.innerHTML='<div class="err">Hãy nhập số CCCD/CMND (9 hoặc 12 chữ số).</div>';return}
+    if(phone&&phone.replace(/\D/g,'').length<9){res.innerHTML='<div class="err">Số điện thoại chưa đúng (hoặc để trống).</div>';return}
     if(joinDone)return;
     stopScan();btn.disabled=true;
-    db.ref('portal_in/'+code).push().set({type:'join',at:Date.now(),name:name.slice(0,100),phone:phone.slice(0,20),cccd:g('jCccd').slice(0,20),dob:g('jDob').slice(0,10),gender:document.getElementById('jGender').value.slice(0,10),address:g('jAddr').slice(0,200),vehicle:g('jVeh').slice(0,20)})
+    db.ref('portal_in/'+code).push().set({type:'join',at:Date.now(),name:name.slice(0,100),phone:phone.slice(0,20),cccd:cccd.slice(0,20),dob:g('jDob').slice(0,10),gender:document.getElementById('jGender').value.slice(0,10),address:g('jAddr').slice(0,200),vehicle:g('jVeh').slice(0,20)})
       .then(()=>{joinDone=true;res.innerHTML='<div class="ok">✅ Đã gửi đăng ký. Vui lòng chờ chủ trọ duyệt. Cảm ơn bạn!</div>'})
       .catch(()=>{btn.disabled=false;res.innerHTML='<div class="err">Không gửi được. Vui lòng thử lại sau.</div>'});
   }

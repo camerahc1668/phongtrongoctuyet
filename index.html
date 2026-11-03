@@ -1273,6 +1273,42 @@ select{text-overflow:ellipsis}
 .hg-user{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:4px 12px;border-radius:99px;background:var(--primary-bg);color:var(--primary);font-size:12.5px;font-weight:700;cursor:pointer;max-width:100%}
 .hg-user b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.hg-user em{font-style:normal;font-weight:600;opacity:.8;white-space:nowrap}
 .stg-profile-user{display:inline-block;margin-top:6px;padding:2px 10px;border-radius:99px;background:rgba(255,255,255,.22);font-size:12px;font-weight:700;color:#fff;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ══ Màu trạng thái phòng rõ ràng + ô phòng hình ngôi nhà ══ */
+:root{--st-av:#16a34a;--st-rt:#2563eb;--st-db:#dc2626;--st-du:#f97316}
+.sdot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;box-shadow:0 0 0 2px rgba(255,255,255,.7),0 0 0 3px rgba(15,23,42,.12)}
+.sd-av{background:var(--st-av)}.sd-rt{background:var(--st-rt)}.sd-db{background:var(--st-db)}.sd-du{background:var(--st-du)}
+.legend-dot{width:12px;height:12px;border-radius:4px}
+.legend-item{font-size:11.5px;font-weight:700}
+.rc-badge.av{background:rgba(22,163,74,.16);color:#15803d;border-color:rgba(22,163,74,.5)}
+.rc-badge.rt{background:rgba(37,99,235,.16);color:#1d4ed8;border-color:rgba(37,99,235,.5)}
+.rc-badge.db{background:rgba(220,38,38,.16);color:#b91c1c;border-color:rgba(220,38,38,.5)}
+.rc-badge.du{background:rgba(249,115,22,.18);color:#c2410c;border-color:rgba(249,115,22,.55)}
+.room-cell{aspect-ratio:1/1.12;border:0!important;background:none!important;box-shadow:none!important;border-radius:0;overflow:visible;
+  padding:31% 3px 9px;gap:3px;container-type:inline-size;--rcav:clamp(30px,38cqw,50px)}
+.room-cell:hover{transform:translateY(-4px) scale(1.05);box-shadow:none!important}
+.room-cell.rc-debt{animation:none}
+.rc-house{position:absolute;inset:0;width:100%;height:100%;z-index:0;overflow:visible;filter:drop-shadow(0 3px 5px rgba(15,23,42,.16));transition:filter .25s}
+.rc-house path{fill:var(--hf);stroke:var(--hs);stroke-width:3;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.room-cell:hover .rc-house{filter:drop-shadow(0 7px 12px rgba(15,23,42,.28))}
+.room-cell>:not(.rc-house):not(.rc-status-dot){position:relative;z-index:1}
+.room-cell.rc-available{--hf:rgba(22,163,74,.22);--hs:var(--st-av)}
+.room-cell.rc-rented{--hf:rgba(37,99,235,.20);--hs:var(--st-rt)}
+.room-cell.rc-debt{--hf:rgba(220,38,38,.22);--hs:var(--st-db)}
+.room-cell.rc-due{--hf:rgba(249,115,22,.26);--hs:var(--st-du)}
+.room-cell.rc-debt .rc-house{animation:houseGlow 2.4s ease-in-out infinite}
+@keyframes houseGlow{0%,100%{filter:drop-shadow(0 3px 5px rgba(220,38,38,.25))}50%{filter:drop-shadow(0 0 10px rgba(220,38,38,.75))}}
+.rc-status-dot{width:10px;height:10px;top:38%;right:12%;z-index:2;box-shadow:0 0 0 2px var(--surface)}
+.rc-available .rc-status-dot{background:var(--st-av)}.rc-rented .rc-status-dot{background:var(--st-rt)}
+.rc-debt .rc-status-dot{background:var(--st-db)}.rc-due .rc-status-dot{background:var(--st-du)}
+.room-cell .rc-no{font-size:clamp(13px,15cqw,17px);font-weight:900}
+.room-cell .rc-avatar-mini{width:var(--rcav);height:var(--rcav);border-radius:50%;font-size:calc(var(--rcav)*.34);border:2px solid var(--surface);box-shadow:var(--shadow-sm)}
+.room-cell .rc-avatar-mini svg{width:55%;height:55%}
+.room-cell>div[style*="border-radius:6px"]{width:var(--rcav)!important;height:var(--rcav)!important;border-radius:50%!important}
+.room-cell>div[style*="border-radius:6px"] svg{width:55%!important;height:55%!important}
+.room-cell .crown-wrap .crown{top:-7px;right:-7px}
+.room-cell .rc-price-mini{font-size:clamp(9.5px,11cqw,12px);font-weight:700}
+.rc-debt-mini{font-size:clamp(9.5px,11cqw,12px);font-weight:900;color:var(--st-db)}
 </style>
 </head>
 <body>
@@ -1339,10 +1375,10 @@ select{text-overflow:ellipsis}
       <!-- Bộ lọc trạng thái -->
       <div class="filter-chips" id="roomChips">
         <button class="chip active" data-f="all" onclick="setRoomFilter('all')">Tất cả</button>
-        <button class="chip" data-f="available" onclick="setRoomFilter('available')">🟢 Còn trống</button>
-        <button class="chip" data-f="rented" onclick="setRoomFilter('rented')">🔵 Đang thuê</button>
-        <button class="chip" data-f="debt" onclick="setRoomFilter('debt')">🔴 Có nợ</button>
-        <button class="chip" data-f="due" onclick="setRoomFilter('due')">🟡 Sắp hạn</button>
+        <button class="chip" data-f="available" onclick="setRoomFilter('available')"><i class="sdot sd-av"></i>Còn trống</button>
+        <button class="chip" data-f="rented" onclick="setRoomFilter('rented')"><i class="sdot sd-rt"></i>Đang thuê</button>
+        <button class="chip" data-f="debt" onclick="setRoomFilter('debt')"><i class="sdot sd-db"></i>Có nợ</button>
+        <button class="chip" data-f="due" onclick="setRoomFilter('due')"><i class="sdot sd-du"></i>Sắp hạn</button>
       </div>
       <!-- Toggle kiểu xem -->
       <div class="room-view-toggle">
@@ -2010,8 +2046,8 @@ select{text-overflow:ellipsis}
     </button>
     <div class="fsect">👤 Thông Tin Chủ Hợp Đồng</div>
     <div class="frow"><div class="fg"><label class="flbl">Họ và tên <span>*</span></label><input class="fc" id="tName" placeholder="Nguyễn Văn A"></div><div class="fg"><label class="flbl">Giới tính</label><select class="fc" id="tGender"><option>Nam</option><option>Nữ</option><option>Khác</option></select></div></div>
-    <div class="frow"><div class="fg"><label class="flbl">Số điện thoại <span>*</span></label><input class="fc" id="tPhone" type="tel" placeholder="0901234567"></div><div class="fg"><label class="flbl">Ngày sinh</label><input class="fc" id="tDob" type="date"></div></div>
-    <div class="frow"><div class="fg"><label class="flbl">CCCD / CMND</label><input class="fc" id="tCccd" placeholder="012345678901"></div><div class="fg"><label class="flbl">Biển số xe</label><input class="fc" id="tVehicle" placeholder="51A-12345"></div></div>
+    <div class="frow"><div class="fg"><label class="flbl">Số điện thoại <small style="font-weight:500;color:var(--text3)">(không bắt buộc)</small></label><input class="fc" id="tPhone" type="tel" placeholder="Có thể để trống"></div><div class="fg"><label class="flbl">Ngày sinh</label><input class="fc" id="tDob" type="date"></div></div>
+    <div class="frow"><div class="fg"><label class="flbl">CCCD / CMND <span>*</span></label><input class="fc" id="tCccd" inputmode="numeric" placeholder="012345678901"></div><div class="fg"><label class="flbl">Biển số xe</label><input class="fc" id="tVehicle" placeholder="51A-12345"></div></div>
     <div class="fg"><label class="flbl">Địa chỉ thường trú</label><input class="fc" id="tAddr" placeholder="Số nhà, đường, phường, quận..."></div>
 
     <div class="fsect">🪪 Ảnh CCCD / CMND (Chủ HĐ)</div>
@@ -2648,10 +2684,10 @@ function renderRoomsMap(rows){
   const groups=groupByZoneAndFloor(rows);
   const legend=`
     <div class="floor-legend">
-      <div class="legend-item"><div class="legend-dot" style="background:var(--success)"></div>Còn trống</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--secondary)"></div>Đang thuê</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--danger)"></div>Có nợ</div>
-      <div class="legend-item"><div class="legend-dot" style="background:var(--warning)"></div>Sắp hạn</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--st-av)"></div>Còn trống</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--st-rt)"></div>Đang thuê</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--st-db)"></div>Có nợ</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--st-du)"></div>Sắp hạn</div>
     </div>`;
 
   const html=groups.map(({zone,floors})=>{
@@ -2680,10 +2716,11 @@ function renderRoomsMap(rows){
               else if(t)avHtmlStr=`<div class="rc-avatar-mini" style="background:${t.avatarColor||'#16a34a'}">${getInits(t.name)}</div>`;
               else avHtmlStr=`<div style="width:20px;height:20px;border-radius:6px;background:var(--bg2);display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="var(--text3)" stroke-width="2" style="width:12px;height:12px"><circle cx="12" cy="7" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></div>`;
               return`<div class="room-cell ${stCls}" data-rid="${esc(room.id)}" onclick="showRoomDet('${room.id}')" title="Phòng ${esc(room.name)}${t?' — '+esc(t.name):''}${debtAmt>0?' · Nợ '+fmt(debtAmt):''}">
+                <svg class="rc-house" viewBox="0 0 100 112" preserveAspectRatio="none" aria-hidden="true"><path d="M50 4L97 41H90V108H10V41H3Z"/></svg>
                 <div class="rc-status-dot"></div>
                 <div class="rc-no">${esc(room.name)}</div>
-                ${avHtmlStr}
-                ${debtAmt>0?`<div style="font-size:8px;font-weight:800;color:var(--danger)">${Math.round(debtAmt/1000)}K</div>`:`<div class="rc-price-mini">${Math.round(room.price/1000)}K</div>`}
+                ${t&&isRep(t)?crownWrap(avHtmlStr):avHtmlStr}
+                ${debtAmt>0?`<div class="rc-debt-mini">${Math.round(debtAmt/1000)}K</div>`:`<div class="rc-price-mini">${Math.round(room.price/1000)}K</div>`}
               </div>`;
             }).join('');
           return`<div class="floor-sub">
@@ -7697,10 +7734,15 @@ window.tRoomChanged=function(){
 window.saveTenant=function(){
   if(!roleCan('structure')){toast('🔒 Vai trò "'+(ROLE_NAMES[window.ptRole]||'')+'" không có quyền thực hiện thao tác này','warning');return}
   const g=id=>document.getElementById(id);
-  const name=g('tName').value.trim(),phone=g('tPhone').value.trim();
-  if(!name||!phone){toast('Nhập họ tên và SĐT!','error');return}
+  const name=g('tName').value.trim(),phone=g('tPhone').value.trim(),cccdV=g('tCccd').value.replace(/\s/g,'');
+  if(!name){toast('Nhập họ tên!','error');g('tName').focus();return}
+  if(!cccdV){toast('Nhập số CCCD/CMND (bắt buộc)!','error');g('tCccd').focus();return}
+  if(!/^\d{9}$|^\d{12}$/.test(cccdV)&&!confirm('Số CCCD "'+cccdV+'" chưa đúng định dạng (9 hoặc 12 chữ số). Vẫn lưu?'))return;
+  {const dupC=S.tenants.find(t=>t.id!==g('tEditId').value&&t.cccd&&t.cccd.replace(/\s/g,'')===cccdV);
+   if(dupC&&!confirm('CCCD này đã có trong danh sách: '+dupC.name+'. Vẫn lưu?'))return;}
   const id=g('tEditId').value,roomId=g('tRoom').value,want=!!(g('tRep')&&g('tRep').checked);
   const data={name,phone,roomId:'',gender:g('tGender').value,dob:g('tDob').value,cccd:g('tCccd').value,address:g('tAddr').value,vehicle:g('tVehicle').value,moveIn:g('tMoveIn').value,deposit:+g('tDeposit').value||0,people:+g('tPeople').value||1,note:g('tNote').value,avatar:avUrl,cmndFront:cmndFUrl,cmndBack:cmndBUrl};
+  data.cccd=cccdV;
   let tid=id,oldRoom='';
   if(id){
     const idx=S.tenants.findIndex(t=>t.id===id),old=S.tenants[idx];if(idx<0)return;
@@ -7713,10 +7755,8 @@ window.saveTenant=function(){
   }
   if(roomId){placeInRoom(tid,roomId,want)}else{const t=S.tenants.find(x=>x.id===tid);if(t)t.roomId=''}
   if(oldRoom&&oldRoom!==roomId)reassignRoom(oldRoom);
-  const dup=S.tenants.find(t=>t.id!==tid&&t.cccd&&t.cccd===data.cccd);
   healRooms();save();closeM('mTenant');renderTenants();renderAll();
   toast(id?'Đã cập nhật!':'Đã thêm '+name+(roomId?' vào phòng '+(S.rooms.find(r=>r.id===roomId)||{}).name:''),'success');
-  if(dup)setTimeout(()=>toast('⚠️ CCCD này trùng với '+dup.name,'warning'),600);
 };
 
 (function(){
@@ -7789,7 +7829,7 @@ async function roomJoinPublish(force){
     for(const id of Object.keys(items)){
       if(window.JOINQ[id])continue;
       const it=items[id]||{};
-      if(it.type==='join'&&clip(it.name,100)&&clip(it.phone,20)){
+      if(it.type==='join'&&clip(it.name,100)&&clip(it.cccd,20)){
         window.JOINQ[id]={id,code,roomId:room.id,name:clip(it.name,100),phone:clip(it.phone,20),cccd:clip(it.cccd,20),dob:clip(it.dob,10),gender:clip(it.gender,10),address:clip(it.address,200),vehicle:clip(it.vehicle,20),at:+it.at||Date.now()};added++;
       }else{try{dbRef('portal_in/'+code+'/'+id).remove()}catch(e){}}
     }
@@ -8029,8 +8069,8 @@ function roomCmp(a,b){
   if((za<0?999:za)!==(zb<0?999:zb))return(za<0?999:za)-(zb<0?999:zb);
   const fa=+(a.floorNum??a.floor??0)||0,fb=+(b.floorNum??b.floor??0)||0;
   if(fa!==fb)return fa-fb;
-  if((a.roomNum||0)!==(b.roomNum||0))return(a.roomNum||0)-(b.roomNum||0);
-  return _natCmp(a.name,b.name);
+  const n=_natCmp(a.name,b.name);
+  return n!==0?n:(a.roomNum||0)-(b.roomNum||0);
 }
 function sortDataInPlace(){
   try{
@@ -8165,6 +8205,16 @@ window.ptUser=null;
     const w=function(){const r=f.apply(this,arguments);try{renderUserChips()}catch(e){}return r};
     w.__u2=1;for(const k of ['__g','__u','__h','__n','__c','__r','__s'])if(f[k])w[k]=f[k];window[n]=w;
   });
+})();
+
+/* Khách/đại diện không có SĐT: không mở Zalo/SMS sai số */
+(function(){
+  const sa=window.sendAct;
+  if(typeof sa==='function'&&!sa.__p)window.sendAct=function(act,phone){
+    if((act==='zalo'||act==='sms')&&!String(phone||'').trim()){toast('Người này chưa có số điện thoại — hãy bấm "Chép" rồi gửi cho người khác trong phòng','warning',{duration:5000});return}
+    return sa.apply(this,arguments);
+  };
+  if(window.sendAct)window.sendAct.__p=1;
 })();
 </script>
 

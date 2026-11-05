@@ -116,7 +116,7 @@
       "$code": {
         "$id": {
           ".write": "$code.matches(/^[A-Za-z0-9]{24}$/) && !data.exists() && newData.exists() && root.child('portal').child($code).exists()",
-          ".validate": "newData.hasChildren(['type','at']) && newData.child('type').val().matches(/^(incident|meter)$/) && newData.child('at').isNumber()",
+          ".validate": "newData.hasChildren(['type','at']) && newData.child('type').val().matches(/^(incident|meter|join)$/) && newData.child('at').isNumber()",
           "type": {
             ".validate": "newData.isString()"
           },
@@ -140,6 +140,30 @@
           },
           "$other": {
             ".validate": false
+          },
+          "img": {
+            ".validate": "newData.isString() && newData.val().length <= 200000 && newData.val().matches(/^data:image\\/jpeg;base64,/)"
+          },
+          "name": {
+            ".validate": "newData.isString() && newData.val().length <= 100"
+          },
+          "phone": {
+            ".validate": "newData.isString() && newData.val().length <= 20"
+          },
+          "cccd": {
+            ".validate": "newData.isString() && newData.val().length <= 20"
+          },
+          "dob": {
+            ".validate": "newData.isString() && newData.val().length <= 10"
+          },
+          "gender": {
+            ".validate": "newData.isString() && newData.val().length <= 10"
+          },
+          "address": {
+            ".validate": "newData.isString() && newData.val().length <= 200"
+          },
+          "vehicle": {
+            ".validate": "newData.isString() && newData.val().length <= 20"
           }
         }
       }

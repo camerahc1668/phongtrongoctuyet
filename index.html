@@ -6797,6 +6797,7 @@ function portalListen(){
   r.on('child_added',cb,()=>{});r.on('child_changed',cb,()=>{});portalRef=[r,cb];
 }
 function portalUnlisten(){if(portalRef){try{portalRef[0].off('child_added',portalRef[1]);portalRef[0].off('child_changed',portalRef[1])}catch(e){}portalRef=null}}
+const clipImg=v=>typeof v==='string'&&v.length<=200000&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(v)?v:'';
 const clip=(v,n)=>String(v==null?'':v).replace(/[\u0000-\u001f\u007f]+/g,' ').trim().slice(0,n);
 function portalHandle(code,items){
   if(!items||typeof items!=='object')return;
@@ -6806,11 +6807,11 @@ function portalHandle(code,items){
     const it=items[id]||{},del=()=>{try{dbRef('portal_in/'+code+'/'+id).remove()}catch(e){}};
     if(!t){del();continue}
     if(it.type==='incident'&&clip(it.title,100)){
-      if(!incs().some(i=>i.srcId===id)){incs().push({id:'INC'+uid(),srcId:id,roomId:t.roomId,title:clip(it.title,100),desc:clip(it.desc,500),priority:'normal',status:'open',cost:0,paidBy:'owner',date:today(),createdAt:new Date().toISOString(),fromPortal:true,tenantName:t.name});changed++}
+      if(!incs().some(i=>i.srcId===id)){incs().push({id:'INC'+uid(),srcId:id,roomId:t.roomId,title:clip(it.title,100),desc:clip(it.desc,500),priority:'normal',status:'open',cost:0,paidBy:'owner',date:today(),createdAt:new Date().toISOString(),fromPortal:true,tenantName:t.name,photo:clipImg(it.img)});changed++}
       del();
     }else if(it.type==='meter'){
       const e=+it.elec,w=+it.water;
-      if(isFinite(e)&&isFinite(w)&&e>=0&&w>=0&&!(S.meterSubs||[]).some(m=>m.srcId===id)){(S.meterSubs||(S.meterSubs=[])).push({id:'MS'+uid(),srcId:id,roomId:t.roomId,tenantId:t.id,tenantName:t.name,month:clip(it.month,7),elec:e,water:w,at:new Date().toISOString(),used:false});changed++}
+      if(isFinite(e)&&isFinite(w)&&e>=0&&w>=0&&!(S.meterSubs||[]).some(m=>m.srcId===id)){(S.meterSubs||(S.meterSubs=[])).push({id:'MS'+uid(),srcId:id,roomId:t.roomId,tenantId:t.id,tenantName:t.name,month:clip(it.month,7),elec:e,water:w,at:new Date().toISOString(),used:false,img:clipImg(it.img)});changed++}
       del();
     }else del();
   }
@@ -6880,8 +6881,15 @@ async function portalQR(tid){
 function portalShowMeters(){
   const list=(S.meterSubs||[]).filter(m=>!m.used).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
   const room=id=>{const r=S.rooms.find(x=>x.id===id);return r?r.name:'?'};
-  mkModal('mMeters','Chỉ số khách gửi',list.map(m=>`<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px"><b>Phòng ${esc(room(m.roomId))}</b> · ${esc(m.tenantName||'')} · tháng ${esc(m.month||'?')}<br>Điện: <b>${m.elec}</b> · Nước: <b>${m.water}</b> <button class="btn btn-secondary btn-xs" type="button" onclick="meterDismiss('${esc(m.id)}')">Bỏ qua</button></div>`).join('')||'Không có chỉ số nào chưa dùng.',
+  mkModal('mMeters','Chỉ số khách gửi (chờ duyệt)',list.map(m=>`<div style="padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><b>Phòng ${esc(room(m.roomId))}</b> · ${esc(m.tenantName||'')} · tháng ${esc(m.month||'?')}<br>Điện: <b>${m.elec}</b> · Nước: <b>${m.water}</b>${m.img?`<div><img src="${m.img}" alt="Ảnh công tơ" onclick="meterImg('${esc(m.id)}')" style="height:64px;border-radius:8px;margin-top:6px;cursor:pointer;border:1px solid var(--border)"></div>`:''}<div style="display:flex;gap:6px;margin-top:8px"><button class="btn btn-primary btn-xs" type="button" onclick="meterUse('${esc(m.id)}')">✅ Duyệt &amp; lập hóa đơn</button><button class="btn btn-secondary btn-xs" type="button" onclick="meterDismiss('${esc(m.id)}')">Bỏ qua</button></div></div>`).join('')||'Không có chỉ số nào chờ duyệt.',
     '<button class="btn btn-secondary" type="button" onclick="closeM(\'mMeters\')">Đóng</button>');openM('mMeters');
+}
+function meterImg(id){const m=(S.meterSubs||[]).find(x=>x.id===id);if(!m||!m.img)return;mkModal('mMeterImg','Ảnh công tơ — phòng '+esc((S.rooms.find(r=>r.id===m.roomId)||{}).name||''),'<img src="'+m.img+'" style="width:100%;border-radius:10px">','<button class="btn btn-secondary" type="button" onclick="closeM(\'mMeterImg\')">Đóng</button>');openM('mMeterImg')}
+function meterUse(id){
+  const m=(S.meterSubs||[]).find(x=>x.id===id);if(!m)return;
+  closeM('mMeters');try{closeM('mPortal')}catch(e){}
+  openCreateInv(m.roomId);
+  setTimeout(()=>{const e=document.getElementById('invEN'),w=document.getElementById('invWN');if(e&&w){e.value=m.elec;w.value=m.water;m.used=true;save();calcInv();toast('Đã điền chỉ số khách gửi — hãy đối chiếu ảnh rồi lưu hóa đơn','info',{duration:6000})}},350);
 }
 function meterDismiss(id){const m=(S.meterSubs||[]).find(x=>x.id===id);if(m){m.used=true;save()}portalShowMeters()}
 

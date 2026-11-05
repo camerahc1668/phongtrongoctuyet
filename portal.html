@@ -175,17 +175,21 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
         +'<div class="muted" style="text-align:center;margin-top:6px">Cập nhật lúc '+esc(new Date(data.at||Date.now()).toLocaleString('vi-VN'))+'</div>';
     }else if(tab==='meter'){
       const d=new Date(),m=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-      h+='<div class="card"><b>Gửi chỉ số điện nước</b><div class="muted">Chủ trọ sẽ kiểm tra lại trước khi lập hóa đơn.</div><label>Tháng</label><input type="month" id="fM" value="'+m+'"><label>Chỉ số điện hiện tại (kWh)</label><input type="number" id="fE" min="0" inputmode="decimal"><label>Chỉ số nước hiện tại (m³)</label><input type="number" id="fW" min="0" inputmode="decimal"><div style="margin-top:12px"><button class="pri" data-a="meter" '+(sent.meter?'disabled':'')+'>Gửi chỉ số</button></div><div id="fMsg"></div></div>';
+      h+='<div class="card"><b>Gửi chỉ số điện nước</b><div class="muted">Chủ trọ sẽ kiểm tra lại trước khi lập hóa đơn.</div><label>Tháng</label><input type="month" id="fM" value="'+m+'"><label>Chỉ số điện hiện tại (kWh)</label><input type="number" id="fE" min="0" inputmode="decimal"><label>Chỉ số nước hiện tại (m³)</label><input type="number" id="fW" min="0" inputmode="decimal">'+photoBox('meter')+'<div style="margin-top:12px"><button class="pri" data-a="meter" '+(sent.meter?'disabled':'')+'>Gửi chỉ số</button></div><div id="fMsg"></div></div>';
     }else{
-      h+='<div class="card"><b>Báo sự cố / yêu cầu sửa chữa</b><label>Vấn đề <span style="color:var(--danger)">*</span></label><input id="fT" maxlength="100" placeholder="VD: Hỏng vòi nước, mất điện..."><label>Mô tả</label><textarea id="fD" rows="4" maxlength="500"></textarea><div style="margin-top:12px"><button class="pri" data-a="issue" '+(sent.issue?'disabled':'')+'>Gửi cho chủ trọ</button></div><div id="fMsg"></div></div>';
+      h+='<div class="card"><b>Báo sự cố / yêu cầu sửa chữa</b><label>Vấn đề <span style="color:var(--danger)">*</span></label><input id="fT" maxlength="100" placeholder="VD: Hỏng vòi nước, mất điện..."><label>Mô tả</label><textarea id="fD" rows="4" maxlength="500"></textarea>'+photoBox('issue')+'<div style="margin-top:12px"><button class="pri" data-a="issue" '+(sent.issue?'disabled':'')+'>Gửi cho chủ trọ</button></div><div id="fMsg"></div></div>';
     }
     $app.innerHTML=h;
   }
+  const photos={meter:'',issue:''};
+  function shrink(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{let q=.6,w=900;const go=()=>{const s=Math.min(1,w/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);const d=c.toDataURL('image/jpeg',q);if(d.length>180000&&w>500){w-=200;q=.5;go()}else res(d)};go()};im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
+  function pv(k){return photos[k]?'<div style="margin-top:8px"><img src="'+photos[k]+'" style="width:100%;max-height:220px;object-fit:contain;border-radius:12px;background:#0001"><button type="button" class="sec" data-a="unph" data-k="'+k+'" style="margin-top:6px">✕ Bỏ ảnh</button></div>':''}
+  function photoBox(k){return '<label>Ảnh '+(k==='meter'?'công tơ điện, nước':'sự cố')+' <span class="muted">(không bắt buộc)</span></label><div class="two"><button type="button" class="sec" data-a="pick" data-k="'+k+'" data-cam="1">📷 Chụp ảnh</button><button type="button" class="sec" data-a="pick" data-k="'+k+'">🖼️ Chọn ảnh</button></div><input type="file" accept="image/*" capture="environment" id="ph_'+k+'_c" data-ph="'+k+'" hidden><input type="file" accept="image/*" id="ph_'+k+'_g" data-ph="'+k+'" hidden><div id="pv_'+k+'">'+pv(k)+'</div>'}
   function submit(type,payload,btn){
     const msg=document.getElementById('fMsg');
     const ref=db.ref('portal_in/'+code).push();
     ref.set(Object.assign({type:type,at:Date.now()},payload)).then(()=>{
-      sent[type==='meter'?'meter':'issue']=true;if(btn)btn.disabled=true;
+      sent[type==='meter'?'meter':'issue']=true;if(btn)btn.disabled=true;const kk=type==='meter'?'meter':'issue';photos[kk]='';const pvEl=document.getElementById('pv_'+kk);if(pvEl)pvEl.innerHTML='';
       msg.innerHTML='<div class="ok">✅ Đã gửi cho chủ trọ. Cảm ơn bạn!</div>';
       setTimeout(()=>{sent[type==='meter'?'meter':'issue']=false;const b=document.querySelector('[data-a="'+(type==='meter'?'meter':'issue')+'"]');if(b)b.disabled=false},15000);
     }).catch(()=>{msg.innerHTML='<div class="err">Không gửi được. Vui lòng thử lại sau.</div>'});
@@ -199,12 +203,23 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
     else if(a==='meter'){
       const m=document.getElementById('fM').value,el=document.getElementById('fE').value,wa=document.getElementById('fW').value,msg=document.getElementById('fMsg');
       if(el===''||wa===''||+el<0||+wa<0){msg.innerHTML='<div class="err">Hãy nhập đủ chỉ số điện và nước.</div>';return}
-      submit('meter',{month:m,elec:+el,water:+wa},b);
+      submit('meter',Object.assign({month:m,elec:+el,water:+wa},photos.meter?{img:photos.meter}:{}),b);
     }else if(a==='issue'){
       const ti=document.getElementById('fT').value.trim(),msg=document.getElementById('fMsg');
       if(!ti){msg.innerHTML='<div class="err">Hãy nhập nội dung vấn đề.</div>';return}
-      submit('incident',{title:ti.slice(0,100),desc:document.getElementById('fD').value.trim().slice(0,500)},b);
+      submit('incident',Object.assign({title:ti.slice(0,100),desc:document.getElementById('fD').value.trim().slice(0,500)},photos.issue?{img:photos.issue}:{}),b);
     }
+  });
+  $app.addEventListener('click',e=>{
+    const b=e.target.closest('[data-a="pick"],[data-a="unph"]');if(!b)return;const k=b.dataset.k;
+    if(b.dataset.a==='pick'){document.getElementById('ph_'+k+(b.dataset.cam?'_c':'_g')).click()}
+    else{photos[k]='';document.getElementById('pv_'+k).innerHTML=''}
+  });
+  $app.addEventListener('change',async e=>{
+    const i=e.target.closest('input[data-ph]');if(!i||!i.files[0])return;const k=i.dataset.ph,box=document.getElementById('pv_'+k);
+    try{box.innerHTML='<div class="muted" style="margin-top:8px">Đang xử lý ảnh...</div>';photos[k]=await shrink(i.files[0]);box.innerHTML=pv(k)}
+    catch(x){photos[k]='';box.innerHTML='<div class="err">Không đọc được ảnh này.</div>'}
+    i.value='';
   });
 })();
 </script>

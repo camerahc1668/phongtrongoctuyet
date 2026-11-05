@@ -5,16 +5,16 @@
     "meta": {
       "ownerUid": {
         ".read": "auth != null",
-        ".write": "auth != null && !data.exists() && newData.val() === auth.uid"
+        ".write": false
       }
     },
     "members": {
-      ".read": "auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner')",
+      ".read": "auth != null && (root.child('meta/ownerUid').val() === auth.uid)",
       "$uid": {
-        ".read": "auth != null && (auth.uid === $uid || root.child('members').child(auth.uid).child('role').val() === 'owner')",
-        ".write": "auth != null && ((auth.uid === $uid && !data.exists() && newData.child('role').val() === 'pending') || (auth.uid === $uid && newData.child('role').val() === 'owner' && !root.child('meta/ownerUid').exists() && newData.parent().parent().child('meta/ownerUid').val() === auth.uid) || root.child('meta/ownerUid').val() === auth.uid)",
+        ".read": "auth != null && (auth.uid === $uid || root.child('meta/ownerUid').val() === auth.uid)",
+        ".write": "auth != null && ((auth.uid === $uid && !data.exists() && newData.child('role').val() === 'pending') || root.child('meta/ownerUid').val() === auth.uid)",
         "role": {
-          ".validate": "newData.isString() && newData.val().matches(/^(owner|manager|staff|pending|disabled)$/)"
+          ".validate": "newData.isString() && (newData.val().matches(/^(manager|staff|pending|disabled)$/) || (newData.val() === 'owner' && $uid === root.child('meta/ownerUid').val()))"
         },
         "email": {
           ".validate": "newData.isString() && newData.val().length <= 200"
@@ -32,72 +32,72 @@
     },
     "$base": {
       "meta": {
-        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
-        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager')"
+        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
+        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager')"
       },
       "settings": {
-        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
-        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner')"
+        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
+        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid)"
       },
       "rooms": {
-        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
-        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager')",
+        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
+        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager')",
         "$id": {
           ".validate": "newData.hasChild('id') && newData.child('id').val() === $id && newData.child('_u').isNumber()"
         }
       },
       "tenants": {
-        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
-        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager')",
+        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
+        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager')",
         "$id": {
           ".validate": "newData.hasChild('id') && newData.child('id').val() === $id && newData.child('_u').isNumber()"
         }
       },
       "invoices": {
-        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
-        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
+        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
         "$id": {
-          ".validate": "newData.hasChild('id') && newData.child('id').val() === $id && newData.child('_u').isNumber()"
+          ".validate": "newData.hasChild('id') && newData.child('id').val() === $id && newData.child('_u').isNumber()",
+          ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager' || (root.child('members').child(auth.uid).child('role').val() === 'staff' && newData.exists()))"
         }
       },
       "payments": {
-        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
-        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
+        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
         "$id": {
-          ".validate": "newData.hasChild('id') && newData.child('id').val() === $id && newData.child('_u').isNumber()"
+          ".validate": "newData.hasChild('id') && newData.child('id').val() === $id && newData.child('_u').isNumber()",
+          ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager' || (root.child('members').child(auth.uid).child('role').val() === 'staff' && newData.exists()))"
         }
       },
       "contracts": {
-        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager')",
-        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager')",
+        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager')",
+        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager')",
         "$id": {
           ".validate": "newData.hasChild('id') && newData.child('id').val() === $id && newData.child('_u').isNumber()"
         }
       },
       "archived": {
-        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager')",
-        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager')",
+        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager')",
+        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager')",
         "$id": {
           ".validate": "newData.hasChild('id') && newData.child('id').val() === $id && newData.child('_u').isNumber()"
         }
       },
       "incidents": {
-        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
-        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
+        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
+        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
         "$id": {
           ".validate": "newData.hasChild('id') && newData.child('id').val() === $id && newData.child('_u').isNumber()"
         }
       },
       "expenses": {
-        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager')",
-        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager')",
+        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager')",
+        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager')",
         "$id": {
           ".validate": "newData.hasChild('id') && newData.child('id').val() === $id && newData.child('_u').isNumber()"
         }
       },
       "meterSubs": {
-        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
-        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
+        ".read": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
+        ".write": "$base.matches(/^phongtro_data(_[A-Za-z0-9]+)?_v2$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager' || root.child('members').child(auth.uid).child('role').val() === 'staff')",
         "$id": {
           ".validate": "newData.hasChild('id') && newData.child('id').val() === $id && newData.child('_u').isNumber()"
         }
@@ -106,17 +106,17 @@
     "portal": {
       "$code": {
         ".read": "$code.matches(/^[A-Za-z0-9]{24}$/)",
-        ".write": "$code.matches(/^[A-Za-z0-9]{24}$/) && auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager')",
+        ".write": "$code.matches(/^[A-Za-z0-9]{24}$/) && auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager')",
         ".validate": "newData.hasChildren(['v','at'])"
       }
     },
     "portal_in": {
-      ".read": "auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager')",
-      ".write": "auth != null && (root.child('members').child(auth.uid).child('role').val() === 'owner' || root.child('members').child(auth.uid).child('role').val() === 'manager')",
+      ".read": "auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager')",
+      ".write": "auth != null && (root.child('meta/ownerUid').val() === auth.uid || root.child('members').child(auth.uid).child('role').val() === 'manager')",
       "$code": {
         "$id": {
           ".write": "$code.matches(/^[A-Za-z0-9]{24}$/) && !data.exists() && newData.exists() && root.child('portal').child($code).exists()",
-          ".validate": "newData.hasChildren(['type','at']) && newData.child('type').val().matches(/^(incident|meter|join)$/) && newData.child('at').isNumber()",
+          ".validate": "newData.hasChildren(['type','at']) && newData.child('type').val().matches(/^(incident|meter)$/) && newData.child('at').isNumber()",
           "type": {
             ".validate": "newData.isString()"
           },
@@ -137,27 +137,6 @@
           },
           "water": {
             ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000"
-          },
-          "name": {
-            ".validate": "newData.isString() && newData.val().length <= 100"
-          },
-          "phone": {
-            ".validate": "newData.isString() && newData.val().length <= 20"
-          },
-          "cccd": {
-            ".validate": "newData.isString() && newData.val().length <= 20"
-          },
-          "dob": {
-            ".validate": "newData.isString() && newData.val().length <= 10"
-          },
-          "gender": {
-            ".validate": "newData.isString() && newData.val().length <= 10"
-          },
-          "address": {
-            ".validate": "newData.isString() && newData.val().length <= 200"
-          },
-          "vehicle": {
-            ".validate": "newData.isString() && newData.val().length <= 20"
           },
           "$other": {
             ".validate": false

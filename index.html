@@ -5582,7 +5582,7 @@ function cleanupArchived(){
         <div class="fg"><label class="flbl">Mật khẩu</label><input class="fc" id="fbAuthPass" type="password" autocomplete="current-password" placeholder="Tối thiểu 6 ký tự"></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           <button class="btn btn-primary btn-sm" type="button" onclick="fbSignIn(false)">Đăng nhập</button>
-          <button class="btn btn-secondary btn-sm" type="button" onclick="fbSignIn(true)">Tạo tài khoản</button>
+          <button class="btn btn-secondary btn-sm" type="button" onclick="fbSignIn(true)">Đăng ký (chờ Chủ trọ duyệt)</button>
           <button class="btn btn-secondary btn-sm" type="button" onclick="fbSignOut()">Đăng xuất</button>
         </div>
         <div style="font-size:11px;color:var(--text3);margin-top:8px;word-break:break-all" id="fbAuthUid"></div>
@@ -6514,7 +6514,9 @@ function v2Denied(what){if(!v2.deniedShown){v2.deniedShown=true;toast('🔒 Khô
 function v2Set(t){const e=document.getElementById('v2Status');if(e)e.textContent=t}
 
 /* ── Vai trò ── */
-const roleCan=cap=>{const r=window.ptRole;if(r==='owner')return true;if(r==='pending'||r==='disabled')return false;if(cap==='settings')return false;if(cap==='structure')return r==='manager';return r==='manager'||r==='staff'};
+/* MA TRẬN QUYỀN (một nơi duy nhất; Firebase Rules phải khớp bảng này) */
+const PERMS={owner:['*'],manager:['structure','invoice','portal'],staff:['invoice'],pending:[],disabled:[]};
+const roleCan=cap=>{const p=PERMS[window.ptRole]||[];return p.includes('*')||p.includes(cap)};
 const GUARD={structure:['openAddRoom','openEditRoom','saveRoom','deleteRoom','addZone','removeZone','openAddTenant','openEditTenant','saveTenant','delTenant','openTransfer','confirmTransfer','openCheckout','confirmCheckout','openCreateContract','saveContractHistory','saveContractFromPreview','deleteArchivedNow','restoreArchived','editExp','saveExp','delExp','openDepositSettle','saveDeposit','refreshAndSort'],
   settings:['saveSetting','saveBank','saveLateFee','tierSave','resetDemo','restoreData']};
 Object.keys(GUARD).forEach(cap=>GUARD[cap].forEach(n=>{
@@ -6529,11 +6531,11 @@ function applyRoleUI(){
 }
 const _renderAll=window.renderAll;
 window.renderAll=function(...a){const r=_renderAll.apply(this,a);try{applyRoleUI()}catch(e){}return r};
-function roleOverlay(show,msg){
+function roleOverlay(show,msg,extra){
   let o=document.getElementById('ptRoleOv');
   if(!show){if(o)o.remove();return}
   if(!o){o=document.createElement('div');o.id='ptRoleOv';o.style.cssText='position:fixed;inset:0;z-index:99998;background:var(--bg,#f8fafc);color:var(--text,#0f172a);display:flex;align-items:center;justify-content:center;padding:24px;text-align:center';document.body.appendChild(o)}
-  o.innerHTML=`<div style="max-width:320px"><div style="font-size:42px">🔒</div><div style="font-size:18px;font-weight:800;margin:8px 0">${esc(msg)}</div><div style="font-size:13px;color:var(--text3,#64748b);margin-bottom:14px">Hãy liên hệ chủ trọ để được cấp quyền, sau đó bấm Kiểm tra lại.</div><button class="btn btn-primary" type="button" onclick="v2Recheck()">Kiểm tra lại</button> <button class="btn btn-secondary" type="button" onclick="fbSignOut()">Đăng xuất</button></div>`;
+  o.innerHTML=`<div style="max-width:320px"><div style="font-size:42px">🔒</div><div style="font-size:18px;font-weight:800;margin:8px 0">${esc(msg)}</div><div style="font-size:13px;color:var(--text3,#64748b);margin-bottom:14px">${extra||'Hãy liên hệ chủ trọ để được cấp quyền, sau đó bấm Kiểm tra lại.'}</div><button class="btn btn-primary" type="button" onclick="v2Recheck()">Kiểm tra lại</button> <button class="btn btn-secondary" type="button" onclick="fbSignOut()">Đăng xuất</button></div>`;
 }
 
 /* ── Đồng bộ: diff, đẩy lên ── */
@@ -6659,20 +6661,16 @@ function v2Choose(canPush){
   });
 }
 async function v2ResolveRole(user){
-  const owner=await dbRef('meta/ownerUid').once('value'),mRef=dbRef('members/'+user.uid),snap=await mRef.once('value');
-  if(snap.exists()&&snap.val().role)return snap.val().role;
-  if(!owner.exists()){
-    if(confirm('Dự án Firebase này chưa có Chủ trọ.\nBạn muốn đặt tài khoản '+(user.email||'')+' làm Chủ trọ (toàn quyền)?')){
-      const me={email:user.email||'',role:'owner',at:Date.now()};
-      try{await dbRef('').update({'meta/ownerUid':user.uid,['members/'+user.uid]:me})}
-      catch(e){await dbRef('meta/ownerUid').set(user.uid);await dbRef('members/'+user.uid).set(me)}
-      return 'owner';
-    }
-    return 'pending';
-  }
-  if(owner.val()===user.uid){await mRef.set({email:user.email||'',role:'owner',at:Date.now()});return 'owner'}
-  await mRef.set({email:user.email||'',role:'pending',at:Date.now()});return 'pending';
+  v2.noOwner=null;
+  const owner=await dbRef('meta/ownerUid').once('value'),mRef=dbRef('members/'+user.uid),snap=await mRef.once('value'),cur=snap.exists()?snap.val():null;
+  if(!owner.exists()){v2.noOwner=user.uid;return 'pending'}            // chưa gán chủ trọ: không ai được tự nhận
+  if(owner.val()===user.uid){if(!cur||cur.role!=='owner')await mRef.update({email:user.email||'',role:'owner',at:(cur&&cur.at)||Date.now()});return 'owner'}
+  const r=cur&&cur.role;
+  if(r==='manager'||r==='staff'||r==='disabled')return r;
+  if(!cur)await mRef.set({email:user.email||'',role:'pending',at:Date.now()});
+  return 'pending';                                                      // gồm cả bản ghi 'owner' giả
 }
+function ownerHelp(uid){return 'Dự án Firebase chưa có Chủ trọ. Để người lạ không tự nhận được quyền, Chủ trọ do bạn gán thủ công:<br>Firebase Console → Realtime Database → Data → tạo nút <b>meta/ownerUid</b> với giá trị là UID bên dưới, rồi bấm Kiểm tra lại.<div style="margin:10px 0;padding:8px;background:var(--bg2,#f1f5f9);border-radius:8px;font-size:12px;word-break:break-all;user-select:all">'+esc(uid)+'</div>'}
 function watchRole(user){
   if(v2.roleRef){try{v2.roleRef[0].off('value',v2.roleRef[1])}catch(e){}}
   const r=dbRef('members/'+user.uid+'/role'),cb=s=>{
@@ -6686,9 +6684,9 @@ function watchRole(user){
 async function v2Start(user){
   if(v2.on||v2.starting||!fbDb)return;v2.starting=true;
   try{
-    v2Set('⏳ Đang kiểm tra quyền...');
+    window.ptRole='pending';v2Set('⏳ Đang kiểm tra quyền...');
     const role=await v2ResolveRole(user);window.ptRole=role;watchRole(user);applyRoleUI();
-    if(role==='pending'||role==='disabled'){roleOverlay(true,role==='disabled'?'Tài khoản đã bị khóa':'Tài khoản đang chờ chủ trọ duyệt');v2Set('🔒 '+ROLE_NAMES[role]);updateV2Ui();return}
+    if(role==='pending'||role==='disabled'){roleOverlay(true,v2.noOwner?'Chưa thiết lập Chủ trọ':role==='disabled'?'Tài khoản đã bị khóa':'Tài khoản đang chờ chủ trọ duyệt',v2.noOwner?ownerHelp(v2.noOwner):null);v2Set('🔒 '+ROLE_NAMES[role]);updateV2Ui();return}
     roleOverlay(false);
     const had=loadHashes(),meta=await dbRef(v2Base()+'/meta').once('value'),localHas=(S.rooms.length+S.tenants.length+S.invoices.length)>0;
     scanArrKeys();
@@ -6707,7 +6705,7 @@ async function v2Start(user){
     v2Listen();persistHashes();v2Render();v2Schedule();
     if(role==='owner'||role==='manager')portalListen();
     v2Set('🟢 Đồng bộ theo bản ghi đã bật');updateV2Ui();
-  }catch(e){v2Set('⚠️ '+v2Msg(e));toast('Không bật được đồng bộ: '+v2Msg(e),'error',{duration:7000})}
+  }catch(e){v2Set('⚠️ '+v2Msg(e));toast('Không bật được đồng bộ: '+v2Msg(e),'error',{duration:7000});if(v2Flag())roleOverlay(true,'Không kiểm tra được quyền',esc(v2Msg(e))+' — kiểm tra mạng và Rules.')}
   finally{v2.starting=false}
 }
 function v2Stop(keepRole){
@@ -6717,11 +6715,22 @@ function v2Stop(keepRole){
   applyRoleUI();updateV2Ui();
 }
 function v2OnAuth(u){
-  if(u&&v2Flag())v2Start(u);
+  if(u&&v2Flag()){window.ptRole='pending';v2Start(u)}
+  else if(!u&&v2Flag()){v2Stop();window.ptRole='disabled';loginOverlay()}   // đã bật đồng bộ mà chưa đăng nhập: khóa màn hình
   else if(!u){v2Stop();roleOverlay(false)}
   updateV2Ui();
 }
-async function v2Recheck(){const u=fbApp&&fbApp.auth().currentUser;if(!u)return;window.ptRole='owner';v2.on=false;await v2Start(u)}
+function loginOverlay(){
+  let o=document.getElementById('ptRoleOv');
+  if(!o){o=document.createElement('div');o.id='ptRoleOv';o.style.cssText='position:fixed;inset:0;z-index:99998;background:var(--bg,#f8fafc);color:var(--text,#0f172a);display:flex;align-items:center;justify-content:center;padding:24px;text-align:center';document.body.appendChild(o)}
+  o.innerHTML='<div style="max-width:320px;width:100%"><div style="font-size:42px">🔐</div><div style="font-size:18px;font-weight:800;margin:8px 0 12px">Đăng nhập để tiếp tục</div><input class="fc" id="loEm" type="email" autocomplete="username" placeholder="Email" style="margin-bottom:8px"><input class="fc" id="loPw" type="password" autocomplete="current-password" placeholder="Mật khẩu" style="margin-bottom:12px"><button class="btn btn-primary" type="button" style="width:100%" onclick="loginOvGo()">Đăng nhập</button><div style="font-size:12px;color:var(--text3,#64748b);margin:10px 0">Chưa có tài khoản? Nhờ Chủ trọ tạo cho bạn.</div><button class="btn btn-secondary btn-sm" type="button" onclick="v2Disable()">Tắt đồng bộ, dùng dữ liệu trên máy</button></div>';
+}
+async function loginOvGo(){
+  const em=document.getElementById('loEm').value.trim(),pw=document.getElementById('loPw').value;
+  if(!em||!pw){toast('Nhập email và mật khẩu','error');return}
+  try{await fbApp.auth().signInWithEmailAndPassword(em,pw)}catch(e){toast(authMsg(e),'error')}
+}
+async function v2Recheck(){const u=fbApp&&fbApp.auth().currentUser;if(!u)return;window.ptRole='pending';v2.on=false;await v2Start(u)}
 function v2Enable(){
   if(!fbApp||!fbConnected){toast('Hãy kết nối Firebase trước','error');return}
   const u=fbApp.auth&&fbApp.auth().currentUser;
@@ -6730,7 +6739,7 @@ function v2Enable(){
 }
 function v2Disable(){
   if(!confirm('Tắt đồng bộ theo bản ghi? Dữ liệu trên máy giữ nguyên, nhưng sẽ không còn tự đồng bộ.'))return;
-  localStorage.removeItem('ptV2_'+PT_CUR());v2Stop();v2Set('Đã tắt');
+  localStorage.removeItem('ptV2_'+PT_CUR());v2Stop();roleOverlay(false);v2Set('Đã tắt');
 }
 function updateV2Ui(){
   const e=document.getElementById('v2Role');
@@ -6748,15 +6757,15 @@ async function openMembers(){
 async function memRender(){
   const el=document.getElementById('memBody');if(!el)return;
   try{
-    const snap=await dbRef('members').once('value'),m=snap.val()||{},me=fbApp.auth().currentUser.uid;
+    const snap=await dbRef('members').once('value'),m=snap.val()||{},me=fbApp.auth().currentUser.uid,ou=(await dbRef('meta/ownerUid').once('value')).val();
     const rows=Object.keys(m).sort((a,b)=>(m[a].at||0)-(m[b].at||0)).map(uid=>{const x=m[uid],isMe=uid===me;
       return `<div style="padding:10px 0;border-bottom:1px solid var(--border)"><div style="font-weight:700">${esc(x.email||'(không có email)')} ${isMe?'<span style="color:var(--primary)">(bạn)</span>':''}</div>
         <div style="font-size:11px;color:var(--text3);word-break:break-all">UID: ${esc(uid)}</div>
-        ${isMe?`<div style="font-size:12px;margin-top:4px">${esc(ROLE_NAMES[x.role]||x.role)}</div>`:`<div style="display:flex;gap:6px;margin-top:6px"><select class="fc" style="flex:1" onchange="memSetRole('${esc(uid)}',this.value)">${['pending','staff','manager','disabled'].map(r=>`<option value="${r}" ${x.role===r?'selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select><button class="btn btn-danger btn-sm" type="button" onclick="memRemove('${esc(uid)}')">Xóa</button></div>`}</div>`}).join('');
-    el.innerHTML=(rows||'Chưa có thành viên nào.')+`<div style="font-size:11px;color:var(--text3);margin-top:10px">Người mới tự tạo tài khoản trong app (Cài đặt → Firebase → Tạo tài khoản), họ sẽ xuất hiện ở đây với trạng thái "Chờ duyệt". Chọn vai trò để cấp quyền.<br><b>Quản lý</b>: sửa phòng, khách, hợp đồng, chi phí, hóa đơn. <b>Nhân viên thu tiền</b>: tạo hóa đơn, thu tiền, ghi sự cố.</div>`;
+        ${uid===ou?`<div style="font-size:12px;margin-top:4px">👑 Chủ trọ (duy nhất)</div>`:`<div style="display:flex;gap:6px;margin-top:6px"><select class="fc" style="flex:1" onchange="memSetRole('${esc(uid)}',this.value)">${x.role==='owner'?'<option value="" selected>⚠️ Ghi nhận là "chủ trọ" nhưng không phải chủ thật — chọn lại vai trò</option>':''}${['pending','staff','manager','disabled'].map(r=>`<option value="${r}" ${x.role===r?'selected':''}>${ROLE_NAMES[r]}</option>`).join('')}</select><button class="btn btn-danger btn-sm" type="button" onclick="memRemove('${esc(uid)}')">Xóa</button></div>`}</div>`}).join('');
+    el.innerHTML=(rows||'Chưa có thành viên nào.')+`<div style="font-size:11px;color:var(--text3);margin-top:10px">Người mới tự tạo tài khoản trong app (Cài đặt → Firebase → Tạo tài khoản), họ sẽ xuất hiện ở đây với trạng thái "Chờ duyệt". Chọn vai trò để cấp quyền.<br><b>Chủ trọ</b> (chỉ 1 người): toàn quyền, cài đặt, thành viên. <b>Quản lý</b>: phòng, khách, hợp đồng, hóa đơn, chi phí, sự cố, cổng khách. <b>Nhân viên thu tiền</b>: xem phòng/khách, tạo hóa đơn, thu tiền, ghi sự cố; không xóa hóa đơn/phiếu thu, không thấy hợp đồng và chi phí.</div>`;
   }catch(e){el.textContent='Không tải được: '+v2Msg(e)}
 }
-async function memSetRole(uid,role){try{await dbRef('members/'+uid+'/role').set(role);toast('✅ Đã cập nhật vai trò','success')}catch(e){toast('Lỗi: '+v2Msg(e),'error')}memRender()}
+async function memSetRole(uid,role){if(!role)return;try{await dbRef('members/'+uid+'/role').set(role);toast('✅ Đã cập nhật vai trò','success')}catch(e){toast('Lỗi: '+v2Msg(e),'error')}memRender()}
 async function memRemove(uid){if(!confirm('Xóa thành viên này? Họ sẽ mất quyền truy cập.'))return;try{await dbRef('members/'+uid).remove();toast('Đã xóa','info')}catch(e){toast('Lỗi: '+v2Msg(e),'error')}memRender()}
 
 /* ── Cổng khách thuê ── */

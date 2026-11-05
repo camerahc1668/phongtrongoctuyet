@@ -164,6 +164,15 @@
           },
           "vehicle": {
             ".validate": "newData.isString() && newData.val().length <= 20"
+          },
+          "av": {
+            ".validate": "newData.isString() && newData.val().length <= 200000 && newData.val().matches(/^data:image\\/jpeg;base64,/)"
+          },
+          "f": {
+            ".validate": "newData.isString() && newData.val().length <= 200000 && newData.val().matches(/^data:image\\/jpeg;base64,/)"
+          },
+          "b": {
+            ".validate": "newData.isString() && newData.val().length <= 200000 && newData.val().matches(/^data:image\\/jpeg;base64,/)"
           }
         }
       }

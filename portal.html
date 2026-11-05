@@ -133,6 +133,7 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
       +'<label>Ngày sinh</label><input id="jDob" type="date">'
       +'<label>Địa chỉ thường trú</label><input id="jAddr" maxlength="200">'
       +'<label>Biển số xe (nếu có)</label><input id="jVeh" maxlength="20">'
+      +photoBox('av')+photoBox('f')+photoBox('b')
       +'<div style="margin-top:12px"><button class="pri" type="button" id="jSend">Gửi đăng ký</button></div><div id="jRes"></div></div>';
     document.getElementById('jScan').onclick=startScan;
     document.getElementById('jSend').onclick=sendJoin;
@@ -145,8 +146,8 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
     if(phone&&phone.replace(/\D/g,'').length<9){res.innerHTML='<div class="err">Số điện thoại chưa đúng (hoặc để trống).</div>';return}
     if(joinDone)return;
     stopScan();btn.disabled=true;
-    db.ref('portal_in/'+code).push().set({type:'join',at:Date.now(),name:name.slice(0,100),phone:phone.slice(0,20),cccd:cccd.slice(0,20),dob:g('jDob').slice(0,10),gender:document.getElementById('jGender').value.slice(0,10),address:g('jAddr').slice(0,200),vehicle:g('jVeh').slice(0,20)})
-      .then(()=>{joinDone=true;res.innerHTML='<div class="ok">✅ Đã gửi đăng ký. Vui lòng chờ chủ trọ duyệt. Cảm ơn bạn!</div>'})
+    db.ref('portal_in/'+code).push().set(Object.assign({type:'join',at:Date.now(),name:name.slice(0,100),phone:phone.slice(0,20),cccd:cccd.slice(0,20),dob:g('jDob').slice(0,10),gender:document.getElementById('jGender').value.slice(0,10),address:g('jAddr').slice(0,200),vehicle:g('jVeh').slice(0,20)},photos.av?{av:photos.av}:{},photos.f?{f:photos.f}:{},photos.b?{b:photos.b}:{}))
+      .then(()=>{joinDone=true;res.innerHTML='<div class="ok">✅ Đã gửi đăng ký. Vui lòng chờ chủ trọ duyệt. Cảm ơn bạn!</div><div style="margin-top:10px"><button class="sec" type="button" id="jMore" style="width:100%">➕ Thêm người ở khác</button></div>';document.getElementById('jMore').onclick=()=>{photos.av=photos.f=photos.b='';joinDone=false;renderJoin()}})
       .catch(()=>{btn.disabled=false;res.innerHTML='<div class="err">Không gửi được. Vui lòng thử lại sau.</div>'});
   }
 
@@ -181,10 +182,10 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
     }
     $app.innerHTML=h;
   }
-  const photos={meter:'',issue:''};
-  function shrink(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{let q=.6,w=900;const go=()=>{const s=Math.min(1,w/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);const d=c.toDataURL('image/jpeg',q);if(d.length>180000&&w>500){w-=200;q=.5;go()}else res(d)};go()};im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
+  const photos={meter:'',issue:'',av:'',f:'',b:''},LBL={meter:'công tơ điện, nước',issue:'sự cố',av:'đại diện (chân dung)',f:'CCCD mặt trước',b:'CCCD mặt sau'};
+  function shrink(file,w0){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{let q=.65,w=w0||900;const go=()=>{const s=Math.min(1,w/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);const d=c.toDataURL('image/jpeg',q);if(d.length>180000&&w>500){w-=200;q=.5;go()}else res(d)};go()};im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
   function pv(k){return photos[k]?'<div style="margin-top:8px"><img src="'+photos[k]+'" style="width:100%;max-height:220px;object-fit:contain;border-radius:12px;background:#0001"><button type="button" class="sec" data-a="unph" data-k="'+k+'" style="margin-top:6px">✕ Bỏ ảnh</button></div>':''}
-  function photoBox(k){return '<label>Ảnh '+(k==='meter'?'công tơ điện, nước':'sự cố')+' <span class="muted">(không bắt buộc)</span></label><div class="two"><button type="button" class="sec" data-a="pick" data-k="'+k+'" data-cam="1">📷 Chụp ảnh</button><button type="button" class="sec" data-a="pick" data-k="'+k+'">🖼️ Chọn ảnh</button></div><input type="file" accept="image/*" capture="environment" id="ph_'+k+'_c" data-ph="'+k+'" hidden><input type="file" accept="image/*" id="ph_'+k+'_g" data-ph="'+k+'" hidden><div id="pv_'+k+'">'+pv(k)+'</div>'}
+  function photoBox(k){return '<label>Ảnh '+LBL[k]+' <span class="muted">(không bắt buộc)</span></label><div class="two"><button type="button" class="sec" data-a="pick" data-k="'+k+'" data-cam="1">📷 Chụp ảnh</button><button type="button" class="sec" data-a="pick" data-k="'+k+'">🖼️ Chọn ảnh</button></div><input type="file" accept="image/*" capture="'+(k==='av'?'user':'environment')+'" id="ph_'+k+'_c" data-ph="'+k+'" hidden><input type="file" accept="image/*" id="ph_'+k+'_g" data-ph="'+k+'" hidden><div id="pv_'+k+'">'+pv(k)+'</div>'}
   function submit(type,payload,btn){
     const msg=document.getElementById('fMsg');
     const ref=db.ref('portal_in/'+code).push();
@@ -217,7 +218,7 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
   });
   $app.addEventListener('change',async e=>{
     const i=e.target.closest('input[data-ph]');if(!i||!i.files[0])return;const k=i.dataset.ph,box=document.getElementById('pv_'+k);
-    try{box.innerHTML='<div class="muted" style="margin-top:8px">Đang xử lý ảnh...</div>';photos[k]=await shrink(i.files[0]);box.innerHTML=pv(k)}
+    try{box.innerHTML='<div class="muted" style="margin-top:8px">Đang xử lý ảnh...</div>';photos[k]=await shrink(i.files[0],{av:480,f:1100,b:1100}[k]);box.innerHTML=pv(k)}
     catch(x){photos[k]='';box.innerHTML='<div class="err">Không đọc được ảnh này.</div>'}
     i.value='';
   });

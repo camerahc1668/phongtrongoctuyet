@@ -1627,6 +1627,14 @@ select{text-overflow:ellipsis}
           </div>
           <div class="toggle" id="darkToggle" onclick="toggleDark()"></div>
         </div>
+        <div class="stg-row" style="cursor:default">
+          <div class="stg-row-icon" style="background:rgba(37,99,235,.12);color:#2563eb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg></div>
+          <div class="stg-row-body">
+            <div class="stg-row-lbl">Giọng đọc thông báo</div>
+            <div class="stg-row-val">Đọc tiếng Việt khi khách gửi yêu cầu, đăng ký, ký tên</div>
+          </div>
+          <div class="toggle on" id="voiceToggle" onclick="toggleVoice(this)"></div>
+        </div>
         <!-- Màn hình khi mở app -->
         <div class="stg-row" style="cursor:default">
           <div class="stg-row-icon" style="background:rgba(22,163,74,.12);color:#16a34a"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18"/></svg></div>
@@ -3639,6 +3647,7 @@ function exportCT01(){
 </html>`;
 
   // Mở cửa sổ mới để in/lưu PDF
+  if(window.__ct01Cb){const cb=window.__ct01Cb;window.__ct01Cb=null;cb(html,tenantId);return}
   const printWin=window.open('','_blank','width=900,height=700');
   if(!printWin){toast('Vui lòng cho phép popup để xuất PDF!','error');return;}
   printWin.document.write(html);
@@ -4395,18 +4404,18 @@ function renderContractPreview(ct){
       <div style="font-size:11px;color:#666">———————————</div>
     </div>
     <div style="text-align:center;font-size:16px;font-weight:800;margin:12px 0">HỢP ĐỒNG THUÊ PHÒNG TRỌ</div>
-    <p style="text-align:center;font-style:italic;font-size:12px">Hôm nay, ngày ${day} tháng ${month} năm ${year}, tại căn nhà số ${ct.propertyAddr||ct.ownerAddr||'................'}<br>Chúng tôi ký tên dưới đây gồm có:</p>
+    <p style="text-align:center;font-style:italic;font-size:12px">Hôm nay, ngày ${day} tháng ${month} năm ${year}, tại căn nhà số ${esc(ct.propertyAddr||'')||ct.ownerAddr||'................'}<br>Chúng tôi ký tên dưới đây gồm có:</p>
     <p><strong>BÊN CHO THUÊ PHÒNG TRỌ (Bên A):</strong></p>
     <p>Ông/bà: <strong>${esc(ct.ownerName)}</strong></p>
-    <p>CMND/CCCD số: <strong>${ct.ownerCccd||'................................'}</strong></p>
-    <p>Thường trú tại: <strong>${ct.ownerAddr||'................................'}</strong></p>
+    <p>CMND/CCCD số: <strong>${esc(ct.ownerCccd||'')||'................................'}</strong></p>
+    <p>Thường trú tại: <strong>${esc(ct.ownerAddr||'')||'................................'}</strong></p>
     <p style="margin-top:8px"><strong>BÊN THUÊ PHÒNG TRỌ (Bên B):</strong></p>
     <p>Ông/bà: <strong>${esc(ct.tenantName)}</strong></p>
-    <p>CMND/CCCD số: <strong>${ct.tenantCccd||'................................'}</strong></p>
-    <p>Thường trú tại: <strong>${ct.tenantAddr||'................................'}</strong></p>
+    <p>CMND/CCCD số: <strong>${esc(ct.tenantCccd||'')||'................................'}</strong></p>
+    <p>Thường trú tại: <strong>${esc(ct.tenantAddr||'')||'................................'}</strong></p>
     <p style="margin-top:8px;font-style:italic"><strong>Sau khi thỏa thuận, hai bên thống nhất như sau:</strong></p>
     <p><strong>1. Nội dung thuê phòng trọ</strong></p>
-    <p>Bên A cho Bên B thuê 01 phòng trọ số <strong>${esc(ct.roomName)}</strong> tại căn nhà số <strong>${ct.propertyAddr||ct.ownerAddr||'................................'}</strong>. Với thời hạn là: <strong>${ct.duration} tháng</strong>, từ ngày <strong>${startD}</strong> đến ngày <strong>${endD}</strong>, giá thuê: <strong>${fmt(ct.rent)}</strong> (Bằng chữ: <em>${numToWords(ct.rent)}</em>). Chưa bao gồm chi phí: điện sinh hoạt (<strong>${fmtN(ct.elecPrice)} ₫/kWh</strong>), nước (<strong>${fmtN(ct.waterPrice)} ₫/m³</strong>). Tiền thuê thanh toán vào ngày <strong>${ct.payDay}</strong> hàng tháng.</p>
+    <p>Bên A cho Bên B thuê 01 phòng trọ số <strong>${esc(ct.roomName)}</strong> tại căn nhà số <strong>${esc(ct.propertyAddr||'')||ct.ownerAddr||'................................'}</strong>. Với thời hạn là: <strong>${ct.duration} tháng</strong>, từ ngày <strong>${startD}</strong> đến ngày <strong>${endD}</strong>, giá thuê: <strong>${fmt(ct.rent)}</strong> (Bằng chữ: <em>${numToWords(ct.rent)}</em>). Chưa bao gồm chi phí: điện sinh hoạt (<strong>${fmtN(ct.elecPrice)} ₫/kWh</strong>), nước (<strong>${fmtN(ct.waterPrice)} ₫/m³</strong>). Tiền thuê thanh toán vào ngày <strong>${ct.payDay}</strong> hàng tháng.</p>
     <p><strong>2. Trách nhiệm Bên A</strong></p>
     <p>Đảm bảo căn nhà cho thuê không có tranh chấp, khiếu kiện. Đăng ký với chính quyền địa phương về thủ tục cho thuê phòng trọ.</p>
     <p><strong>3. Trách nhiệm Bên B</strong></p>
@@ -4633,6 +4642,7 @@ function showContractDet(id){
     </div>
     ${ct.extraTerms?`<div class="card card-body mb-3"><div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px">📝 Điều khoản bổ sung</div><div style="font-size:13px;color:var(--text2)">${esc(ct.extraTerms)}</div></div>`:''}
     <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" style="flex:1" onclick="sendContractSign('${id}')">✍️ Gửi khách ký</button>
       <button class="btn btn-primary" style="flex:1" onclick="closeM('mContractDet');redownloadContract('${id}')">📥 Xuất PDF</button>
       <button class="btn btn-secondary" style="flex:1" onclick="closeM('mContractDet');printContract('${id}')">🖨️ In</button>
       ${ct.status!=='cancelled'?`<button class="btn btn-danger btn-sm" onclick="cancelContract('${id}');closeM('mContractDet')">🚫 Hủy</button>`:''}
@@ -5532,6 +5542,7 @@ function cleanupArchived(){
   </div>
   <div class="mfoot">
     <button class="btn btn-secondary" onclick="closeM('mCT01')">Hủy</button>
+    <button class="btn btn-secondary" onclick="sendCT01()">✍️ Gửi khách ký</button>
     <button class="btn btn-primary" onclick="exportCT01()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       Xuất PDF / In CT01
@@ -6482,7 +6493,7 @@ window.showNotif=function(){
 })();
 
 /* ══ GIAI ĐOẠN 4: ĐỒNG BỘ THEO BẢN GHI · PHÂN QUYỀN · CỔNG KHÁCH THUÊ ══ */
-const V2_COLS=['rooms','tenants','invoices','payments','contracts','archived','incidents','expenses','meterSubs'];
+const V2_COLS=['rooms','tenants','invoices','payments','contracts','archived','incidents','expenses','meterSubs','signDocs'];
 const V2_LOCAL_SETTINGS=['darkMode','appFont','appFontName','appFontSize','hotelIcon','ownerCccd'];
 const ROLE_NAMES={owner:'Chủ trọ',manager:'Quản lý',staff:'Nhân viên thu tiền',pending:'Chờ duyệt',disabled:'Đã khóa'};
 window.ptRole='owner';
@@ -6791,12 +6802,76 @@ async function portalPublish(force){
   if(dirty)save();
   return n;
 }
+/* ───── Gửi hợp đồng / CT01 cho khách ký trên cổng khách ───── */
+var signRef=null;
+function cleanHtml(h){const d=new DOMParser().parseFromString(h,'text/html');d.querySelectorAll('script,iframe,object,embed,link,form,base').forEach(n=>n.remove());d.querySelectorAll('*').forEach(n=>[...n.attributes].forEach(a=>{if(/^on/i.test(a.name)||/^\s*javascript:/i.test(a.value))n.removeAttribute(a.name)}));return '<!doctype html>'+d.documentElement.outerHTML}
+function contractDocHtml(ct){renderContractPreview(ct);return '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:14px/1.55 "Times New Roman",serif;padding:10px;color:#111}table{border-collapse:collapse;width:100%}td,th{border:1px solid #888;padding:4px;font-size:12px}.sign-row{display:flex;justify-content:space-around;text-align:center}</style>'+document.getElementById('contractPreviewContent').innerHTML}
+async function signSend(type,tid,title,html,refId){
+  if(!v2.on){toast('Hãy bật Đồng bộ theo bản ghi (Cài đặt → Firebase) trước','warning',{duration:6000});return}
+  if(!portalCanPublish()){toast('Chỉ Chủ trọ/Quản lý mới gửi được','warning');return}
+  const t=S.tenants.find(x=>x.id===tid);if(!t){toast('Hợp đồng/tờ khai chưa gắn với khách thuê','error');return}
+  html=cleanHtml(html);if(html.length>150000){toast('Văn bản quá dài để gửi','error');return}
+  if(!t.portalCode){t.portalCode=newPortalCode();save();try{await portalPublish(true)}catch(e){}}
+  const id=newPortalCode().slice(0,16);
+  try{await dbRef('sign/'+t.portalCode+'/'+id).set({t:type,title:String(title).slice(0,100),html,at:Date.now()})}catch(e){toast('Không gửi được: '+v2Msg(e),'error');return}
+  (S.signDocs=S.signDocs||[]).push({id,type,tenantId:tid,code:t.portalCode,title:String(title).slice(0,100),html,refId:refId||'',at:Date.now(),status:'sent',_u:Date.now()});save();
+  closeM('mCT01');closeM('mContractDet');
+  toast('✅ Đã gửi "'+title+'" cho '+t.name+'. Khách mở link cổng khách → tab Ký tên','success',{duration:7000});setTimeout(()=>portalSend(tid),400);
+}
+function sendContractSign(id){const ct=(S.contracts||[]).find(c=>c.id===id);if(!ct)return;signSend('contract',ct.tenantId,'Hợp đồng thuê phòng '+(ct.roomName||''),contractDocHtml(ct),id)}
+function sendCT01(){window.__ct01Cb=(html,tid)=>{const t=S.tenants.find(x=>x.id===tid);signSend('ct01',tid,'Tờ khai CT01 — '+(t?t.name:''),html)};try{exportCT01()}finally{window.__ct01Cb=null}}
+function signListen(){
+  try{if(signRef){signRef.off();signRef=null}}catch(e){}
+  if(!fbDb)return;signRef=dbRef('sign_in');signRef.on('value',s=>signHandle(s.val()||{}),()=>{});
+}
+async function signHandle(all){
+  for(const code of Object.keys(all))for(const id of Object.keys(all[code]||{})){
+    const v=all[code][id],d=(S.signDocs||[]).find(x=>x.id===id&&x.code===code);
+    if(!d||d.status==='signed'||!v||typeof v.img!=='string'||v.img.length>120000||!/^data:image\/png;base64,[A-Za-z0-9+\/=]+$/.test(v.img))continue;
+    let hash='';try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(d.html));hash=[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){}
+    Object.assign(d,{status:'signed',sig:v.img,signer:String(v.name||'').slice(0,100),signedAt:+v.at||Date.now(),hash,_u:Date.now()});save();
+    try{await dbRef('sign/'+code+'/'+id+'/signedAt').set(d.signedAt)}catch(e){}
+    try{await dbRef('sign_in/'+code+'/'+id).remove()}catch(e){}
+    speakVi(d.signer+' đã ký '+d.title);toast('✍️ '+d.signer+' đã ký "'+d.title+'"','success',{duration:8000});
+  }
+}
+function signView(id){
+  const d=(S.signDocs||[]).find(x=>x.id===id);if(!d)return;
+  const blk=d.status==='signed'?'<div style="margin:24px 0;padding:12px;border:1px solid #888;font:13px sans-serif"><b>XÁC NHẬN KÝ ĐIỆN TỬ</b><br>Người ký: '+esc(d.signer)+'<br>Thời gian: '+esc(new Date(d.signedAt).toLocaleString('vi-VN'))+'<br>Mã băm văn bản (SHA-256): <span style="word-break:break-all;font-size:11px">'+esc(d.hash||'')+'</span><br><img src="'+d.sig+'" style="height:90px;margin-top:6px"></div>':'';
+  const w=window.open('','_blank');if(!w){toast('Hãy cho phép popup để xem','error');return}
+  w.document.write(cleanHtml(d.html).replace('</body>',blk+'</body>'));w.document.close();
+}
+async function signDel(id){
+  const d=(S.signDocs||[]).find(x=>x.id===id);if(!d||!confirm('Xóa "'+d.title+'"? Khách sẽ không thấy văn bản này nữa.'))return;
+  try{await dbRef('sign/'+d.code+'/'+id).remove()}catch(e){}
+  S.signDocs=S.signDocs.filter(x=>x.id!==id);save();signList();
+}
+function signList(){
+  const L=(S.signDocs||[]).slice().sort((a,b)=>b.at-a.at),nm=id=>(S.tenants.find(t=>t.id===id)||{}).name||'?';
+  mkModal('mSignList','Giấy tờ gửi khách ký',L.map(d=>`<div style="padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><b>${esc(d.title)}</b><br>${esc(nm(d.tenantId))} · ${d.status==='signed'?'✅ Đã ký '+esc(new Date(d.signedAt).toLocaleString('vi-VN')):'⏳ Chờ khách ký'}<div style="display:flex;gap:6px;margin-top:6px"><button class="btn btn-secondary btn-xs" type="button" onclick="signView('${esc(d.id)}')">${d.status==='signed'?'🖨️ Xem / In bản đã ký':'👁️ Xem'}</button><button class="btn btn-secondary btn-xs" type="button" onclick="signDel('${esc(d.id)}')">🗑️ Xóa</button></div></div>`).join('')||'Chưa gửi giấy tờ nào.',
+    '<button class="btn btn-secondary" type="button" onclick="closeM(\'mSignList\')">Đóng</button>');openM('mSignList');
+}
+/* ───── Giọng đọc tiếng Việt cho thông báo (bật/tắt trong Cài đặt) ───── */
+function voiceOn(){try{return localStorage.getItem('pt_voice')!=='0'}catch(e){return true}}
+function speakVi(text){
+  if(!voiceOn()||!('speechSynthesis' in window))return;
+  try{const u=new SpeechSynthesisUtterance(text);u.lang='vi-VN';const v=speechSynthesis.getVoices().find(x=>/^vi/i.test(x.lang));if(v)u.voice=v;speechSynthesis.speak(u)}catch(e){}
+}
+function toggleVoice(el){
+  const on=!voiceOn();try{localStorage.setItem('pt_voice',on?'1':'0')}catch(e){}
+  el.classList.toggle('on',on);
+  if(on){speakVi('Đã bật giọng đọc thông báo');
+    if(!('speechSynthesis' in window))toast('Trình duyệt này không hỗ trợ giọng đọc','warning');
+    else setTimeout(()=>{const vs=speechSynthesis.getVoices();if(vs.length&&!vs.some(x=>/^vi/i.test(x.lang)))toast('Máy chưa có giọng tiếng Việt — hãy cài trong phần Văn bản sang giọng nói của thiết bị','warning',{duration:8000})},600)}
+}
+document.addEventListener('pointerdown',()=>{try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}},{once:true});
+setTimeout(()=>{const e=document.getElementById('voiceToggle');if(e)e.classList.toggle('on',voiceOn())},0);
 function portalListen(){
-  portalUnlisten();if(!fbDb)return;
+  portalUnlisten();signListen();if(!fbDb)return;
   const r=dbRef('portal_in'),cb=s=>portalHandle(s.key,s.val());
   r.on('child_added',cb,()=>{});r.on('child_changed',cb,()=>{});portalRef=[r,cb];
 }
-function portalUnlisten(){if(portalRef){try{portalRef[0].off('child_added',portalRef[1]);portalRef[0].off('child_changed',portalRef[1])}catch(e){}portalRef=null}}
+function portalUnlisten(){try{if(signRef){signRef.off();signRef=null}}catch(e){}if(portalRef){try{portalRef[0].off('child_added',portalRef[1]);portalRef[0].off('child_changed',portalRef[1])}catch(e){}portalRef=null}}
 const clipImg=v=>typeof v==='string'&&v.length<=200000&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(v)?v:'';
 const clip=(v,n)=>String(v==null?'':v).replace(/[\u0000-\u001f\u007f]+/g,' ').trim().slice(0,n);
 function portalHandle(code,items){
@@ -6815,7 +6890,7 @@ function portalHandle(code,items){
       del();
     }else del();
   }
-  if(changed){save();renderAll();toast('📲 Khách thuê vừa gửi '+changed+' yêu cầu / chỉ số','info',{duration:6000})}
+  if(changed){save();renderAll();speakVi('Khách '+t.name+((S.rooms.find(r=>r.id===t.roomId)||{}).name?', phòng '+S.rooms.find(r=>r.id===t.roomId).name:'')+', vừa gửi '+changed+' yêu cầu hoặc chỉ số');toast('📲 Khách thuê vừa gửi '+changed+' yêu cầu / chỉ số','info',{duration:6000})}
 }
 const _fillInvRoom=window.fillInvRoom;
 window.fillInvRoom=function(...a){
@@ -6842,7 +6917,7 @@ function openPortal(){
   mkModal('mPortal','Cổng khách thuê',`
     <div style="font-size:12px;color:var(--text3);margin-bottom:8px">Mỗi khách có một link riêng để xem hóa đơn, quét QR thanh toán, báo sự cố và gửi chỉ số điện nước. <b>Ai có link đều xem được hóa đơn của phòng đó</b>, hãy chỉ gửi cho đúng người. Dữ liệu cổng được cập nhật khi app của bạn đang mở và có mạng.</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px"><button class="btn btn-secondary btn-sm" type="button" onclick="portalRefreshAll()">🔄 Cập nhật tất cả</button>${pend?`<button class="btn btn-primary btn-sm" type="button" onclick="portalShowMeters()">📲 Chỉ số khách gửi (${pend})</button>`:''}</div>
-    <div id="portalQrBox" style="text-align:center"></div>${rows||'<div>Chưa có người thuê nào.</div>'}`,
+    <button class="btn btn-secondary btn-sm" type="button" style="margin-bottom:8px" onclick="signList()">📝 Giấy tờ gửi khách ký (${(S.signDocs||[]).length})</button><div id="portalQrBox" style="text-align:center"></div>${rows||'<div>Chưa có người thuê nào.</div>'}`,
     '<button class="btn btn-secondary" type="button" onclick="closeM(\'mPortal\')">Đóng</button>');
   openM('mPortal');
 }
@@ -7850,7 +7925,7 @@ async function roomJoinPublish(force){
         window.JOINQ[id]={id,code,roomId:room.id,name:clip(it.name,100),phone:clip(it.phone,20),cccd:clip(it.cccd,20),dob:clip(it.dob,10),gender:clip(it.gender,10),address:clip(it.address,200),vehicle:clip(it.vehicle,20),avatar:clipImg(it.av),cmndFront:clipImg(it.f),cmndBack:clipImg(it.b),at:+it.at||Date.now()};added++;
       }else{try{dbRef('portal_in/'+code+'/'+id).remove()}catch(e){}}
     }
-    if(added){try{updateNotifBadge()}catch(e){}toast('🙋 '+added+' khách đăng ký vào phòng '+room.name+' — chờ bạn duyệt','info',{duration:7000,action:{label:'Xem',fn:()=>openJoinReqs()}})}
+    if(added){try{updateNotifBadge()}catch(e){}speakVi(added+' khách đăng ký vào phòng '+room.name+', đang chờ bạn duyệt');toast('🙋 '+added+' khách đăng ký vào phòng '+room.name+' — chờ bạn duyệt','info',{duration:7000,action:{label:'Xem',fn:()=>openJoinReqs()}})}
   };
 })();
 window.openRoomJoinQR=async function(roomId){

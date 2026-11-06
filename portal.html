@@ -17,6 +17,8 @@ body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,
 .hdr a{color:#fff}
 .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px}
 .tabs{display:flex;gap:6px;margin-bottom:10px}
+.hdr{position:relative}.hdr h1{padding-right:76px}
+.vc{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.55);border-radius:999px;padding:5px 11px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 .tab{flex:1;padding:10px 6px;border-radius:12px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
 .tab.on{background:var(--pri);border-color:var(--pri);color:#fff}
 .row{display:flex;justify-content:space-between;gap:8px;font-size:14px;padding:3px 0}
@@ -178,7 +180,7 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
   /* ───── Giọng đọc tiếng Việt (bật/tắt được) ───── */
   let prevInv=null,prevDocs=null;
   function vOn(){try{return localStorage.getItem('pp_voice')!=='0'}catch(e){return true}}
-  function vLbl(){return vOn()?'🔔 Giọng đọc: Bật':'🔕 Giọng đọc: Tắt'}
+  function vLbl(){return vOn()?'🔔 Bật':'🔕 Tắt'}
   function say(t){if(!vOn()||!('speechSynthesis' in window))return;try{const u=new SpeechSynthesisUtterance(t);u.lang='vi-VN';const v=speechSynthesis.getVoices().find(x=>/^vi/i.test(x.lang));if(v)u.voice=v;speechSynthesis.speak(u)}catch(e){}}
   function viMoney(d){const tr=Math.floor(d/1e6),ng=Math.round((d%1e6)/1e3);return (tr?tr+' triệu ':'')+(ng?ng+' nghìn ':'')+(d?'đồng':'không đồng')}
   function voiceCheck(){
@@ -232,8 +234,8 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
   function render(){
     const invs=(data.invoices||[]).slice().sort((a,b)=>String(b.month).localeCompare(String(a.month)));
     const totalDebt=invs.reduce((n,i)=>n+(+i.debt||0),0);
-    let h='<div class="hdr"><h1>'+esc(data.hotel||'Nhà trọ')+'</h1><p>'+esc(data.tenant||'')+(data.room?' · Phòng '+esc(data.room):'')+'</p>'+(data.phone?'<p>Liên hệ: <a href="tel:'+esc(String(data.phone).replace(/\s/g,''))+'">'+esc(data.phone)+'</a></p>':'')+'</div>'
-      +'<div class="tabs"><button class="tab '+(tab==='inv'?'on':'')+'" data-t="inv">Hóa đơn</button><button class="tab '+(tab==='meter'?'on':'')+'" data-t="meter">Gửi chỉ số</button><button class="tab '+(tab==='issue'?'on':'')+'" data-t="issue">Báo sự cố</button><button class="tab '+(tab==='sign'?'on':'')+'" data-t="sign">Ký tên'+signBadge()+'</button></div>'+'<div style="text-align:right;margin:-2px 0 8px"><button class="sec" type="button" data-a="vc" style="padding:4px 10px;font-size:12px">'+vLbl()+'</button></div>';
+    let h='<div class="hdr"><button class="vc" type="button" data-a="vc" title="Bật/tắt giọng đọc thông báo">'+vLbl()+'</button><h1>'+esc(data.hotel||'Nhà trọ')+'</h1><p>'+esc(data.tenant||'')+(data.room?' · Phòng '+esc(data.room):'')+'</p>'+(data.phone?'<p>Liên hệ: <a href="tel:'+esc(String(data.phone).replace(/\s/g,''))+'">'+esc(data.phone)+'</a></p>':'')+'</div>'
+      +'<div class="tabs"><button class="tab '+(tab==='inv'?'on':'')+'" data-t="inv">Hóa đơn</button><button class="tab '+(tab==='meter'?'on':'')+'" data-t="meter">Gửi chỉ số</button><button class="tab '+(tab==='issue'?'on':'')+'" data-t="issue">Báo sự cố</button><button class="tab '+(tab==='sign'?'on':'')+'" data-t="sign">Ký tên'+signBadge()+'</button></div>';
     if(tab==='inv'){
       h+='<div class="card" style="text-align:center"><div class="muted">Tổng số tiền còn phải trả</div><div style="font-size:26px;font-weight:800;color:'+(totalDebt>0?'var(--danger)':'var(--pri)')+'">'+fmt(totalDebt)+'</div></div>'
         +(invs.length?invs.map(invHtml).join(''):'<div class="center">Chưa có hóa đơn nào</div>')

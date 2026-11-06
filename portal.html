@@ -67,7 +67,7 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
   db.ref('portal/'+code).on('value',s=>{
     data=s.val();
     if(!data){joinShown=false;fail('Link đã hết hiệu lực hoặc chưa được kích hoạt');return}
-    if(data.kind==='join'){if(!joinShown){joinShown=true;renderJoin()}return}
+    if(data.kind==='join'){if(!joinShown){joinShown=true;renderJoin();watchOk()}return}
     render();
   },()=>fail('Không đọc được dữ liệu'));
 
@@ -122,9 +122,17 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
       setMsg('Đưa mã QR trên thẻ căn cước vào khung xanh');raf=requestAnimationFrame(tick);
     }catch(e){setMsg('Không mở được camera. Hãy cho phép quyền camera hoặc nhập tay thông tin.','err')}
   }
+  function myJoins(){try{return JSON.parse(localStorage.getItem('pj_'+code)||'[]')}catch(e){return[]}}
+  const okSeen={};
+  function watchOk(){myJoins().forEach(key=>{if(okSeen[key])return;okSeen[key]=1;db.ref('portal_ok/'+code+'/'+key).on('value',s=>{const v=s.val();if(v&&/^[A-Za-z0-9]{24}$/.test(v.c||''))showOk(v)},()=>{})})}
+  function showOk(v){
+    const el=document.getElementById('jOk');if(!el)return;const K=new URLSearchParams(location.hash.replace(/^#/,'')).get('k')||'';
+    el.innerHTML='<div class="card ok"><b>✅ Đã được duyệt vào phòng '+esc(v.room||'')+'</b><div style="margin-top:8px"><button class="pri" type="button" id="jGo" style="width:100%">Xem hóa đơn của tôi</button></div><div class="muted" style="margin-top:6px">Hãy lưu trang hóa đơn vào màn hình chính để mở lại lần sau.</div></div>';
+    document.getElementById('jGo').onclick=()=>{location.hash='c='+v.c+'&k='+K;location.reload()};
+  }
   function renderJoin(){
     $app.innerHTML='<div class="hdr"><h1>'+esc(data.hotel||'Nhà trọ')+'</h1><p>Đăng ký ở phòng '+esc(data.room||'')+'</p>'+(data.phone?'<p>Liên hệ: <a href="tel:'+esc(String(data.phone).replace(/\s/g,''))+'">'+esc(data.phone)+'</a></p>':'')+'</div>'
-      +'<div class="card"><b>Thông tin người ở</b><div class="muted">Chủ trọ sẽ kiểm tra và duyệt trước khi bạn được thêm vào phòng.</div>'
+      +'<div id="jOk"></div><div class="card"><b>Thông tin người ở</b><div class="muted">Chủ trọ sẽ kiểm tra và duyệt trước khi bạn được thêm vào phòng.</div>'
       +'<div style="margin-top:10px"><button class="sec" type="button" id="jScan" style="width:100%">📷 Quét QR căn cước công dân để tự điền</button></div>'
       +'<div class="scanbox" id="scanBox"><video id="scanVideo" playsinline muted></video><i></i></div><div id="jMsg" style="margin-top:6px"></div>'
       +'<label>Họ và tên <span style="color:var(--danger)">*</span></label><input id="jName" maxlength="100" autocomplete="name">'
@@ -146,8 +154,8 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
     if(phone&&phone.replace(/\D/g,'').length<9){res.innerHTML='<div class="err">Số điện thoại chưa đúng (hoặc để trống).</div>';return}
     if(joinDone)return;
     stopScan();btn.disabled=true;
-    db.ref('portal_in/'+code).push().set(Object.assign({type:'join',at:Date.now(),name:name.slice(0,100),phone:phone.slice(0,20),cccd:cccd.slice(0,20),dob:g('jDob').slice(0,10),gender:document.getElementById('jGender').value.slice(0,10),address:g('jAddr').slice(0,200),vehicle:g('jVeh').slice(0,20)},photos.av?{av:photos.av}:{},photos.f?{f:photos.f}:{},photos.b?{b:photos.b}:{}))
-      .then(()=>{joinDone=true;res.innerHTML='<div class="ok">✅ Đã gửi đăng ký. Vui lòng chờ chủ trọ duyệt. Cảm ơn bạn!</div><div style="margin-top:10px"><button class="sec" type="button" id="jMore" style="width:100%">➕ Thêm người ở khác</button></div>';document.getElementById('jMore').onclick=()=>{photos.av=photos.f=photos.b='';joinDone=false;renderJoin()}})
+    const jrf=db.ref('portal_in/'+code).push();jrf.set(Object.assign({type:'join',at:Date.now(),name:name.slice(0,100),phone:phone.slice(0,20),cccd:cccd.slice(0,20),dob:g('jDob').slice(0,10),gender:document.getElementById('jGender').value.slice(0,10),address:g('jAddr').slice(0,200),vehicle:g('jVeh').slice(0,20)},photos.av?{av:photos.av}:{},photos.f?{f:photos.f}:{},photos.b?{b:photos.b}:{}))
+      .then(()=>{joinDone=true;try{const a=myJoins();a.push(jrf.key);localStorage.setItem('pj_'+code,JSON.stringify(a))}catch(e){}watchOk();res.innerHTML='<div class="ok">✅ Đã gửi đăng ký. Vui lòng chờ chủ trọ duyệt. Cảm ơn bạn!</div><div style="margin-top:10px"><button class="sec" type="button" id="jMore" style="width:100%">➕ Thêm người ở khác</button></div>';document.getElementById('jMore').onclick=()=>{photos.av=photos.f=photos.b='';joinDone=false;renderJoin()}})
       .catch(()=>{btn.disabled=false;res.innerHTML='<div class="err">Không gửi được. Vui lòng thử lại sau.</div>'});
   }
 

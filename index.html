@@ -7869,34 +7869,43 @@ window.openRoomJoinQR=async function(roomId){
 window.joinCopy=function(roomId){const r=S.rooms.find(x=>x.id===roomId);if(r&&r.joinCode)copyAny(portalLink(r.joinCode),'Đã sao chép link đăng ký')};
 window.joinReset=async function(roomId){
   const r=S.rooms.find(x=>x.id===roomId);if(!r||!confirm('Đổi mã sẽ làm QR/link cũ của phòng này hết hiệu lực. Tiếp tục?'))return;
-  if(r.joinCode){try{await dbRef('portal/'+r.joinCode).remove()}catch(e){}delete joinHash[r.joinCode]}
+  if(r.joinCode){try{await dbRef('portal/'+r.joinCode).remove();await dbRef('portal_ok/'+r.joinCode).remove()}catch(e){}delete joinHash[r.joinCode]}
   r.joinCode=newPortalCode();save();await roomJoinPublish(true);openRoomJoinQR(roomId);
 };
 window.joinRevoke=async function(roomId){
   const r=S.rooms.find(x=>x.id===roomId);if(!r||!r.joinCode||!confirm('Thu hồi QR đăng ký của phòng '+r.name+'?'))return;
   try{await dbRef('portal/'+r.joinCode).remove()}catch(e){toast('Lỗi: '+v2Msg(e),'error');return}
+  try{await dbRef('portal_ok/'+r.joinCode).remove()}catch(e){}
   delete joinHash[r.joinCode];delete r.joinCode;save();closeM('mRoomJoin');toast('Đã thu hồi QR đăng ký','info');
 };
 window.openJoinReqs=function(){
   const list=Object.values(window.JOINQ).sort((a,b)=>a.at-b.at);
   mkModal('mJoin','🙋 Khách đăng ký chờ duyệt ('+list.length+')',
-    list.map(q=>{const r=S.rooms.find(x=>x.id===q.roomId);return `<div class="jr-item"><b>${esc(q.name)}</b> · ${esc(q.phone)}<small>Phòng ${esc(r?r.name:'?')}${q.cccd?' · CCCD '+esc(q.cccd):''}${q.dob?' · '+esc(q.dob):''}${q.address?'<br>'+esc(q.address):''}</small>${[['avatar','Đại diện'],['cmndFront','CCCD trước'],['cmndBack','CCCD sau']].filter(x=>q[x[0]]).map(x=>`<img src="${q[x[0]]}" alt="${x[1]}" onclick="joinImg('${esc(q.id)}','${x[0]}')" style="height:56px;border-radius:8px;margin:6px 6px 0 0;cursor:pointer;border:1px solid var(--border)">`).join('')}<div style="display:flex;gap:6px"><button class="btn btn-primary btn-xs" type="button" onclick="approveJoin('${esc(q.id)}')">✅ Duyệt vào phòng</button><button class="btn btn-secondary btn-xs" type="button" onclick="rejectJoin('${esc(q.id)}')">Từ chối</button></div></div>`}).join('')||'<div class="occ-empty">Không có yêu cầu nào.</div>',
+    list.map(q=>{const r=S.rooms.find(x=>x.id===q.roomId);return `<div class="jr-item"><b>${esc(q.name)}</b> · ${esc(q.phone)}<small>Phòng ${esc(r?r.name:'?')}${q.cccd?' · CCCD '+esc(q.cccd):''}${q.dob?' · '+esc(q.dob):''}${q.address?'<br>'+esc(q.address):''}</small>${[['avatar','Đại diện'],['cmndFront','CCCD trước'],['cmndBack','CCCD sau']].filter(x=>q[x[0]]).map(x=>`<img src="${q[x[0]]}" alt="${x[1]}" onclick="joinImg('${esc(q.id)}','${x[0]}')" style="height:56px;border-radius:8px;margin:6px 6px 0 0;cursor:pointer;border:1px solid var(--border)">`).join('')}<label style="display:block;font-size:12px;margin-top:6px"><input type="checkbox" id="jl_${esc(q.id)}" ${(()=>{const r=S.rooms.find(x=>x.id===q.roomId);return r&&roomOcc(r).length?'':'checked'})()}> Tạo link xem hóa đơn cho người này</label><div style="display:flex;gap:6px"><button class="btn btn-primary btn-xs" type="button" onclick="approveJoin('${esc(q.id)}')">✅ Duyệt vào phòng</button><button class="btn btn-secondary btn-xs" type="button" onclick="rejectJoin('${esc(q.id)}')">Từ chối</button></div></div>`}).join('')||'<div class="occ-empty">Không có yêu cầu nào.</div>',
     '<button class="btn btn-secondary" type="button" onclick="closeM(\'mJoin\')">Đóng</button>');
   openM('mJoin');
 };
+async function joinApproved(q,id,nt,room,want){
+  if(!want||!nt||!nt.portalCode)return;
+  try{await portalPublish(true);await dbRef('portal_ok/'+q.code+'/'+id).set({c:nt.portalCode,room:String(room.name||'').slice(0,30),at:Date.now()})}
+  catch(e){toast('Chưa báo được cho khách: '+v2Msg(e)+' — hãy gửi link bằng Zalo','warning',{duration:7000})}
+}
 window.approveJoin=function(id){
   if(!roleCan('structure')){toast('🔒 Vai trò "'+(ROLE_NAMES[window.ptRole]||'')+'" không có quyền thực hiện thao tác này','warning');return}
   const q=window.JOINQ[id];if(!q)return;
   const room=S.rooms.find(r=>r.id===q.roomId);if(!room){rejectJoin(id);return}
   const dup=S.tenants.find(t=>q.cccd&&t.cccd===q.cccd);
   if(dup&&!confirm('CCCD này đã có trong danh sách: '+dup.name+'. Vẫn thêm?'))return;
+  const wantLink=!!(document.getElementById('jl_'+id)||{}).checked;
   const nid='T'+uid();
   S.tenants.push({id:nid,avatarColor:COLORS[S.tenants.length%COLORS.length],name:q.name,phone:q.phone,roomId:'',gender:/^n[ữu]$/i.test(q.gender)?'Nữ':/^nam$/i.test(q.gender)?'Nam':'Khác',dob:/^\d{4}-\d{2}-\d{2}$/.test(q.dob)?q.dob:'',cccd:q.cccd,address:q.address,vehicle:q.vehicle,moveIn:today(),deposit:0,people:1,note:'Đăng ký qua QR phòng',avatar:q.avatar||'',cmndFront:q.cmndFront||'',cmndBack:q.cmndBack||''});
   placeInRoom(nid,room.id,false);
+  const nt=S.tenants.find(t=>t.id===nid);if(wantLink&&nt)nt.portalCode=newPortalCode();
   try{dbRef('portal_in/'+q.code+'/'+id).remove()}catch(e){}
-  delete window.JOINQ[id];save();renderAll();updateNotifBadge();
+  delete window.JOINQ[id];save();renderAll();updateNotifBadge();joinApproved(q,id,nt,room,wantLink);
   toast('✅ '+q.name+' đã vào phòng '+room.name,'success');
   if(Object.keys(window.JOINQ).length)openJoinReqs();else closeM('mJoin');
+  if(wantLink)setTimeout(()=>portalSend(nid),300);
 };
 window.joinImg=function(id,k){const q=window.JOINQ[id];if(!q||!q[k])return;mkModal('mJoinImg',esc(q.name),'<img src="'+q[k]+'" style="width:100%;border-radius:10px">','<button class="btn btn-secondary" type="button" onclick="closeM(\'mJoinImg\')">Đóng</button>');openM('mJoinImg')};
 window.rejectJoin=function(id){

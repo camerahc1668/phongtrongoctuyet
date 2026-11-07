@@ -1983,6 +1983,7 @@ select{text-overflow:ellipsis}
     <!-- Điện nước -->
     <div class="fsect">⚡ Điện Nước & Phí</div>
     <div class="frow"><div class="fg"><label class="flbl">Giá điện (₫/kWh)</label><input class="fc" id="rElecP" type="number" value="3500"></div><div class="fg"><label class="flbl">Giá nước (₫/m³)</label><input class="fc" id="rWaterP" type="number" value="15000"></div></div>
+    <div class="frow"><div class="fg"><label class="flbl">Cách tính nước</label><select class="fc" id="rWaterMode"><option value="meter">Theo công tơ (m³)</option><option value="person">Khoán theo đầu người</option></select></div><div class="fg"><label class="flbl">Khoán (₫/người/tháng)</label><input class="fc" id="rWaterPP" type="number" value="100000"></div></div>
     <div class="frow"><div class="fg"><label class="flbl">Dịch vụ (₫)</label><input class="fc" id="rSvc" type="number" value="50000"></div><div class="fg"><label class="flbl">Internet (₫)</label><input class="fc" id="rNet" type="number" value="100000"></div></div>
     <div class="frow"><div class="fg"><label class="flbl">Rác (₫)</label><input class="fc" id="rGarb" type="number" value="20000"></div><div class="fg"><label class="flbl">Giữ xe (₫)</label><input class="fc" id="rPark" type="number" value="0"></div></div>
     <div class="frow"><div class="fg"><label class="flbl">CS Điện hiện tại</label><input class="fc" id="rElecIdx" type="number" value="0"></div><div class="fg"><label class="flbl">CS Nước hiện tại</label><input class="fc" id="rWaterIdx" type="number" value="0"></div></div>
@@ -2301,6 +2302,10 @@ select{text-overflow:ellipsis}
     <div class="frow">
       <div class="fg"><label class="flbl">Giá điện (₫/kWh)</label><input class="fc" id="ctElecPrice" type="number" value="3500"></div>
       <div class="fg"><label class="flbl">Giá nước (₫/m³)</label><input class="fc" id="ctWaterPrice" type="number" value="15000"></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="flbl">Cách tính nước</label><select class="fc" id="ctWaterMode"><option value="meter">Theo công tơ (m³)</option><option value="person">Khoán theo đầu người</option></select></div>
+      <div class="fg"><label class="flbl">Khoán (₫/người/tháng)</label><input class="fc" id="ctWaterPP" type="number" value="100000"></div>
     </div>
 
     <!-- THỜI GIAN -->
@@ -3040,7 +3045,7 @@ function openAddRoom(){
   document.getElementById('rZone').value='';
   document.getElementById('rFloorNum').value='';
   document.getElementById('rElecP').value='3500';
-  document.getElementById('rWaterP').value='15000';
+  document.getElementById('rWaterP').value='15000';document.getElementById('rWaterMode').value='meter';document.getElementById('rWaterPP').value='100000';
   document.getElementById('rSvc').value='50000';
   document.getElementById('rNet').value='100000';
   document.getElementById('rGarb').value='20000';
@@ -3068,7 +3073,7 @@ function openEditRoom(id){
   document.getElementById('rPrice').value=r.price;
   document.getElementById('rArea').value=r.area;
   document.getElementById('rElecP').value=r.elecPrice;
-  document.getElementById('rWaterP').value=r.waterPrice;
+  document.getElementById('rWaterP').value=r.waterPrice;document.getElementById('rWaterMode').value=r.waterMode==='person'?'person':'meter';document.getElementById('rWaterPP').value=r.waterPP||100000;
   document.getElementById('rSvc').value=r.serviceFee;
   document.getElementById('rNet').value=r.internet;
   document.getElementById('rGarb').value=r.garbage;
@@ -3108,7 +3113,7 @@ function saveRoom(){
     price,
     area:+document.getElementById('rArea').value||0,
     elecPrice:+document.getElementById('rElecP').value||3500,
-    waterPrice:+document.getElementById('rWaterP').value||15000,
+    waterPrice:+document.getElementById('rWaterP').value||15000,waterMode:document.getElementById('rWaterMode').value==='person'?'person':'meter',waterPP:+document.getElementById('rWaterPP').value||100000,
     serviceFee:+document.getElementById('rSvc').value||0,
     internet:+document.getElementById('rNet').value||0,
     garbage:+document.getElementById('rGarb').value||0,
@@ -3855,7 +3860,7 @@ function openTransfer(tenantId){
   infoEl.dataset.oldRoomName=oldR.name;
   infoEl.dataset.rentPrice=oldR.price||0;
   infoEl.dataset.elecPrice=oldR.elecPrice||3500;
-  infoEl.dataset.waterPrice=oldR.waterPrice||15000;
+  infoEl.dataset.waterPrice=oldR.waterPrice||15000;infoEl.dataset.waterFlat=waterPerPerson(oldR)?waterCost(oldR,0):'';
   infoEl.dataset.svcFee=oldR.serviceFee||0;
 
   // Phòng trống
@@ -3907,7 +3912,7 @@ function calcTF(){
   const elecUsed=Math.max(0,elecNew-elecOld);
   const waterUsed=Math.max(0,waterNew-waterOld);
   const elecFee=Math.round(elecCost({elecPrice},elecUsed));
-  const waterFee=Math.round(waterUsed*waterPrice);
+  const waterFee=info.dataset.waterFlat?+info.dataset.waterFlat:Math.round(waterUsed*waterPrice);
 
   const extra=+document.getElementById('tfExtra').value||0;
   const discount=+document.getElementById('tfDiscount').value||0;
@@ -3925,7 +3930,7 @@ function calcTF(){
     <div style="height:6px"></div>
     <div class="tf-row"><span>🏠 Tiền phòng (${daysStayed} ngày / ${daysInMonth} ngày)</span><strong style="color:var(--primary)">${fmt(rentFee)}</strong></div>
     <div class="tf-row"><span>⚡ Tiền điện (${fmtN(elecUsed)} kWh × ${fmtN(elecPrice)}đ)</span><strong>${fmt(elecFee)}</strong></div>
-    <div class="tf-row"><span>💧 Tiền nước (${fmtN(waterUsed)} m³ × ${fmtN(waterPrice)}đ)</span><strong>${fmt(waterFee)}</strong></div>
+    <div class="tf-row"><span>💧 ${info.dataset.waterFlat?'Tiền nước khoán theo đầu người':'Tiền nước ('+fmtN(waterUsed)+' m³ × '+fmtN(waterPrice)+'đ)'}</span><strong>${fmt(waterFee)}</strong></div>
     ${svcFee>0?`<div class="tf-row"><span>🔧 Phí dịch vụ</span><strong>${fmt(svcFee)}</strong></div>`:''}
     ${extra>0?`<div class="tf-row"><span>➕ Phí phát sinh</span><strong>${fmt(extra)}</strong></div>`:''}
     ${discount>0?`<div class="tf-row"><span>🎁 Giảm trừ</span><strong style="color:var(--success)">-${fmt(discount)}</strong></div>`:''}
@@ -4063,7 +4068,7 @@ function renderPayment(){
     const sl={paid:'Đã thanh toán',partial:'Trả một phần',unpaid:'Chưa thanh toán'}[inv.status];
     return `<div class="inv-card">
       <div class="inv-hdr"><div><div class="inv-room">Phòng ${esc(room?.name||'?')}</div><div class="inv-month">${esc(t?.name||'—')} · ${getMonthName(inv.month)}</div></div><span style="padding:4px 12px;border-radius:99px;background:${sc}18;color:${sc};font-size:11px;font-weight:700">${sl}</span></div>
-      <div class="inv-body">${pR('Tiền phòng',fmt(inv.roomFee))}${pR('Tiền điện',fmt(inv.elecFee))}${pR('Tiền nước',fmt(inv.waterFee))}${inv.internet?pR('Internet',fmt(inv.internet)):''}${inv.serviceFee?pR('Dịch vụ',fmt(inv.serviceFee)):''}${inv.garbage?pR('Rác',fmt(inv.garbage)):''}${inv.parking?pR('Giữ xe',fmt(inv.parking)):''}${inv.extra?pR('Phụ thu',fmt(inv.extra)):''}${inv.lateFee?pR('Phí trễ hạn',fmt(inv.lateFee)):''}${inv.discount?pR('Giảm giá','- '+fmt(inv.discount)):''}${inv.note?`<div style="font-size:11px;color:var(--text3);padding:4px 0">📝 ${esc(inv.note)}</div>`:''}</div>
+      <div class="inv-body">${pR('Tiền phòng',fmt(inv.roomFee))}${pR('Tiền điện',fmt(inv.elecFee))}${pR(inv.waterMode==='person'?'Tiền nước khoán ('+inv.waterPeople+' người)':'Tiền nước',fmt(inv.waterFee))}${inv.internet?pR('Internet',fmt(inv.internet)):''}${inv.serviceFee?pR('Dịch vụ',fmt(inv.serviceFee)):''}${inv.garbage?pR('Rác',fmt(inv.garbage)):''}${inv.parking?pR('Giữ xe',fmt(inv.parking)):''}${inv.extra?pR('Phụ thu',fmt(inv.extra)):''}${inv.lateFee?pR('Phí trễ hạn',fmt(inv.lateFee)):''}${inv.discount?pR('Giảm giá','- '+fmt(inv.discount)):''}${inv.note?`<div style="font-size:11px;color:var(--text3);padding:4px 0">📝 ${esc(inv.note)}</div>`:''}</div>
       <div class="inv-total"><div class="inv-total-lbl">Tổng cộng</div><div class="inv-total-val">${fmt(inv.total)}</div></div>
       ${inv.debt>0?`<div style="padding:6px 16px;background:rgba(239,68,68,.08);font-size:12px;color:var(--danger);font-weight:700">⚠️ Còn nợ: ${fmt(inv.debt)}</div>`:''}
       ${photosHtml(inv)}<div class="inv-foot">
@@ -4095,9 +4100,9 @@ function calcInv(){
   const eo=+document.getElementById('invEO').value||0,en=+document.getElementById('invEN').value||0;
   const wo=+document.getElementById('invWO').value||0,wn=+document.getElementById('invWN').value||0;
   const extra=+document.getElementById('invExtra').value||0,disc=+document.getElementById('invDisc').value||0;
-  const eu=Math.max(0,en-eo),wu=Math.max(0,wn-wo),ef=elecCost(room,eu),wf=wu*room.waterPrice;
+  const eu=Math.max(0,en-eo),wu=Math.max(0,wn-wo),ef=elecCost(room,eu),wf=waterCost(room,wu);
   const total=room.price+ef+wf+room.serviceFee+room.internet+room.garbage+room.parking+extra-disc;
-  document.getElementById('invPreview').innerHTML=`<div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px">📋 Chi tiết</div>${pR('Tiền phòng',fmt(room.price))}${pR(elecLabel(room,eu),fmt(ef))}${pR(`Nước (${wu}m³ × ${fmtN(room.waterPrice)}₫)`,fmt(wf))}${room.serviceFee?pR('Dịch vụ',fmt(room.serviceFee)):''}${room.internet?pR('Internet',fmt(room.internet)):''}${room.garbage?pR('Rác',fmt(room.garbage)):''}${room.parking?pR('Giữ xe',fmt(room.parking)):''}${extra?pR('Phụ thu',fmt(extra)):''}${disc?pR('Giảm giá','- '+fmt(disc)):''}<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:900;color:var(--primary);padding-top:8px;border-top:2px solid var(--primary);margin-top:8px"><span>TỔNG</span><span>${fmt(total)}</span></div>`;
+  document.getElementById('invPreview').innerHTML=`<div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px">📋 Chi tiết</div>${pR('Tiền phòng',fmt(room.price))}${pR(elecLabel(room,eu),fmt(ef))}${pR(waterLbl(room,wu),fmt(wf))}${room.serviceFee?pR('Dịch vụ',fmt(room.serviceFee)):''}${room.internet?pR('Internet',fmt(room.internet)):''}${room.garbage?pR('Rác',fmt(room.garbage)):''}${room.parking?pR('Giữ xe',fmt(room.parking)):''}${extra?pR('Phụ thu',fmt(extra)):''}${disc?pR('Giảm giá','- '+fmt(disc)):''}<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:900;color:var(--primary);padding-top:8px;border-top:2px solid var(--primary);margin-top:8px"><span>TỔNG</span><span>${fmt(total)}</span></div>`;
 }
 function saveInv(){
   const roomId=document.getElementById('invRoom').value,month=document.getElementById('invMonth').value;
@@ -4112,13 +4117,13 @@ function saveInv(){
     const what=[eReset?`điện (${en} < ${eo})`:'',wReset?`nước (${wn} < ${wo})`:''].filter(Boolean).join(' và ');
     if(!confirm(`⚠️ Chỉ số mới nhỏ hơn chỉ số cũ: ${what}.\n\nNếu công tơ đã được thay/quay vòng, bấm OK để tính tiêu thụ từ 0 đến chỉ số mới.\nNếu nhập nhầm, bấm Hủy để sửa lại.`))return;
   }
-  const eu=eReset?en:en-eo,wu=wReset?wn:wn-wo,ef=elecCost(room||{elecPrice:3500},eu),wf=wu*(room?.waterPrice||15000);
+  const eu=eReset?en:en-eo,wu=wReset?wn:wn-wo,ef=elecCost(room||{elecPrice:3500},eu),wf=room?waterCost(room,wu):wu*15000;
   if(eu>1500||wu>150){if(!confirm(`Mức tiêu thụ bất thường (điện ${eu} kWh, nước ${wu} m³). Vẫn tạo hóa đơn?`))return;}
   const total=(room?.price||0)+ef+wf+(room?.serviceFee||0)+(room?.internet||0)+(room?.garbage||0)+(room?.parking||0)+extra-disc;
   if(total<0){toast('Giảm giá lớn hơn tổng tiền — hóa đơn bị âm!','error');return}
   if(S.invoices.some(i=>i.roomId===roomId&&i.month===month)&&!confirm(`Phòng ${room?.name||''} đã có hóa đơn tháng ${month}.\nVẫn tạo thêm hóa đơn nữa?`))return;
   if(room){room.elecIndex=en;room.waterIndex=wn;}
-  S.invoices.push({id:'INV'+uid(),roomId,tenantId:tenant?.id||'',month,elecOld:eo,elecNew:en,waterOld:wo,waterNew:wn,roomFee:room?.price||0,elecFee:ef,waterFee:wf,serviceFee:room?.serviceFee||0,internet:room?.internet||0,garbage:room?.garbage||0,parking:room?.parking||0,extra,discount:disc,total,paid:0,debt:total,status:'unpaid',payMethod:'',note:document.getElementById('invNote').value,createdAt:new Date().toISOString()});
+  S.invoices.push({id:'INV'+uid(),roomId,tenantId:tenant?.id||'',month,elecOld:eo,elecNew:en,waterOld:wo,waterNew:wn,roomFee:room?.price||0,elecFee:ef,waterFee:wf,waterMode:waterPerPerson(room)?'person':'meter',waterPeople:waterPerPerson(room)?roomPeople(room):0,serviceFee:room?.serviceFee||0,internet:room?.internet||0,garbage:room?.garbage||0,parking:room?.parking||0,extra,discount:disc,total,paid:0,debt:total,status:'unpaid',payMethod:'',note:document.getElementById('invNote').value,createdAt:new Date().toISOString()});
   save();closeM('mInv');renderPayment();toast('Đã tạo hóa đơn!','success');
 }
 function openPay(invId){
@@ -4144,7 +4149,7 @@ function delInv(id){if(!confirm('Xóa hóa đơn này?'))return;S.invoices=S.inv
 function printInv(invId){
   const inv=S.invoices.find(i=>i.id===invId);if(!inv)return;
   const room=S.rooms.find(r=>r.id===inv.roomId),t=S.tenants.find(x=>x.id===inv.tenantId);
-  document.getElementById('printInv').innerHTML=`<div class="logo-name">${esc(S.settings.hotelName)}</div><div style="text-align:center;font-size:12px;color:#666">${esc(S.settings.address)} · ĐT: ${esc(S.settings.phone)}</div><hr class="divider"><div style="text-align:center;font-size:17px;font-weight:800;margin:10px 0">PHIẾU THU TIỀN PHÒNG</div><hr class="divider"><div class="pr"><span>Phòng:</span><strong>${esc(room?.name)}</strong></div><div class="pr"><span>Người thuê:</span><strong>${esc(t?.name||'—')}</strong></div><div class="pr"><span>Tháng:</span><strong>${getMonthName(inv.month)}</strong></div><div class="pr"><span>Ngày in:</span><strong>${new Date().toLocaleDateString('vi-VN')}</strong></div><hr class="divider"><div class="pr"><span>Tiền phòng:</span><span>${fmt(inv.roomFee)}</span></div><div class="pr"><span>Điện (${meterUse(inv,'elec')} kWh):</span><span>${fmt(inv.elecFee)}</span></div><div class="pr"><span>Nước (${meterUse(inv,'water')} m³):</span><span>${fmt(inv.waterFee)}</span></div>${inv.internet?`<div class="pr"><span>Internet:</span><span>${fmt(inv.internet)}</span></div>`:''}${inv.serviceFee?`<div class="pr"><span>Dịch vụ:</span><span>${fmt(inv.serviceFee)}</span></div>`:''}${inv.garbage?`<div class="pr"><span>Rác:</span><span>${fmt(inv.garbage)}</span></div>`:''}${inv.extra?`<div class="pr"><span>Phụ thu:</span><span>${fmt(inv.extra)}</span></div>`:''}${inv.lateFee?`<div class="pr"><span>Phí trễ hạn:</span><span>${fmt(inv.lateFee)}</span></div>`:''}${inv.discount?`<div class="pr"><span>Giảm giá:</span><span>- ${fmt(inv.discount)}</span></div>`:''}<div class="ptotal"><span>TỔNG CỘNG</span><span>${fmt(inv.total)}</span></div>${inv.debt>0?`<div class="pr" style="color:red"><span>Còn nợ:</span><span>${fmt(inv.debt)}</span></div>`:'<div style="color:green;text-align:center;font-weight:700;padding:8px">✅ Đã thanh toán đủ</div>'}${printQrHtml(inv)}<hr class="divider"><div style="text-align:center;font-size:11px;color:#999">Xin cảm ơn quý khách!<br>${esc(S.settings.hotelName)}</div>`;
+  document.getElementById('printInv').innerHTML=`<div class="logo-name">${esc(S.settings.hotelName)}</div><div style="text-align:center;font-size:12px;color:#666">${esc(S.settings.address)} · ĐT: ${esc(S.settings.phone)}</div><hr class="divider"><div style="text-align:center;font-size:17px;font-weight:800;margin:10px 0">PHIẾU THU TIỀN PHÒNG</div><hr class="divider"><div class="pr"><span>Phòng:</span><strong>${esc(room?.name)}</strong></div><div class="pr"><span>Người thuê:</span><strong>${esc(t?.name||'—')}</strong></div><div class="pr"><span>Tháng:</span><strong>${getMonthName(inv.month)}</strong></div><div class="pr"><span>Ngày in:</span><strong>${new Date().toLocaleDateString('vi-VN')}</strong></div><hr class="divider"><div class="pr"><span>Tiền phòng:</span><span>${fmt(inv.roomFee)}</span></div><div class="pr"><span>Điện (${meterUse(inv,'elec')} kWh):</span><span>${fmt(inv.elecFee)}</span></div><div class="pr"><span>${inv.waterMode==='person'?'Nước khoán ('+inv.waterPeople+' người)':'Nước ('+meterUse(inv,'water')+' m³)'}:</span><span>${fmt(inv.waterFee)}</span></div>${inv.internet?`<div class="pr"><span>Internet:</span><span>${fmt(inv.internet)}</span></div>`:''}${inv.serviceFee?`<div class="pr"><span>Dịch vụ:</span><span>${fmt(inv.serviceFee)}</span></div>`:''}${inv.garbage?`<div class="pr"><span>Rác:</span><span>${fmt(inv.garbage)}</span></div>`:''}${inv.extra?`<div class="pr"><span>Phụ thu:</span><span>${fmt(inv.extra)}</span></div>`:''}${inv.lateFee?`<div class="pr"><span>Phí trễ hạn:</span><span>${fmt(inv.lateFee)}</span></div>`:''}${inv.discount?`<div class="pr"><span>Giảm giá:</span><span>- ${fmt(inv.discount)}</span></div>`:''}<div class="ptotal"><span>TỔNG CỘNG</span><span>${fmt(inv.total)}</span></div>${inv.debt>0?`<div class="pr" style="color:red"><span>Còn nợ:</span><span>${fmt(inv.debt)}</span></div>`:'<div style="color:green;text-align:center;font-weight:700;padding:8px">✅ Đã thanh toán đủ</div>'}${printQrHtml(inv)}<hr class="divider"><div style="text-align:center;font-size:11px;color:#999">Xin cảm ơn quý khách!<br>${esc(S.settings.hotelName)}</div>`;
   printWhenReady();
 }
 
@@ -4295,7 +4300,7 @@ function openCreateContract(tenantId){
   document.getElementById('ctExtraTerms').value='';
   document.getElementById('ctPeople').value='1';
   document.getElementById('ctElecPrice').value='3500';
-  document.getElementById('ctWaterPrice').value='15000';
+  document.getElementById('ctWaterPrice').value='15000';document.getElementById('ctWaterMode').value='meter';document.getElementById('ctWaterPP').value='100000';
   document.getElementById('ctRent').value='';
   document.getElementById('ctDeposit').value='';
   document.getElementById('ctTenantName').value='';
@@ -4330,7 +4335,7 @@ function fillContractFromRoom(){
   const r=S.rooms.find(x=>x.id===rid);if(!r)return;
   if(r.price)document.getElementById('ctRent').value=r.price;
   document.getElementById('ctElecPrice').value=r.elecPrice||3500;
-  document.getElementById('ctWaterPrice').value=r.waterPrice||15000;
+  document.getElementById('ctWaterPrice').value=r.waterPrice||15000;document.getElementById('ctWaterMode').value=r.waterMode==='person'?'person':'meter';document.getElementById('ctWaterPP').value=r.waterPP||100000;
   if(r.tenantId&&!document.getElementById('ctTenantSel').value){
     document.getElementById('ctTenantSel').value=r.tenantId;
     fillContractFromTenant();return;
@@ -4380,7 +4385,7 @@ function generateContract(){
     deposit:+document.getElementById('ctDeposit').value||rent,
     people:+document.getElementById('ctPeople').value||1,
     elecPrice:+document.getElementById('ctElecPrice').value||3500,
-    waterPrice:+document.getElementById('ctWaterPrice').value||15000,
+    waterPrice:+document.getElementById('ctWaterPrice').value||15000,waterMode:document.getElementById('ctWaterMode').value==='person'?'person':'meter',waterPP:+document.getElementById('ctWaterPP').value||100000,
     startDate,endDate:addMonths(startDate,duration),duration,
     signDate:document.getElementById('ctSignDate').value||today(),
     payDay:document.getElementById('ctPayDay').value||'5',
@@ -4415,7 +4420,7 @@ function renderContractPreview(ct){
     <p>Thường trú tại: <strong>${esc(ct.tenantAddr||'')||'................................'}</strong></p>
     <p style="margin-top:8px;font-style:italic"><strong>Sau khi thỏa thuận, hai bên thống nhất như sau:</strong></p>
     <p><strong>1. Nội dung thuê phòng trọ</strong></p>
-    <p>Bên A cho Bên B thuê 01 phòng trọ số <strong>${esc(ct.roomName)}</strong> tại căn nhà số <strong>${esc(ct.propertyAddr||'')||ct.ownerAddr||'................................'}</strong>. Với thời hạn là: <strong>${ct.duration} tháng</strong>, từ ngày <strong>${startD}</strong> đến ngày <strong>${endD}</strong>, giá thuê: <strong>${fmt(ct.rent)}</strong> (Bằng chữ: <em>${numToWords(ct.rent)}</em>). Chưa bao gồm chi phí: điện sinh hoạt (<strong>${fmtN(ct.elecPrice)} ₫/kWh</strong>), nước (<strong>${fmtN(ct.waterPrice)} ₫/m³</strong>). Tiền thuê thanh toán vào ngày <strong>${ct.payDay}</strong> hàng tháng.</p>
+    <p>Bên A cho Bên B thuê 01 phòng trọ số <strong>${esc(ct.roomName)}</strong> tại căn nhà số <strong>${esc(ct.propertyAddr||'')||ct.ownerAddr||'................................'}</strong>. Với thời hạn là: <strong>${ct.duration} tháng</strong>, từ ngày <strong>${startD}</strong> đến ngày <strong>${endD}</strong>, giá thuê: <strong>${fmt(ct.rent)}</strong> (Bằng chữ: <em>${numToWords(ct.rent)}</em>). Chưa bao gồm chi phí: điện sinh hoạt (<strong>${fmtN(ct.elecPrice)} ₫/kWh</strong>), nước (${waterTxt(ct,'strong','₫')}). Tiền thuê thanh toán vào ngày <strong>${ct.payDay}</strong> hàng tháng.</p>
     <p><strong>2. Trách nhiệm Bên A</strong></p>
     <p>Đảm bảo căn nhà cho thuê không có tranh chấp, khiếu kiện. Đăng ký với chính quyền địa phương về thủ tục cho thuê phòng trọ.</p>
     <p><strong>3. Trách nhiệm Bên B</strong></p>
@@ -4470,7 +4475,7 @@ p{margin:6px 0}
 <p>Thường trú tại: <b>${ct.tenantAddr||'................................'}</b></p>
 <p style="font-style:italic"><b>Sau khi thỏa thuận, hai bên thống nhất như sau:</b></p>
 <p><b>1. Nội dung thuê phòng trọ</b></p>
-<p>Bên A cho Bên B thuê 01 phòng trọ số <b>${esc(ct.roomName)}</b> tại căn nhà số <b>${ct.propertyAddr||ct.ownerAddr||'...............'}.</b> Với thời hạn là: <b>${ct.duration} tháng</b>, từ ngày <b>${startD}</b> đến ngày <b>${endD}</b>, giá thuê: <b>${fmt(ct.rent)}</b> (Bằng chữ: <i>${numToWords(ct.rent)}</i>). Chưa bao gồm chi phí: điện sinh hoạt (<b>${fmtN(ct.elecPrice)} đồng/kWh</b>), nước (<b>${fmtN(ct.waterPrice)} đồng/m³</b>). Tiền thuê thanh toán vào ngày <b>${ct.payDay}</b> hàng tháng.</p>
+<p>Bên A cho Bên B thuê 01 phòng trọ số <b>${esc(ct.roomName)}</b> tại căn nhà số <b>${ct.propertyAddr||ct.ownerAddr||'...............'}.</b> Với thời hạn là: <b>${ct.duration} tháng</b>, từ ngày <b>${startD}</b> đến ngày <b>${endD}</b>, giá thuê: <b>${fmt(ct.rent)}</b> (Bằng chữ: <i>${numToWords(ct.rent)}</i>). Chưa bao gồm chi phí: điện sinh hoạt (<b>${fmtN(ct.elecPrice)} đồng/kWh</b>), nước (${waterTxt(ct,'b','đồng')}). Tiền thuê thanh toán vào ngày <b>${ct.payDay}</b> hàng tháng.</p>
 <p><b>2. Trách nhiệm Bên A</b></p>
 <p>Đảm bảo căn nhà cho thuê không có tranh chấp, khiếu kiện. Đăng ký với chính quyền địa phương về thủ tục cho thuê phòng trọ.</p>
 <p><b>3. Trách nhiệm Bên B</b></p>
@@ -4516,7 +4521,7 @@ function exportContractPDF(){
     <p><b>BÊN CHO THUÊ PHÒNG TRỌ (Bên A):</b><br>Ông/bà: <b>${esc(ct.ownerName)}</b><br>CMND/CCCD số: <b>${ct.ownerCccd||'................................'}</b><br>Thường trú tại: <b>${ct.ownerAddr||'................................'}</b></p>
     <p><b>BÊN THUÊ PHÒNG TRỌ (Bên B):</b><br>Ông/bà: <b>${esc(ct.tenantName)}</b><br>CMND/CCCD số: <b>${ct.tenantCccd||'................................'}</b><br>Thường trú tại: <b>${ct.tenantAddr||'................................'}</b></p>
     <p style="font-style:italic"><b>Sau khi thỏa thuận, hai bên thống nhất như sau:</b></p>
-    <p><b>1. Nội dung thuê phòng trọ</b><br>Bên A cho Bên B thuê 01 phòng trọ số <b>${esc(ct.roomName)}</b> tại <b>${ct.propertyAddr||ct.ownerAddr||'...............'}.</b> Với thời hạn <b>${ct.duration} tháng</b>, từ ngày <b>${startD}</b> đến ngày <b>${endD}</b>, giá thuê: <b>${fmt(ct.rent)}</b> (<i>${numToWords(ct.rent)}</i>). Điện: <b>${fmtN(ct.elecPrice)} đ/kWh</b>, nước: <b>${fmtN(ct.waterPrice)} đ/m³</b>. Thanh toán ngày <b>${ct.payDay}</b> hàng tháng.</p>
+    <p><b>1. Nội dung thuê phòng trọ</b><br>Bên A cho Bên B thuê 01 phòng trọ số <b>${esc(ct.roomName)}</b> tại <b>${ct.propertyAddr||ct.ownerAddr||'...............'}.</b> Với thời hạn <b>${ct.duration} tháng</b>, từ ngày <b>${startD}</b> đến ngày <b>${endD}</b>, giá thuê: <b>${fmt(ct.rent)}</b> (<i>${numToWords(ct.rent)}</i>). Điện: <b>${fmtN(ct.elecPrice)} đ/kWh</b>, nước: ${waterTxt(ct,'b','đ')}. Thanh toán ngày <b>${ct.payDay}</b> hàng tháng.</p>
     <p><b>2. Trách nhiệm Bên A</b><br>Đảm bảo căn nhà cho thuê không có tranh chấp, khiếu kiện. Đăng ký với chính quyền địa phương về thủ tục cho thuê phòng trọ.</p>
     <p><b>3. Trách nhiệm Bên B</b><br>Đặt cọc <b>${fmt(ct.deposit)}</b> (<i>${numToWords(ct.deposit)}</i>). Thanh toán tiền thuê hàng tháng vào ngày <b>${ct.payDay}</b>. Chỉ sử dụng mục đích ở, tối đa <b>${ct.people}</b> người. Giữ gìn an ninh trật tự, nếp sống văn hóa.</p>
     <p><b>4. Điều khoản thực hiện</b><br>Hai bên nghiêm túc thực hiện. Thông báo trước ít nhất 01 tháng khi muốn chấm dứt hợp đồng.</p>
@@ -4628,7 +4633,7 @@ function showContractDet(id){
         ${iR('Ngày bắt đầu',fmtDate(ct.startDate))}${iR('Ngày kết thúc',fmtDate(ct.endDate))}
         ${iR('Thời hạn',ct.duration+' tháng')}${iR('Còn lại',daysLeft>0?daysLeft+' ngày':'Quá hạn '+Math.abs(daysLeft)+' ngày')}
         ${iR('Giá thuê',fmt(ct.rent))}${iR('Tiền cọc',fmt(ct.deposit))}
-        ${iR('Giá điện',fmtN(ct.elecPrice)+' ₫/kWh')}${iR('Giá nước',fmtN(ct.waterPrice)+' ₫/m³')}
+        ${iR('Giá điện',fmtN(ct.elecPrice)+' ₫/kWh')}${iR('Giá nước',ct.waterMode==='person'?fmtN(ct.waterPP||100000)+' ₫/người/tháng':fmtN(ct.waterPrice)+' ₫/m³')}
         ${iR('Số người ở',ct.people+' người')}${iR('Thu tiền ngày',ct.payDay+' hàng tháng')}
       </div>
     </div>
@@ -4691,7 +4696,7 @@ function createDemoContracts(){
       ownerName,ownerCccd:S.settings.ownerCccd||'079123456789',ownerAddr,
       tenantName:t.name,tenantCccd:t.cccd||'',tenantAddr:t.address||'',
       roomName:room.name,rent:room.price,deposit:t.deposit||room.price,
-      people:t.people||1,elecPrice:room.elecPrice||3500,waterPrice:room.waterPrice||15000,
+      people:t.people||1,elecPrice:room.elecPrice||3500,waterPrice:room.waterPrice||15000,waterMode:room.waterMode||'meter',waterPP:room.waterPP||100000,
       startDate:start,endDate:addMonths(start,dur),duration:dur,
       signDate:start,payDay:'5',propertyAddr:propAddr,
       extraTerms:i===0?'Không nuôi thú cưng. Giờ ra vào: 6h–23h. Giữ gìn vệ sinh chung.':'',
@@ -5254,7 +5259,7 @@ function openCheckout(tenantId){
   infoEl.dataset.roomName=room.name;
   infoEl.dataset.rentPrice=room.price||0;
   infoEl.dataset.elecPrice=room.elecPrice||3500;
-  infoEl.dataset.waterPrice=room.waterPrice||15000;
+  infoEl.dataset.waterPrice=room.waterPrice||15000;infoEl.dataset.waterFlat=waterPerPerson(room)?waterCost(room,0):'';
   infoEl.dataset.svcFee=room.serviceFee||0;
   infoEl.dataset.deposit=t.deposit||0;
   infoEl.dataset.oldDebt=totalOldDebt;
@@ -5309,7 +5314,7 @@ function calcCheckout(){
   const elecUsed=Math.max(0,elecNew-elecOld);
   const waterUsed=Math.max(0,waterNew-waterOld);
   const elecFee=Math.round(elecCost({elecPrice},elecUsed));
-  const waterFee=Math.round(waterUsed*waterPrice);
+  const waterFee=infoEl.dataset.waterFlat?+infoEl.dataset.waterFlat:Math.round(waterUsed*waterPrice);
 
   const extra=+document.getElementById('coExtra').value||0;
   const discount=+document.getElementById('coDiscount').value||0;
@@ -5328,7 +5333,7 @@ function calcCheckout(){
     </div>
     <div class="checkout-bill-row"><span>🏠 Tiền phòng (${daysStayed}/${daysInMonth} ngày)</span><strong>${fmt(rentFee)}</strong></div>
     <div class="checkout-bill-row"><span>⚡ Tiền điện (${fmtN(elecUsed)} kWh × ${fmtN(elecPrice)}đ)</span><strong>${fmt(elecFee)}</strong></div>
-    <div class="checkout-bill-row"><span>💧 Tiền nước (${fmtN(waterUsed)} m³ × ${fmtN(waterPrice)}đ)</span><strong>${fmt(waterFee)}</strong></div>
+    <div class="checkout-bill-row"><span>💧 ${infoEl.dataset.waterFlat?'Tiền nước khoán theo đầu người':'Tiền nước ('+fmtN(waterUsed)+' m³ × '+fmtN(waterPrice)+'đ)'}</span><strong>${fmt(waterFee)}</strong></div>
     ${svcFee>0?`<div class="checkout-bill-row"><span>🔧 Phí dịch vụ</span><strong>${fmt(svcFee)}</strong></div>`:''}
     ${extra>0?`<div class="checkout-bill-row"><span>➕ Phí phát sinh</span><strong>${fmt(extra)}</strong></div>`:''}
     ${oldDebt>0?`<div class="checkout-bill-row" style="color:var(--danger)"><span>📌 Nợ tồn đọng cũ</span><strong>+${fmt(oldDebt)}</strong></div>`:''}
@@ -5779,7 +5784,7 @@ function buildMsg(inv,kind){
     L.push(`${hotel} gửi anh/chị hóa đơn phòng ${room?room.name:''} ${mn}:`);
     L.push(`• Tiền phòng: ${fmt(inv.roomFee)}`);
     L.push(`• Điện (${meterUse(inv,'elec')} kWh): ${fmt(inv.elecFee)}`);
-    L.push(`• Nước (${meterUse(inv,'water')} m³): ${fmt(inv.waterFee)}`);
+    L.push(inv.waterMode==='person'?`• Nước khoán (${inv.waterPeople} người): ${fmt(inv.waterFee)}`:`• Nước (${meterUse(inv,'water')} m³): ${fmt(inv.waterFee)}`);
     [['internet','Internet'],['serviceFee','Dịch vụ'],['garbage','Rác'],['parking','Giữ xe'],['extra','Phụ thu'],['lateFee','Phí trễ hạn']].forEach(([k,l])=>{if(inv[k])L.push(`• ${l}: ${fmt(inv[k])}`)});
     if(inv.discount)L.push(`• Giảm giá: -${fmt(inv.discount)}`);
     L.push(`Tổng cộng: ${fmt(inv.total)}`);
@@ -5919,6 +5924,12 @@ const valIn=id=>{const e=document.getElementById(id);return e?e.value.trim():''}
 const EVN_SAMPLE=[{limit:50,price:1984},{limit:50,price:2050},{limit:100,price:2380},{limit:100,price:2998},{limit:100,price:3350},{limit:null,price:3460}];
 const tierCfg=()=>(S.settings&&S.settings.elecTier)||{};
 const tierOn=()=>{const c=tierCfg();return !!(c.enabled&&Array.isArray(c.tiers)&&c.tiers.length)};
+/* Nước: theo công tơ (m³) hoặc khoán theo đầu người */
+function waterPerPerson(room){return !!room&&room.waterMode==='person'}
+function roomPeople(room){const oc=occupants(room.id),rep=oc.find(isRep)||oc[0];return Math.max(oc.length,rep?(+rep.people||0):0,1)}
+function waterCost(room,m3){return waterPerPerson(room)?roomPeople(room)*(+room.waterPP||100000):Math.max(0,+m3||0)*((room&&room.waterPrice!=null)?room.waterPrice:15000)}
+function waterLbl(room,m3){return waterPerPerson(room)?`Nước khoán (${roomPeople(room)} người × ${fmtN(room.waterPP||100000)}₫)`:`Nước (${m3}m³ × ${fmtN(room.waterPrice)}₫)`}
+function waterTxt(ct,tag,u){return ct.waterMode==='person'?`<${tag}>${fmtN(ct.waterPP||100000)} ${u}/người/tháng</${tag}>, tính theo số người thực tế đang ở`:`<${tag}>${fmtN(ct.waterPrice)} ${u}/m³</${tag}>`}
 function elecCost(room,kwh){
   kwh=Math.max(0,+kwh||0);
   if(!tierOn())return kwh*((room&&room.elecPrice!=null)?room.elecPrice:3500);
@@ -6784,9 +6795,9 @@ const portalSeen=new Set(),portalHash={};let portalT=null,portalRef=null;
 function newPortalCode(){const a=new Uint8Array(24);(window.crypto||{getRandomValues:x=>x.forEach((_,i)=>x[i]=Math.floor(Math.random()*256))}).getRandomValues(a);const al='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';return Array.from(a,b=>al[b%al.length]).join('')}
 function portalSnap(t){
   const room=S.rooms.find(r=>r.id===t.roomId),b=getBank();
-  const keys=['id','month','total','paid','debt','status','roomFee','elecFee','waterFee','elecOld','elecNew','waterOld','waterNew','internet','serviceFee','garbage','parking','extra','discount','lateFee','createdAt'];
+  const keys=['id','month','total','paid','debt','status','roomFee','elecFee','waterFee','waterMode','waterPeople','elecOld','elecNew','waterOld','waterNew','internet','serviceFee','garbage','parking','extra','discount','lateFee','createdAt'];
   const invoices=S.invoices.filter(i=>i.tenantId===t.id||(t.roomId&&i.roomId===t.roomId)).sort((x,y)=>String(y.month).localeCompare(String(x.month))).slice(0,12).map(i=>{const o={};keys.forEach(k=>{if(i[k]!==undefined&&i[k]!==null)o[k]=i[k]});return o});
-  return cleanRec({v:1,hotel:S.settings.hotelName||'',phone:S.settings.phone||'',tenant:t.name||'',room:room?room.name:'',bank:bankReady()?{bin:b.bin,acc:b.acc,name:b.name||'',bankName:bankName(b)}:null,invoices,at:Date.now()});
+  return cleanRec({v:1,hotel:S.settings.hotelName||'',phone:S.settings.phone||'',tenant:t.name||'',room:room?room.name:'',waterPerson:waterPerPerson(room)?1:0,waterPP:room&&room.waterPP||0,people:room?roomPeople(room):0,bank:bankReady()?{bin:b.bin,acc:b.acc,name:b.name||'',bankName:bankName(b)}:null,invoices,at:Date.now()});
 }
 const portalCanPublish=()=>!!(v2.on&&fbDb&&fbConnected&&(window.ptRole==='owner'||window.ptRole==='manager'));
 function portalSchedule(){if(!portalCanPublish())return;if(!S.tenants.some(t=>t.portalCode)&&!(S.archived||[]).some(a=>a.portalCode))return;clearTimeout(portalT);portalT=setTimeout(()=>portalPublish(false),2000)}
@@ -6964,7 +6975,7 @@ function meterUse(id){
   const m=(S.meterSubs||[]).find(x=>x.id===id);if(!m)return;
   closeM('mMeters');try{closeM('mPortal')}catch(e){}
   openCreateInv(m.roomId);
-  setTimeout(()=>{const e=document.getElementById('invEN'),w=document.getElementById('invWN');if(e&&w){e.value=m.elec;w.value=m.water;m.used=true;save();calcInv();toast('Đã điền chỉ số khách gửi — hãy đối chiếu ảnh rồi lưu hóa đơn','info',{duration:6000})}},350);
+  setTimeout(()=>{const e=document.getElementById('invEN'),w=document.getElementById('invWN');if(e&&w){e.value=m.elec;if(!waterPerPerson(S.rooms.find(r=>r.id===m.roomId)))w.value=m.water;m.used=true;save();calcInv();toast('Đã điền chỉ số khách gửi — hãy đối chiếu ảnh rồi lưu hóa đơn','info',{duration:6000})}},350);
 }
 function meterDismiss(id){const m=(S.meterSubs||[]).find(x=>x.id===id);if(m){m.used=true;save()}portalShowMeters()}
 

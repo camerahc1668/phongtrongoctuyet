@@ -1309,6 +1309,9 @@ select{text-overflow:ellipsis}
 .room-cell .crown-wrap .crown{top:-7px;right:-7px}
 .room-cell .rc-price-mini{font-size:clamp(9.5px,11cqw,12px);font-weight:700}
 .rc-debt-mini{font-size:clamp(9.5px,11cqw,12px);font-weight:900;color:var(--st-db)}
+
+.fdet{margin-bottom:4px}.fdet>summary.fsect{list-style:none;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.fdet>summary::-webkit-details-marker{display:none}.fdet>summary::after{content:'▾';opacity:.6;font-size:12px}.fdet:not([open])>summary::after{content:'▸'}
 </style>
 </head>
 <body>
@@ -1935,7 +1938,7 @@ select{text-overflow:ellipsis}
     </div>
 
     <!-- Khu / Tầng / Số phòng -->
-    <div class="fsect">🏢 Vị Trí Phòng</div>
+    <details class="fdet" open><summary class="fsect">🏢 Vị trí phòng</summary>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
       <!-- Khu -->
       <div class="fg">
@@ -1976,18 +1979,22 @@ select{text-overflow:ellipsis}
       <input class="fc" id="rName" placeholder="VD: Studio, Penthouse..." oninput="updateRoomCode()">
     </div>
 
-    <!-- Giá & Diện tích -->
-    <div class="fsect">💰 Giá & Diện Tích</div>
-    <div class="frow"><div class="fg"><label class="flbl">Giá thuê (₫) <span>*</span></label><input class="fc" id="rPrice" type="number" placeholder="2500000"></div><div class="fg"><label class="flbl">Diện tích (m²)</label><input class="fc" id="rArea" type="number" placeholder="20"></div></div>
-
-    <!-- Điện nước -->
-    <div class="fsect">⚡ Điện Nước & Phí</div>
-    <div class="frow"><div class="fg"><label class="flbl">Giá điện (₫/kWh)</label><input class="fc" id="rElecP" type="number" value="3500"></div><div class="fg"><label class="flbl">Giá nước (₫/m³)</label><input class="fc" id="rWaterP" type="number" value="15000"></div></div>
-    <div class="frow"><div class="fg"><label class="flbl">Cách tính nước</label><select class="fc" id="rWaterMode"><option value="meter">Theo công tơ (m³)</option><option value="person">Khoán theo đầu người</option></select></div><div class="fg"><label class="flbl">Khoán (₫/người/tháng)</label><input class="fc" id="rWaterPP" type="number" value="100000"></div></div>
-    <div class="frow"><div class="fg"><label class="flbl">Dịch vụ (₫)</label><input class="fc" id="rSvc" type="number" value="50000"></div><div class="fg"><label class="flbl">Internet (₫)</label><input class="fc" id="rNet" type="number" value="100000"></div></div>
+</details>
+    <details class="fdet" open><summary class="fsect">💰 Giá thuê & phí cố định</summary>
+    <div class="frow"><div class="fg"><label class="flbl">Giá thuê (₫) <span>*</span></label><input class="fc" id="rPrice" type="number" placeholder="2.500.000"></div><div class="fg"><label class="flbl">Diện tích (m²)</label><input class="fc" id="rArea" type="number" placeholder="20"></div></div>
+    <div class="frow"><div class="fg"><label class="flbl">Chìa khóa cổng (₫)</label><input class="fc" id="rSvc" type="number" value="70000"></div><div class="fg"><label class="flbl">Internet (₫)</label><input class="fc" id="rNet" type="number" value="100000"></div></div>
     <div class="frow"><div class="fg"><label class="flbl">Rác (₫)</label><input class="fc" id="rGarb" type="number" value="20000"></div><div class="fg"><label class="flbl">Giữ xe (₫)</label><input class="fc" id="rPark" type="number" value="0"></div></div>
-    <div class="frow"><div class="fg"><label class="flbl">CS Điện hiện tại</label><input class="fc" id="rElecIdx" type="number" value="0"></div><div class="fg"><label class="flbl">CS Nước hiện tại</label><input class="fc" id="rWaterIdx" type="number" value="0"></div></div>
-    <div class="fsect">Ảnh phòng</div>
+    </details>
+    <details class="fdet" open><summary class="fsect">⚡ Điện nước</summary>
+    <div class="frow"><div class="fg"><label class="flbl">Giá điện (₫/kWh)</label><input class="fc" id="rElecP" type="number" value="3500"></div><div class="fg"><label class="flbl">CS Điện hiện tại</label><input class="fc" id="rElecIdx" type="number" value="0"></div></div>
+    <div class="frow"><div class="fg"><label class="flbl">Cách tính nước</label><select class="fc" id="rWaterMode" onchange="roomWaterToggle()"><option value="meter">Theo công tơ (m³)</option><option value="person">Khoán theo đầu người</option></select></div><div class="fg" id="fgWP"><label class="flbl">Giá nước (₫/m³)</label><input class="fc" id="rWaterP" type="number" value="15000"></div><div class="fg" id="fgWPP" style="display:none"><label class="flbl">Khoán (₫/người/tháng)</label><input class="fc" id="rWaterPP" type="number" value="100000"></div></div>
+    <div class="frow" id="fgWIdx"><div class="fg"><label class="flbl">CS Nước hiện tại</label><input class="fc" id="rWaterIdx" type="number" value="0"></div></div>
+    </details>
+    <details class="fdet"><summary class="fsect"><span>🛋️ Nội thất <span id="furnBadge" style="text-transform:none;font-weight:600;opacity:.8"></span></span></summary>
+      <div id="rFurn"></div>
+      <div style="display:flex;gap:6px;margin:8px 0"><input class="fc" id="rFurnNew" placeholder="Thêm đồ khác..." style="flex:1"><button type="button" class="btn btn-secondary btn-xs" onclick="addFurn()">+ Thêm</button></div>
+    </details>
+    <details class="fdet"><summary class="fsect">📷 Ảnh & ghi chú</summary>
     <div class="room-photo-row">
       <div class="room-photo-box" id="rPhotoBox0" onclick="document.getElementById('rPhoto0').click()">
         <button type="button" class="room-photo-remove" onclick="clearRoomPhoto(0,event)">×</button>
@@ -2005,6 +2012,7 @@ select{text-overflow:ellipsis}
     <input type="file" id="rPhoto0" accept="image/*" style="display:none" onchange="prevRoomPhoto(this,0)">
     <input type="file" id="rPhoto1" accept="image/*" style="display:none" onchange="prevRoomPhoto(this,1)">
     <div class="fg"><label class="flbl">Ghi chú</label><textarea class="fc" id="rNote" placeholder="Tiện nghi, mô tả..."></textarea></div>
+    </details>
   </div>
   <div class="mfoot"><button class="btn btn-secondary" onclick="closeM('mRoom')">Hủy</button><button class="btn btn-primary" onclick="saveRoom()">Lưu phòng</button></div>
 </div></div>
@@ -3045,8 +3053,8 @@ function openAddRoom(){
   document.getElementById('rZone').value='';
   document.getElementById('rFloorNum').value='';
   document.getElementById('rElecP').value='3500';
-  document.getElementById('rWaterP').value='15000';document.getElementById('rWaterMode').value='meter';document.getElementById('rWaterPP').value='100000';
-  document.getElementById('rSvc').value='50000';
+  document.getElementById('rWaterP').value='15000';document.getElementById('rWaterMode').value='meter';document.getElementById('rWaterPP').value='100000';initFurn(null);roomWaterToggle();
+  document.getElementById('rSvc').value='70000';
   document.getElementById('rNet').value='100000';
   document.getElementById('rGarb').value='20000';
   document.getElementById('rPark').value='0';
@@ -3073,7 +3081,7 @@ function openEditRoom(id){
   document.getElementById('rPrice').value=r.price;
   document.getElementById('rArea').value=r.area;
   document.getElementById('rElecP').value=r.elecPrice;
-  document.getElementById('rWaterP').value=r.waterPrice;document.getElementById('rWaterMode').value=r.waterMode==='person'?'person':'meter';document.getElementById('rWaterPP').value=r.waterPP||100000;
+  document.getElementById('rWaterP').value=r.waterPrice;document.getElementById('rWaterMode').value=r.waterMode==='person'?'person':'meter';document.getElementById('rWaterPP').value=r.waterPP||100000;initFurn(r.furniture);roomWaterToggle();
   document.getElementById('rSvc').value=r.serviceFee;
   document.getElementById('rNet').value=r.internet;
   document.getElementById('rGarb').value=r.garbage;
@@ -3113,7 +3121,7 @@ function saveRoom(){
     price,
     area:+document.getElementById('rArea').value||0,
     elecPrice:+document.getElementById('rElecP').value||3500,
-    waterPrice:+document.getElementById('rWaterP').value||15000,waterMode:document.getElementById('rWaterMode').value==='person'?'person':'meter',waterPP:+document.getElementById('rWaterPP').value||100000,
+    waterPrice:+document.getElementById('rWaterP').value||15000,waterMode:document.getElementById('rWaterMode').value==='person'?'person':'meter',waterPP:+document.getElementById('rWaterPP').value||100000,furniture:rFurnState.filter(x=>x.s).map(x=>({n:x.n,s:x.s})),
     serviceFee:+document.getElementById('rSvc').value||0,
     internet:+document.getElementById('rNet').value||0,
     garbage:+document.getElementById('rGarb').value||0,
@@ -3199,8 +3207,8 @@ function showRoomDet(id){
       <div><div style="font-size:22px;font-weight:900">${esc(room.name)}</div><span style="padding:3px 12px;border-radius:99px;background:${stBg};color:${stClr};font-size:11px;font-weight:700;margin-top:4px;display:inline-block">${stLbl(room.status)}</span></div>
     </div>
     ${roomGallery}
-    <div class="card card-body mb-3"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${iR('Giá thuê',fmt(room.price))}${iR('Diện tích',room.area+' m²')}${iR('Tầng',room.floor)}${iR('Giá điện',fmtN(room.elecPrice)+' ₫/kWh')}${iR('Giá nước',fmtN(room.waterPrice)+' ₫/m³')}${iR('Internet',fmt(room.internet))}${iR('Dịch vụ',fmt(room.serviceFee))}${iR('Rác',fmt(room.garbage))}${iR('Giữ xe',fmt(room.parking))}${iR('CS Điện/Nước',fmtN(room.elecIndex)+' / '+fmtN(room.waterIndex))}</div></div>
-    ${t?`<div class="card card-body mb-3" style="background:var(--primary-bg);border-color:var(--primary)"><div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px">👑 Người đại diện ký hợp đồng</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${iR('Họ tên',t.name)}${iR('SĐT',t.phone)}${iR('CCCD',t.cccd)}${iR('Vào ở',t.moveIn)}${iR('Cọc',fmt(t.deposit))}${iR('Số người',occupants(room.id).length)}</div></div>`:''}
+    <div class="card card-body mb-3"><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${iR('Giá thuê',fmt(room.price))}${iR('Diện tích',room.area+' m²')}${iR('Tầng',room.floor)}${iR('Giá điện',fmtN(room.elecPrice)+' ₫/kWh')}${iR('Giá nước',fmtN(room.waterPrice)+' ₫/m³')}${iR('Internet',fmt(room.internet))}${iR('Chìa khóa cổng',fmt(room.serviceFee))}${iR('Rác',fmt(room.garbage))}${iR('Giữ xe',fmt(room.parking))}${iR('CS Điện/Nước',fmtN(room.elecIndex)+' / '+fmtN(room.waterIndex))}</div></div>
+    ${furnCard(room)}${t?`<div class="card card-body mb-3" style="background:var(--primary-bg);border-color:var(--primary)"><div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px">👑 Người đại diện ký hợp đồng</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${iR('Họ tên',t.name)}${iR('SĐT',t.phone)}${iR('CCCD',t.cccd)}${iR('Vào ở',t.moveIn)}${iR('Cọc',fmt(t.deposit))}${iR('Số người',occupants(room.id).length)}</div></div>`:''}
     ${invs.length?`<div style="font-size:14px;font-weight:700;margin-bottom:10px">📄 Hóa đơn gần đây</div>${invs.map(inv=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:13px;font-weight:600">${getMonthName(inv.month)}</div><div style="font-size:11px;color:${inv.status==='paid'?'var(--success)':inv.status==='partial'?'var(--warning)':'var(--danger)'}">${{paid:'✅ Đã trả',partial:'⚠️ Trả 1 phần',unpaid:'❌ Chưa trả'}[inv.status]}</div></div><div style="text-align:right"><div style="font-weight:800">${fmt(inv.total)}</div>${inv.debt>0?`<div style="font-size:11px;color:var(--danger)">Nợ ${fmt(inv.debt)}</div>`:''}</div></div>`).join('')}`:'<div style="text-align:center;color:var(--text3);font-size:13px;padding:12px">Chưa có hóa đơn</div>'}
     <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
       <button class="btn btn-secondary" style="flex:1" onclick="closeM('mRoomDet');openEditRoom('${id}')">✏️ Sửa</button>
@@ -3931,7 +3939,7 @@ function calcTF(){
     <div class="tf-row"><span>🏠 Tiền phòng (${daysStayed} ngày / ${daysInMonth} ngày)</span><strong style="color:var(--primary)">${fmt(rentFee)}</strong></div>
     <div class="tf-row"><span>⚡ Tiền điện (${fmtN(elecUsed)} kWh × ${fmtN(elecPrice)}đ)</span><strong>${fmt(elecFee)}</strong></div>
     <div class="tf-row"><span>💧 ${info.dataset.waterFlat?'Tiền nước khoán theo đầu người':'Tiền nước ('+fmtN(waterUsed)+' m³ × '+fmtN(waterPrice)+'đ)'}</span><strong>${fmt(waterFee)}</strong></div>
-    ${svcFee>0?`<div class="tf-row"><span>🔧 Phí dịch vụ</span><strong>${fmt(svcFee)}</strong></div>`:''}
+    ${svcFee>0?`<div class="tf-row"><span>🔑 Chìa khóa cổng</span><strong>${fmt(svcFee)}</strong></div>`:''}
     ${extra>0?`<div class="tf-row"><span>➕ Phí phát sinh</span><strong>${fmt(extra)}</strong></div>`:''}
     ${discount>0?`<div class="tf-row"><span>🎁 Giảm trừ</span><strong style="color:var(--success)">-${fmt(discount)}</strong></div>`:''}
     <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0 4px;font-size:16px;font-weight:900;border-top:2px solid var(--primary);margin-top:8px">
@@ -4068,7 +4076,7 @@ function renderPayment(){
     const sl={paid:'Đã thanh toán',partial:'Trả một phần',unpaid:'Chưa thanh toán'}[inv.status];
     return `<div class="inv-card">
       <div class="inv-hdr"><div><div class="inv-room">Phòng ${esc(room?.name||'?')}</div><div class="inv-month">${esc(t?.name||'—')} · ${getMonthName(inv.month)}</div></div><span style="padding:4px 12px;border-radius:99px;background:${sc}18;color:${sc};font-size:11px;font-weight:700">${sl}</span></div>
-      <div class="inv-body">${pR('Tiền phòng',fmt(inv.roomFee))}${pR('Tiền điện',fmt(inv.elecFee))}${pR(inv.waterMode==='person'?'Tiền nước khoán ('+inv.waterPeople+' người)':'Tiền nước',fmt(inv.waterFee))}${inv.internet?pR('Internet',fmt(inv.internet)):''}${inv.serviceFee?pR('Dịch vụ',fmt(inv.serviceFee)):''}${inv.garbage?pR('Rác',fmt(inv.garbage)):''}${inv.parking?pR('Giữ xe',fmt(inv.parking)):''}${inv.extra?pR('Phụ thu',fmt(inv.extra)):''}${inv.lateFee?pR('Phí trễ hạn',fmt(inv.lateFee)):''}${inv.discount?pR('Giảm giá','- '+fmt(inv.discount)):''}${inv.note?`<div style="font-size:11px;color:var(--text3);padding:4px 0">📝 ${esc(inv.note)}</div>`:''}</div>
+      <div class="inv-body">${pR('Tiền phòng',fmt(inv.roomFee))}${pR('Tiền điện',fmt(inv.elecFee))}${pR(inv.waterMode==='person'?'Tiền nước khoán ('+inv.waterPeople+' người)':'Tiền nước',fmt(inv.waterFee))}${inv.internet?pR('Internet',fmt(inv.internet)):''}${inv.serviceFee?pR('Chìa khóa cổng',fmt(inv.serviceFee)):''}${inv.garbage?pR('Rác',fmt(inv.garbage)):''}${inv.parking?pR('Giữ xe',fmt(inv.parking)):''}${inv.extra?pR('Phụ thu',fmt(inv.extra)):''}${inv.lateFee?pR('Phí trễ hạn',fmt(inv.lateFee)):''}${inv.discount?pR('Giảm giá','- '+fmt(inv.discount)):''}${inv.note?`<div style="font-size:11px;color:var(--text3);padding:4px 0">📝 ${esc(inv.note)}</div>`:''}</div>
       <div class="inv-total"><div class="inv-total-lbl">Tổng cộng</div><div class="inv-total-val">${fmt(inv.total)}</div></div>
       ${inv.debt>0?`<div style="padding:6px 16px;background:rgba(239,68,68,.08);font-size:12px;color:var(--danger);font-weight:700">⚠️ Còn nợ: ${fmt(inv.debt)}</div>`:''}
       ${photosHtml(inv)}<div class="inv-foot">
@@ -4102,7 +4110,7 @@ function calcInv(){
   const extra=+document.getElementById('invExtra').value||0,disc=+document.getElementById('invDisc').value||0;
   const eu=Math.max(0,en-eo),wu=Math.max(0,wn-wo),ef=elecCost(room,eu),wf=waterCost(room,wu);
   const total=room.price+ef+wf+room.serviceFee+room.internet+room.garbage+room.parking+extra-disc;
-  document.getElementById('invPreview').innerHTML=`<div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px">📋 Chi tiết</div>${pR('Tiền phòng',fmt(room.price))}${pR(elecLabel(room,eu),fmt(ef))}${pR(waterLbl(room,wu),fmt(wf))}${room.serviceFee?pR('Dịch vụ',fmt(room.serviceFee)):''}${room.internet?pR('Internet',fmt(room.internet)):''}${room.garbage?pR('Rác',fmt(room.garbage)):''}${room.parking?pR('Giữ xe',fmt(room.parking)):''}${extra?pR('Phụ thu',fmt(extra)):''}${disc?pR('Giảm giá','- '+fmt(disc)):''}<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:900;color:var(--primary);padding-top:8px;border-top:2px solid var(--primary);margin-top:8px"><span>TỔNG</span><span>${fmt(total)}</span></div>`;
+  document.getElementById('invPreview').innerHTML=`<div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px">📋 Chi tiết</div>${pR('Tiền phòng',fmt(room.price))}${pR(elecLabel(room,eu),fmt(ef))}${pR(waterLbl(room,wu),fmt(wf))}${room.serviceFee?pR('Chìa khóa cổng',fmt(room.serviceFee)):''}${room.internet?pR('Internet',fmt(room.internet)):''}${room.garbage?pR('Rác',fmt(room.garbage)):''}${room.parking?pR('Giữ xe',fmt(room.parking)):''}${extra?pR('Phụ thu',fmt(extra)):''}${disc?pR('Giảm giá','- '+fmt(disc)):''}<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:900;color:var(--primary);padding-top:8px;border-top:2px solid var(--primary);margin-top:8px"><span>TỔNG</span><span>${fmt(total)}</span></div>`;
 }
 function saveInv(){
   const roomId=document.getElementById('invRoom').value,month=document.getElementById('invMonth').value;
@@ -4149,7 +4157,7 @@ function delInv(id){if(!confirm('Xóa hóa đơn này?'))return;S.invoices=S.inv
 function printInv(invId){
   const inv=S.invoices.find(i=>i.id===invId);if(!inv)return;
   const room=S.rooms.find(r=>r.id===inv.roomId),t=S.tenants.find(x=>x.id===inv.tenantId);
-  document.getElementById('printInv').innerHTML=`<div class="logo-name">${esc(S.settings.hotelName)}</div><div style="text-align:center;font-size:12px;color:#666">${esc(S.settings.address)} · ĐT: ${esc(S.settings.phone)}</div><hr class="divider"><div style="text-align:center;font-size:17px;font-weight:800;margin:10px 0">PHIẾU THU TIỀN PHÒNG</div><hr class="divider"><div class="pr"><span>Phòng:</span><strong>${esc(room?.name)}</strong></div><div class="pr"><span>Người thuê:</span><strong>${esc(t?.name||'—')}</strong></div><div class="pr"><span>Tháng:</span><strong>${getMonthName(inv.month)}</strong></div><div class="pr"><span>Ngày in:</span><strong>${new Date().toLocaleDateString('vi-VN')}</strong></div><hr class="divider"><div class="pr"><span>Tiền phòng:</span><span>${fmt(inv.roomFee)}</span></div><div class="pr"><span>Điện (${meterUse(inv,'elec')} kWh):</span><span>${fmt(inv.elecFee)}</span></div><div class="pr"><span>${inv.waterMode==='person'?'Nước khoán ('+inv.waterPeople+' người)':'Nước ('+meterUse(inv,'water')+' m³)'}:</span><span>${fmt(inv.waterFee)}</span></div>${inv.internet?`<div class="pr"><span>Internet:</span><span>${fmt(inv.internet)}</span></div>`:''}${inv.serviceFee?`<div class="pr"><span>Dịch vụ:</span><span>${fmt(inv.serviceFee)}</span></div>`:''}${inv.garbage?`<div class="pr"><span>Rác:</span><span>${fmt(inv.garbage)}</span></div>`:''}${inv.extra?`<div class="pr"><span>Phụ thu:</span><span>${fmt(inv.extra)}</span></div>`:''}${inv.lateFee?`<div class="pr"><span>Phí trễ hạn:</span><span>${fmt(inv.lateFee)}</span></div>`:''}${inv.discount?`<div class="pr"><span>Giảm giá:</span><span>- ${fmt(inv.discount)}</span></div>`:''}<div class="ptotal"><span>TỔNG CỘNG</span><span>${fmt(inv.total)}</span></div>${inv.debt>0?`<div class="pr" style="color:red"><span>Còn nợ:</span><span>${fmt(inv.debt)}</span></div>`:'<div style="color:green;text-align:center;font-weight:700;padding:8px">✅ Đã thanh toán đủ</div>'}${printQrHtml(inv)}<hr class="divider"><div style="text-align:center;font-size:11px;color:#999">Xin cảm ơn quý khách!<br>${esc(S.settings.hotelName)}</div>`;
+  document.getElementById('printInv').innerHTML=`<div class="logo-name">${esc(S.settings.hotelName)}</div><div style="text-align:center;font-size:12px;color:#666">${esc(S.settings.address)} · ĐT: ${esc(S.settings.phone)}</div><hr class="divider"><div style="text-align:center;font-size:17px;font-weight:800;margin:10px 0">PHIẾU THU TIỀN PHÒNG</div><hr class="divider"><div class="pr"><span>Phòng:</span><strong>${esc(room?.name)}</strong></div><div class="pr"><span>Người thuê:</span><strong>${esc(t?.name||'—')}</strong></div><div class="pr"><span>Tháng:</span><strong>${getMonthName(inv.month)}</strong></div><div class="pr"><span>Ngày in:</span><strong>${new Date().toLocaleDateString('vi-VN')}</strong></div><hr class="divider"><div class="pr"><span>Tiền phòng:</span><span>${fmt(inv.roomFee)}</span></div><div class="pr"><span>Điện (${meterUse(inv,'elec')} kWh):</span><span>${fmt(inv.elecFee)}</span></div><div class="pr"><span>${inv.waterMode==='person'?'Nước khoán ('+inv.waterPeople+' người)':'Nước ('+meterUse(inv,'water')+' m³)'}:</span><span>${fmt(inv.waterFee)}</span></div>${inv.internet?`<div class="pr"><span>Internet:</span><span>${fmt(inv.internet)}</span></div>`:''}${inv.serviceFee?`<div class="pr"><span>Chìa khóa cổng:</span><span>${fmt(inv.serviceFee)}</span></div>`:''}${inv.garbage?`<div class="pr"><span>Rác:</span><span>${fmt(inv.garbage)}</span></div>`:''}${inv.extra?`<div class="pr"><span>Phụ thu:</span><span>${fmt(inv.extra)}</span></div>`:''}${inv.lateFee?`<div class="pr"><span>Phí trễ hạn:</span><span>${fmt(inv.lateFee)}</span></div>`:''}${inv.discount?`<div class="pr"><span>Giảm giá:</span><span>- ${fmt(inv.discount)}</span></div>`:''}<div class="ptotal"><span>TỔNG CỘNG</span><span>${fmt(inv.total)}</span></div>${inv.debt>0?`<div class="pr" style="color:red"><span>Còn nợ:</span><span>${fmt(inv.debt)}</span></div>`:'<div style="color:green;text-align:center;font-weight:700;padding:8px">✅ Đã thanh toán đủ</div>'}${printQrHtml(inv)}<hr class="divider"><div style="text-align:center;font-size:11px;color:#999">Xin cảm ơn quý khách!<br>${esc(S.settings.hotelName)}</div>`;
   printWhenReady();
 }
 
@@ -5334,7 +5342,7 @@ function calcCheckout(){
     <div class="checkout-bill-row"><span>🏠 Tiền phòng (${daysStayed}/${daysInMonth} ngày)</span><strong>${fmt(rentFee)}</strong></div>
     <div class="checkout-bill-row"><span>⚡ Tiền điện (${fmtN(elecUsed)} kWh × ${fmtN(elecPrice)}đ)</span><strong>${fmt(elecFee)}</strong></div>
     <div class="checkout-bill-row"><span>💧 ${infoEl.dataset.waterFlat?'Tiền nước khoán theo đầu người':'Tiền nước ('+fmtN(waterUsed)+' m³ × '+fmtN(waterPrice)+'đ)'}</span><strong>${fmt(waterFee)}</strong></div>
-    ${svcFee>0?`<div class="checkout-bill-row"><span>🔧 Phí dịch vụ</span><strong>${fmt(svcFee)}</strong></div>`:''}
+    ${svcFee>0?`<div class="checkout-bill-row"><span>🔑 Chìa khóa cổng</span><strong>${fmt(svcFee)}</strong></div>`:''}
     ${extra>0?`<div class="checkout-bill-row"><span>➕ Phí phát sinh</span><strong>${fmt(extra)}</strong></div>`:''}
     ${oldDebt>0?`<div class="checkout-bill-row" style="color:var(--danger)"><span>📌 Nợ tồn đọng cũ</span><strong>+${fmt(oldDebt)}</strong></div>`:''}
     ${discount>0?`<div class="checkout-bill-row"><span>🎁 Giảm trừ / hoàn cọc</span><strong style="color:var(--success)">-${fmt(discount)}</strong></div>`:''}
@@ -5785,7 +5793,7 @@ function buildMsg(inv,kind){
     L.push(`• Tiền phòng: ${fmt(inv.roomFee)}`);
     L.push(`• Điện (${meterUse(inv,'elec')} kWh): ${fmt(inv.elecFee)}`);
     L.push(inv.waterMode==='person'?`• Nước khoán (${inv.waterPeople} người): ${fmt(inv.waterFee)}`:`• Nước (${meterUse(inv,'water')} m³): ${fmt(inv.waterFee)}`);
-    [['internet','Internet'],['serviceFee','Dịch vụ'],['garbage','Rác'],['parking','Giữ xe'],['extra','Phụ thu'],['lateFee','Phí trễ hạn']].forEach(([k,l])=>{if(inv[k])L.push(`• ${l}: ${fmt(inv[k])}`)});
+    [['internet','Internet'],['serviceFee','Chìa khóa cổng'],['garbage','Rác'],['parking','Giữ xe'],['extra','Phụ thu'],['lateFee','Phí trễ hạn']].forEach(([k,l])=>{if(inv[k])L.push(`• ${l}: ${fmt(inv[k])}`)});
     if(inv.discount)L.push(`• Giảm giá: -${fmt(inv.discount)}`);
     L.push(`Tổng cộng: ${fmt(inv.total)}`);
     if(inv.paid>0)L.push(`Đã thanh toán: ${fmt(inv.paid)}`);
@@ -6877,6 +6885,53 @@ function toggleVoice(el){
 }
 document.addEventListener('pointerdown',()=>{try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}},{once:true});
 setTimeout(()=>{const e=document.getElementById('voiceToggle');if(e)e.classList.toggle('on',voiceOn())},0);
+/* ───── Phòng: nước khoán, nội thất ───── */
+function roomWaterToggle(){
+  const p=document.getElementById('rWaterMode').value==='person',g=(id,show)=>{const e=document.getElementById(id);if(e)e.style.display=show?'':'none'};
+  g('fgWP',!p);g('fgWPP',p);g('fgWIdx',!p);
+}
+var FURN_PRESET=['Máy lạnh','Tủ lạnh','Tủ quần áo','Bếp','Đèn','Quạt','Giường','Nệm','Bàn','Ghế','Máy nước nóng','Rèm cửa'];
+var rFurnState=[];
+function initFurn(saved){
+  const m={};(saved||[]).forEach(x=>{m[x.n]=x.s});
+  rFurnState=FURN_PRESET.map(n=>({n,s:m[n]||''}));
+  (saved||[]).forEach(x=>{if(!FURN_PRESET.includes(x.n))rFurnState.push({n:x.n,s:x.s,custom:1})});
+  renderFurn();
+}
+function furnBtn(i,x,v,l){
+  const on=x.s===v,col=v==='bad'?'var(--danger,#dc2626)':v==='good'?'var(--success,#16a34a)':'var(--border)';
+  return '<button type="button" onclick="setFurn('+i+',\''+v+'\')" style="padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid '+(on?col:'var(--border)')+';background:'+(on&&v?col:'transparent')+';color:'+(on&&v?'#fff':'inherit')+'">'+l+'</button>';
+}
+function renderFurn(){
+  const el=document.getElementById('rFurn');if(!el)return;
+  el.innerHTML=rFurnState.map((x,i)=>'<div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px">'+esc(x.n)+'</span>'+furnBtn(i,x,'','Không')+furnBtn(i,x,'good','Tốt')+furnBtn(i,x,'bad','Hư')+(x.custom?'<button type="button" onclick="delFurn('+i+')" style="border:none;background:none;color:var(--danger,#dc2626);font-size:18px;padding:0 4px">×</button>':'')+'</div>').join('');
+  const n=rFurnState.filter(x=>x.s).length,b=rFurnState.filter(x=>x.s==='bad').length,bd=document.getElementById('furnBadge');
+  if(bd)bd.textContent=n?'('+n+' món'+(b?', '+b+' hư':'')+')':'';
+}
+function setFurn(i,v){rFurnState[i].s=v;renderFurn()}
+function delFurn(i){rFurnState.splice(i,1);renderFurn()}
+function addFurn(){
+  const e=document.getElementById('rFurnNew'),n=e.value.trim().slice(0,40);if(!n)return;
+  if(rFurnState.some(x=>x.n.toLowerCase()===n.toLowerCase())){toast('Đã có trong danh sách','warning');return}
+  rFurnState.push({n,s:'good',custom:1});e.value='';renderFurn();
+}
+function furnCard(room){
+  const f=room.furniture||[];if(!f.length)return '';
+  return '<div class="card card-body mb-3"><div style="font-size:13px;font-weight:700;margin-bottom:8px">🛋️ Nội thất</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+f.map(x=>'<span style="padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;background:'+(x.s==='bad'?'rgba(220,38,38,.12)':'rgba(22,163,74,.12)')+';color:'+(x.s==='bad'?'#dc2626':'#16a34a')+'">'+esc(x.n)+': '+(x.s==='bad'?'Hư':'Tốt')+'</span>').join('')+'</div></div>';
+}
+/* ───── Ô tiền hiển thị dấu chấm hàng nghìn (giá trị đọc ra vẫn là số thuần) ───── */
+const MONEY_IDS=['rPrice','rSvc','rNet','rGarb','rPark','rElecP','rWaterP','rWaterPP','ctRent','ctDeposit','ctElecPrice','ctWaterPrice','ctWaterPP','tDeposit','invDisc','invExtra','payAmt','exAmt','coDiscount','coExtra','tfDiscount','tfExtra','dsDamage','dsDebt','dsOther','icCost'];
+function moneyify(el){
+  if(!el||el.__m)return;el.__m=1;
+  const d=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value'),fm=v=>{const n=String(v==null?'':v).replace(/\D/g,'');return n?n.replace(/\B(?=(\d{3})+(?!\d))/g,'.'):''};
+  el.type='text';el.inputMode='numeric';
+  Object.defineProperty(el,'value',{get(){return d.get.call(this).replace(/\./g,'')},set(v){d.set.call(this,fm(String(v==null?'':v).split('.')[0]))},configurable:true});
+  d.set.call(el,fm(d.get.call(el)));
+  el.addEventListener('input',()=>{const cur=d.get.call(el),caret=el.selectionStart,db=cur.slice(0,caret).replace(/\D/g,'').length,f=fm(cur);d.set.call(el,f);let p=0,c=0;while(p<f.length&&c<db){if(/\d/.test(f[p]))c++;p++}try{el.setSelectionRange(p,p)}catch(e){}});
+}
+function scanMoney(){MONEY_IDS.forEach(id=>moneyify(document.getElementById(id)))}
+scanMoney();document.addEventListener('DOMContentLoaded',scanMoney);
+try{let mt=0;new MutationObserver(()=>{clearTimeout(mt);mt=setTimeout(scanMoney,60)}).observe(document.body,{childList:true,subtree:true})}catch(e){}
 function portalListen(){
   portalUnlisten();signListen();if(!fbDb)return;
   const r=dbRef('portal_in'),cb=s=>portalHandle(s.key,s.val());
@@ -8059,7 +8114,7 @@ function buildRentMsg(inv,due,daysLeft){
   const t=S.tenants.find(x=>x.id===inv.tenantId),room=S.rooms.find(r=>r.id===inv.roomId);
   const hotel=S.settings.hotelName||'Nhà trọ',when=daysLeft<=0?'hôm nay':'còn '+daysLeft+' ngày';
   const L=[`Chào ${t&&t.name?t.name:'anh/chị'},`,`${hotel} xin nhắc anh/chị tiền phòng ${room?room.name:''} ${getMonthName(inv.month)} đến hạn đóng vào ngày ${vnDate(due)} (${when}).`,'',`• Tiền phòng: ${fmt(inv.roomFee)}`];
-  [['internet','Internet'],['serviceFee','Dịch vụ'],['garbage','Rác'],['parking','Giữ xe']].forEach(([k,l])=>{if(inv[k])L.push(`• ${l}: ${fmt(inv[k])}`)});
+  [['internet','Internet'],['serviceFee','Chìa khóa cổng'],['garbage','Rác'],['parking','Giữ xe']].forEach(([k,l])=>{if(inv[k])L.push(`• ${l}: ${fmt(inv[k])}`)});
   if(!inv.rentOnly){L.push(`• Điện (${meterUse(inv,'elec')} kWh): ${fmt(inv.elecFee)}`,`• Nước (${meterUse(inv,'water')} m³): ${fmt(inv.waterFee)}`);if(inv.extra)L.push(`• Phụ thu: ${fmt(inv.extra)}`);if(inv.discount)L.push(`• Giảm giá: -${fmt(inv.discount)}`)}
   L.push(`Tổng cộng: ${fmt(inv.total)}`);
   if(inv.paid>0)L.push(`Đã thanh toán: ${fmt(inv.paid)}`);

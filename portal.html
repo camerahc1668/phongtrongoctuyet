@@ -164,10 +164,10 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
 
   /* ───── Cổng hóa đơn của khách ───── */
   function note(inv){const rn=strip(data.room||'').trim(),lbl=/^p/i.test(rn)?rn:'P'+rn,[y,m]=String(inv.month||'').split('-');return (lbl+' T'+(m||'')+(y||'').slice(2)).replace(/[^A-Za-z0-9 ]/g,'').slice(0,25)}
-  function qrUrl(inv){const b=data.bank;if(!b||!(inv.debt>0))return '';return 'https://img.vietqr.io/image/'+encodeURIComponent(b.bin)+'-'+encodeURIComponent(b.acc)+'-compact2.png?amount='+Math.round(inv.debt)+'&addInfo='+encodeURIComponent(note(inv))+'&accountName='+encodeURIComponent(strip(b.name||'').toUpperCase())}
+  function qrUrl(inv){const b=data.bank;if(!b||!(inv.debt>0))return '';return 'https://img.vietqr.io/image/'+encodeURIComponent(b.bin)+'-'+encodeURIComponent(b.acc)+'-qr_only.png?amount='+Math.round(inv.debt)+'&addInfo='+encodeURIComponent(note(inv))+'&accountName='+encodeURIComponent(strip(b.name||'').toUpperCase())}
   function invHtml(i){
     const st=i.debt<=0?['b-paid','Đã thanh toán']:(i.paid>0?['b-part','Thanh toán một phần']:['b-debt','Chưa thanh toán']);
-    const open=openId===i.id,rows=[['Tiền phòng',i.roomFee],['Điện ('+use(i,'elec')+' kWh)',i.elecFee],[i.waterMode==='person'?'Nước khoán ('+i.waterPeople+' người)':'Nước ('+use(i,'water')+' m³)',i.waterFee],['Internet',i.internet],['Dịch vụ',i.serviceFee],['Rác',i.garbage],['Giữ xe',i.parking],['Phụ thu',i.extra],['Phí trễ hạn',i.lateFee]].filter(r=>+r[1]>0);
+    const open=openId===i.id,rows=[['Tiền phòng',i.roomFee],['Điện ('+use(i,'elec')+' kWh)',i.elecFee],[i.waterMode==='person'?'Nước khoán ('+i.waterPeople+' người)':'Nước ('+use(i,'water')+' m³)',i.waterFee],['Internet',i.internet],['Chìa khóa cổng',i.serviceFee],['Rác',i.garbage],['Giữ xe',i.parking],['Phụ thu',i.extra],['Phí trễ hạn',i.lateFee]].filter(r=>+r[1]>0);
     return '<div class="card"><div class="row" style="align-items:center"><b>'+esc(monthName(i.month))+'</b><span class="badge '+st[0]+'">'+st[1]+'</span></div>'
       +'<div class="row"><span class="muted">Tổng cộng</span><b>'+fmt(i.total)+'</b></div>'
       +(i.debt>0?'<div class="row"><span class="muted">Còn phải trả</span><b style="color:var(--danger)">'+fmt(i.debt)+'</b></div>':'')

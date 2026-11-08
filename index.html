@@ -6760,6 +6760,29 @@ async function loginOvGo(){
   if(!em||!pw){toast('Nhập email và mật khẩu','error');return}
   try{await fbApp.auth().signInWithEmailAndPassword(em,pw)}catch(e){toast(authMsg(e),'error')}
 }
+/* Nút Đẩy lên / Tải về: dùng cách đồng bộ theo bản ghi (chế độ cũ đã bị Rules chặn) */
+async function v2Manual(dir){
+  const u=fbApp&&fbApp.auth&&fbApp.auth().currentUser;
+  if(!u){toast('Bạn chưa đăng nhập Firebase. Nhập email, mật khẩu rồi bấm Đăng nhập trước.','warning',{duration:7000});return true}
+  if(!v2.on){
+    if(confirm('Kiểu Đẩy lên / Tải về cũ đã bị Rules mới chặn.\nBật “Đồng bộ theo bản ghi” (cách mới, tự động hai chiều) ngay bây giờ?'))v2Enable();
+    return true;
+  }
+  const r=window.ptRole;
+  try{
+    if(dir==='up'){
+      if(r!=='owner'&&r!=='manager'){toast('Dữ liệu của bạn tự đồng bộ. Chỉ Chủ trọ/Quản lý mới đẩy toàn bộ lên được.','info',{duration:6000});return true}
+      if(!confirm('Thay TOÀN BỘ dữ liệu trên Firebase bằng dữ liệu của máy này?'))return true;
+      updateFbStatus('syncing');v2.hashes={};await v2FullUpload();persistHashes();updateFbStatus('connected');
+      fbAddLog('⬆️ Đẩy toàn bộ (theo bản ghi) thành công');toast('✅ Đã đẩy toàn bộ dữ liệu lên Firebase','success');
+    }else{
+      if(!confirm('Tải dữ liệu từ Firebase về và thay dữ liệu trên máy này?'))return true;
+      updateFbStatus('syncing');v2.hashes={};await v2Pull();save();persistHashes();renderAll();v2Render();updateFbStatus('connected');
+      fbAddLog('⬇️ Tải toàn bộ (theo bản ghi) thành công');toast('✅ Đã tải dữ liệu từ Firebase về','success');
+    }
+  }catch(e){updateFbStatus('error');toast('Lỗi: '+v2Msg(e),'error',{duration:7000})}
+  return true;
+}
 async function v2Recheck(){const u=fbApp&&fbApp.auth().currentUser;if(!u)return;window.ptRole='pending';v2.on=false;await v2Start(u)}
 function v2Enable(){
   if(!fbApp||!fbConnected){toast('Hãy kết nối Firebase trước','error');return}
@@ -7388,7 +7411,7 @@ function fbOldDenied(e){
   try{const c=JSON.parse(localStorage.getItem('fbConfig')||'null');if(c){c.autoSync=false;localStorage.setItem('fbConfig',JSON.stringify(c))}}catch(_){}
   try{const t=document.getElementById('fbAutoToggle');if(t)t.classList.remove('on')}catch(_){}
   let who=null;try{who=fbApp&&fbApp.auth&&fbApp.auth().currentUser}catch(_){}
-  const why=who?'Tài khoản đang đăng nhập ('+(who.email||who.uid)+') không có quyền theo Rules hiện tại — kiểm tra UID trong Rules.':'Bạn CHƯA ĐĂNG NHẬP Firebase trên thiết bị/địa chỉ này nên Rules từ chối. Vào tab Cấu hình → mục Tài khoản đăng nhập → Đăng nhập.';
+  const why=who?'Tài khoản đang đăng nhập ('+(who.email||who.uid)+') bị chặn vì nút Đẩy lên/Tải về là chế độ đồng bộ CŨ, Rules mới không cho dùng. Hãy dùng mục “Đồng bộ theo bản ghi” → Bật đồng bộ.':'Bạn CHƯA ĐĂNG NHẬP Firebase trên thiết bị/địa chỉ này nên Rules từ chối. Vào tab Cấu hình → mục Tài khoản đăng nhập → Đăng nhập.';
   fbAddLog('🔒 '+why);
   if(!window.__fbDeniedShown){window.__fbDeniedShown=true;toast('🔒 '+why,'warning',{duration:12000});setTimeout(()=>{try{fbTab('config');const e=document.getElementById('fbAuthEmail');if(e)e.scrollIntoView({block:'center'})}catch(_){}},700)}
   return true;
@@ -7416,6 +7439,7 @@ async function pushFirebaseSilently(){
 
 async function syncToFirebase(){
   if(!fbConnected||!fbDb){toast('Chưa kết nối Firebase!','error');return;}
+  if(await v2Manual('up'))return;
   updateFbStatus('syncing');
   try{
     const cfg=JSON.parse(localStorage.getItem('fbConfig')||'{}');
@@ -7430,6 +7454,7 @@ async function syncToFirebase(){
 
 async function syncFromFirebase(){
   if(!fbConnected||!fbDb){toast('Chưa kết nối Firebase!','error');return;}
+  if(await v2Manual('down'))return;
   updateFbStatus('syncing');
   try{
     const snap=await fbDb.ref(fbPath()).once('value');

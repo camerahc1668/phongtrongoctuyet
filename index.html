@@ -1312,6 +1312,57 @@ select{text-overflow:ellipsis}
 
 .fdet{margin-bottom:4px}.fdet>summary.fsect{list-style:none;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
 .fdet>summary::-webkit-details-marker{display:none}.fdet>summary::after{content:'▾';opacity:.6;font-size:12px}.fdet:not([open])>summary::after{content:'▸'}
+/* ── HƯỚNG DẪN CHI TIẾT ── */
+body[data-tab="guide"] .qa{display:none}
+#pg-guide{max-width:820px;margin-left:auto;margin-right:auto;padding-bottom:48px}
+.gd-hero{background:linear-gradient(135deg,rgba(22,163,74,.12),rgba(14,165,233,.1));border:1.5px solid rgba(22,163,74,.22);border-radius:18px;padding:16px}
+.gd-hero-t{font-size:18px;font-weight:900;color:var(--text);letter-spacing:-.3px}
+.gd-hero-s{font-size:13px;color:var(--text2);margin-top:6px;line-height:1.6}
+.gd-toc{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 2px}
+.gd-chip{border:1.5px solid var(--border);background:var(--surface);color:var(--text);border-radius:99px;padding:7px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit}
+.gd-chip:hover{border-color:var(--primary);color:var(--primary)}
+.gd-sec{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px;margin-top:14px;box-shadow:var(--shadow-sm);scroll-margin-top:12px}
+.gd-h{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:900;color:var(--text);line-height:1.3}
+.gd-n{width:28px;height:28px;border-radius:10px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex-shrink:0}
+.gd-p{font-size:13px;color:var(--text2);line-height:1.65;margin:10px 0 0}
+.gd-fig{margin:12px 0 0;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center}
+.gd-fig svg{width:100%;max-width:420px;height:auto;display:block;margin:0 auto}
+.gd-cap{font-size:11.5px;color:var(--text3);margin-top:6px;line-height:1.5}
+.gd-steps{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:8px;counter-reset:gds}
+.gd-steps li{counter-increment:gds;position:relative;padding:9px 10px 9px 42px;background:var(--bg2);border-radius:12px;font-size:13px;line-height:1.6;color:var(--text)}
+.gd-steps li::before{content:counter(gds);position:absolute;left:10px;top:9px;width:22px;height:22px;border-radius:50%;background:var(--primary-bg);color:var(--primary);font-weight:900;font-size:12px;display:flex;align-items:center;justify-content:center;border:1.5px solid rgba(22,163,74,.3)}
+.gd-tip{margin-top:10px;background:var(--primary-bg);border:1px solid rgba(22,163,74,.22);border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--text)}
+.gd-tip b{color:var(--primary)}
+.gd-warn{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.35)}
+.gd-warn b{color:#d97706}
+.gd-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;align-items:center}
+.gd-sw{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text);cursor:pointer}
+.gd-sw input{width:18px;height:18px;accent-color:var(--primary)}
+.gd-faq details{background:var(--bg2);border-radius:12px;padding:10px 12px;margin-top:8px}
+.gd-faq summary{font-size:13px;font-weight:800;color:var(--text);cursor:pointer}
+.gd-faq details p{font-size:12.5px;color:var(--text2);line-height:1.6;margin:8px 0 0}
+.gd-legend{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.gd-legend li{display:flex;gap:9px;font-size:12.5px;line-height:1.5;color:var(--text)}
+.gd-legend i{font-style:normal;flex-shrink:0;width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.gd-fig svg text{font-family:inherit}
+.gs-bg{fill:var(--bg2)}.gs-sf{fill:var(--surface)}.gs-bd{fill:none;stroke:var(--border);stroke-width:1.5}
+.gs-in{fill:var(--bg2);stroke:var(--border);stroke-width:1.2}.gs-hi{fill:var(--primary-bg);stroke:var(--primary);stroke-width:2}
+.gs-pr{fill:var(--primary)}.gs-prl{fill:var(--primary);opacity:.18}.gs-red{fill:#ef4444}.gs-ln{stroke:var(--primary);stroke-width:2;fill:none}
+.gs-t{fill:var(--text);font-size:11px;font-weight:800}.gs-t2{fill:var(--text2);font-size:9.5px;font-weight:600}.gs-t3{fill:var(--text3);font-size:8.5px;font-weight:700}
+.gs-w{fill:#fff;font-size:10px;font-weight:900;text-anchor:middle}.gs-tc{text-anchor:middle}
+@media(max-width:520px){.gd-sec{padding:13px}.gd-h{font-size:15px}}
+
+/* ── GỢI Ý NHẬP LIỆU ── */
+#ptAc{position:fixed;z-index:100000;display:none;background:var(--surface);border:1.5px solid var(--primary);border-radius:12px;box-shadow:0 12px 32px rgba(15,23,42,.24);overflow-y:auto;-webkit-overflow-scrolling:touch;font-family:inherit}
+#ptAc.show{display:block}
+.ptac-it{display:flex;align-items:center;gap:6px;padding:0 4px 0 12px;min-height:40px;font-size:14px;color:var(--text);cursor:pointer;border-bottom:1px solid var(--border)}
+.ptac-it:last-child{border-bottom:0}
+.ptac-it.act,.ptac-it:hover{background:var(--primary-bg)}
+.ptac-tx{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ptac-tx b{color:var(--primary);font-weight:900}
+.ptac-x{flex-shrink:0;width:34px;height:34px;border:0;background:transparent;color:var(--text3);font-size:18px;line-height:1;border-radius:8px;cursor:pointer}
+.ptac-x:hover{color:#ef4444}
+
 </style>
 </head>
 <body>
@@ -1331,7 +1382,7 @@ select{text-overflow:ellipsis}
             <div class="home-logo-title" id="homeLogoTitle">Phòng<span>Trọ</span> Pro</div>
           </div>
           <div class="home-actions">
-            <button class="home-action-btn" onclick="openM('mGuide')" title="Hướng dẫn sử dụng">
+            <button class="home-action-btn" onclick="switchTab('guide')" title="Hướng dẫn sử dụng">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 1 1 5.8 1c-.8 1.2-2.9 1.5-2.9 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             </button>
             <button class="home-action-btn" onclick="showNotif()" title="Thông báo">
@@ -1516,6 +1567,25 @@ select{text-overflow:ellipsis}
       </div>
       <div id="archivedList"></div>
     </div>
+
+    <!-- ══ HƯỚNG DẪN CHI TIẾT ══ -->
+    <div class="page" id="pg-guide"><div class="page-header"><div><div class="page-title">Hướng Dẫn Sử Dụng</div><div class="page-subtitle">Từng bước, dễ hiểu, có hình minh họa</div></div></div>
+<div class="gd-hero"><div class="gd-hero-t">Làm theo thứ tự này là dùng được ngay 👇</div><div class="gd-hero-s">Thiết lập một lần: <b>Cài đặt → Phòng → Người thuê</b>. Sau đó mỗi tháng chỉ cần <b>Thu tiền</b> (nhập số điện nước, thu tiền, in phiếu) rồi xem <b>Công nợ</b> và <b>Báo cáo</b>. Chạm vào tên mục bên dưới để nhảy tới đúng phần.</div></div>
+<div class="gd-toc"><button type="button" class="gd-chip" onclick="gdGo('gd-0')">Màn hình chính</button><button type="button" class="gd-chip" onclick="gdGo('gd-1')">Cài đặt</button><button type="button" class="gd-chip" onclick="gdGo('gd-2')">Thêm phòng</button><button type="button" class="gd-chip" onclick="gdGo('gd-3')">Thêm người thuê</button><button type="button" class="gd-chip" onclick="gdGo('gd-4')">Thu tiền</button><button type="button" class="gd-chip" onclick="gdGo('gd-5')">Công nợ & báo cáo</button><button type="button" class="gd-chip" onclick="gdGo('gd-6')">Hợp đồng</button><button type="button" class="gd-chip" onclick="gdGo('gd-7')">Chuyển / trả phòng</button><button type="button" class="gd-chip" onclick="gdGo('gd-8')">Sự cố & chi phí</button><button type="button" class="gd-chip" onclick="gdGo('gd-9')">Gợi ý nhập liệu</button><button type="button" class="gd-chip" onclick="gdGo('gd-10')">Nhiều máy & cổng khách</button><button type="button" class="gd-chip" onclick="gdGo('gd-11')">Hỏi đáp</button></div>
+<div class="gd-row"><button type="button" class="btn btn-sm" onclick="openM('mGuide')">🗺️ Xem sơ đồ nhanh</button></div>
+<section class="gd-sec" id="gd-0"><div class="gd-h"><span class="gd-n">0</span>Làm quen màn hình chính</div><p class="gd-p">Màn hình chính là nơi bắt đầu của mọi việc. Mỗi ô lớn là một chức năng; bấm vào là mở. Bất cứ lúc nào bạn cũng có thể bấm nút <b>🏠 Về màn hình chính</b> (nút tròn nổi ở góc) để quay lại.</p><div class="gd-fig"><svg viewBox="0 0 360 330" role="img" aria-label="Màn hình chính của ứng dụng"><rect class="gs-bg" x="10" y="4" width="340" height="322" rx="22"/><rect class="gs-bd" x="10" y="4" width="340" height="322" rx="22"/><circle class="gs-pr" cx="40" cy="34" r="13"/><path d="M34 38v-6l6-5 6 5v6h-4v-4h-4v4z" fill="#fff"/><text class="gs-t" x="60" y="38" style="font-size:12px">PhòngTrọ Pro</text><circle class="gs-sf" cx="254" cy="34" r="12"/><circle class="gs-bd" cx="254" cy="34" r="12"/><circle class="gs-sf" cx="288" cy="34" r="12"/><circle class="gs-bd" cx="288" cy="34" r="12"/><circle class="gs-sf" cx="322" cy="34" r="12"/><circle class="gs-bd" cx="322" cy="34" r="12"/><text class="gs-t" x="254" y="38" style="text-anchor:middle">?</text><text x="288" y="38" style="font-size:11px;text-anchor:middle">🔔</text><text x="322" y="38" style="font-size:11px;text-anchor:middle">🌙</text><rect class="gs-sf" x="22" y="60" width="76" height="36" rx="10"/><rect class="gs-bd" x="22" y="60" width="76" height="36" rx="10"/><text class="gs-t gs-tc" x="60" y="76">12</text><text class="gs-t3 gs-tc" x="60" y="89">Phòng</text><rect class="gs-sf" x="104" y="60" width="76" height="36" rx="10"/><rect class="gs-bd" x="104" y="60" width="76" height="36" rx="10"/><text class="gs-t gs-tc" x="142" y="76">9</text><text class="gs-t3 gs-tc" x="142" y="89">Đang thuê</text><rect class="gs-sf" x="186" y="60" width="76" height="36" rx="10"/><rect class="gs-bd" x="186" y="60" width="76" height="36" rx="10"/><text class="gs-t gs-tc" x="224" y="76">24tr</text><text class="gs-t3 gs-tc" x="224" y="89">Thu tháng</text><rect class="gs-sf" x="268" y="60" width="76" height="36" rx="10"/><rect class="gs-bd" x="268" y="60" width="76" height="36" rx="10"/><text class="gs-t gs-tc" x="306" y="76">3tr</text><text class="gs-t3 gs-tc" x="306" y="89">Công nợ</text><rect class="gs-sf" x="22" y="108" width="100" height="46" rx="12"/><rect class="gs-bd" x="22" y="108" width="100" height="46" rx="12"/><rect class="gs-prl" x="30" y="121" width="20" height="20" rx="7"/><text class="gs-t" x="56" y="135" style="font-size:10px">Tổng quan</text><rect class="gs-sf" x="128" y="108" width="100" height="46" rx="12"/><rect class="gs-bd" x="128" y="108" width="100" height="46" rx="12"/><rect class="gs-prl" x="136" y="121" width="20" height="20" rx="7"/><text class="gs-t" x="162" y="135" style="font-size:10px">Phòng</text><rect class="gs-sf" x="234" y="108" width="100" height="46" rx="12"/><rect class="gs-bd" x="234" y="108" width="100" height="46" rx="12"/><rect class="gs-prl" x="242" y="121" width="20" height="20" rx="7"/><text class="gs-t" x="268" y="135" style="font-size:10px">Người thuê</text><rect class="gs-sf" x="22" y="162" width="100" height="46" rx="12"/><rect class="gs-bd" x="22" y="162" width="100" height="46" rx="12"/><rect class="gs-prl" x="30" y="175" width="20" height="20" rx="7"/><text class="gs-t" x="56" y="189" style="font-size:10px">Thu tiền</text><rect class="gs-sf" x="128" y="162" width="100" height="46" rx="12"/><rect class="gs-bd" x="128" y="162" width="100" height="46" rx="12"/><rect class="gs-prl" x="136" y="175" width="20" height="20" rx="7"/><text class="gs-t" x="162" y="189" style="font-size:10px">Công nợ</text><rect class="gs-sf" x="234" y="162" width="100" height="46" rx="12"/><rect class="gs-bd" x="234" y="162" width="100" height="46" rx="12"/><rect class="gs-prl" x="242" y="175" width="20" height="20" rx="7"/><text class="gs-t" x="268" y="189" style="font-size:10px">Báo cáo</text><rect class="gs-sf" x="22" y="216" width="100" height="46" rx="12"/><rect class="gs-bd" x="22" y="216" width="100" height="46" rx="12"/><rect class="gs-prl" x="30" y="229" width="20" height="20" rx="7"/><text class="gs-t" x="56" y="243" style="font-size:10px">Hợp đồng</text><rect class="gs-sf" x="128" y="216" width="100" height="46" rx="12"/><rect class="gs-bd" x="128" y="216" width="100" height="46" rx="12"/><rect class="gs-prl" x="136" y="229" width="20" height="20" rx="7"/><text class="gs-t" x="162" y="243" style="font-size:10px">Lịch sử</text><rect class="gs-sf" x="234" y="216" width="100" height="46" rx="12"/><rect class="gs-bd" x="234" y="216" width="100" height="46" rx="12"/><rect class="gs-prl" x="242" y="229" width="20" height="20" rx="7"/><text class="gs-t" x="268" y="243" style="font-size:10px">Sự cố</text><rect class="gs-sf" x="22" y="270" width="100" height="46" rx="12"/><rect class="gs-bd" x="22" y="270" width="100" height="46" rx="12"/><rect class="gs-prl" x="30" y="283" width="20" height="20" rx="7"/><text class="gs-t" x="56" y="297" style="font-size:10px">Chi phí</text><rect class="gs-sf" x="128" y="270" width="100" height="46" rx="12"/><rect class="gs-bd" x="128" y="270" width="100" height="46" rx="12"/><rect class="gs-prl" x="136" y="283" width="20" height="20" rx="7"/><text class="gs-t" x="162" y="297" style="font-size:10px">Cài đặt</text><rect class="gs-hi" x="234" y="270" width="100" height="46" rx="12"/><rect class="gs-prl" x="242" y="283" width="20" height="20" rx="7"/><text class="gs-t" x="268" y="297" style="font-size:10px">Hướng dẫn</text><circle class="gs-red" cx="24" cy="18" r="9"/><text class="gs-w" x="24" y="21.5">1</text><circle class="gs-red" cx="254" cy="14" r="9"/><text class="gs-w" x="254" y="17.5">2</text><circle class="gs-red" cx="348" cy="78" r="9"/><text class="gs-w" x="348" y="81.5">3</text><circle class="gs-red" cx="346" cy="120" r="9"/><text class="gs-w" x="346" y="123.5">4</text><circle class="gs-red" cx="332" cy="286" r="9"/><text class="gs-w" x="332" y="289.5">5</text><path class="gs-ln" d="M226 288 H196" style="stroke:#ef4444"/><path class="gs-ln" d="M203 283 L196 288 L203 293" style="stroke:#ef4444"/><text class="gs-t3" x="150" y="316" style="text-anchor:middle">Ô "Hướng dẫn" nằm ngay bên phải ô "Cài đặt"</text></svg><div class="gd-cap">Hình minh họa màn hình chính (số điện thoại và số liệu chỉ là ví dụ).</div></div><ul class="gd-legend"><li><i>1</i><span><b>Biểu tượng ngôi nhà:</b> bấm để vào Cài đặt và đổi logo.</span></li><li><i>2</i><span><b>Ba nút tròn:</b> dấu ? (mở hướng dẫn này), chuông (thông báo), mặt trăng (bật/tắt giao diện tối).</span></li><li><i>3</i><span><b>Bốn ô số liệu:</b> tổng số phòng, số phòng đang thuê, tiền đã thu tháng này, tổng công nợ.</span></li><li><i>4</i><span><b>Các ô chức năng:</b> Tổng quan, Phòng, Người thuê, Thu tiền, Công nợ, Báo cáo, Hợp đồng, Lịch sử, Sự cố &amp; sửa chữa, Chi phí, Cài đặt.</span></li><li><i>5</i><span><b>Ô Hướng dẫn:</b> nằm ngay bên phải ô Cài đặt, bấm là quay lại trang này.</span></li></ul></section>
+<section class="gd-sec" id="gd-1"><div class="gd-h"><span class="gd-n">1</span>Cài đặt lần đầu (làm một lần)</div><p class="gd-p">Phần này giúp tên nhà trọ, thông tin chủ trọ xuất hiện đúng trên phiếu thu và hợp đồng.</p><ol class="gd-steps"><li>Ở màn hình chính bấm ô <b>Cài đặt</b>.</li><li>Bấm vào dòng cần sửa (tên nhà trọ, địa chỉ, số điện thoại), nhập nội dung vào ô <b>Giá trị</b> rồi bấm Lưu. Thông tin này in trên mọi phiếu thu.</li><li>Nhập <b>họ tên, CCCD, địa chỉ chủ trọ</b>. Hợp đồng sẽ tự điền các thông tin này, bạn không phải gõ lại.</li><li>Nếu muốn khách quét mã chuyển khoản (VietQR) thì nhập <b>tài khoản nhận tiền</b>. Mã QR sẽ hiện trên phiếu thu.</li><li>Muốn đổi logo: bấm biểu tượng ngôi nhà ở góc trái màn hình chính. Muốn đổi cỡ chữ hoặc giao diện sáng/tối: tìm trong Cài đặt.</li><li>Làm xong, vào <b>Cài đặt → Sao lưu</b> để tải bản sao lưu dữ liệu về máy.</li></ol><div class="gd-tip"><b>💡 Mẹo:</b> Nên sao lưu mỗi tháng một lần và trước khi cập nhật ứng dụng.</div></section>
+<section class="gd-sec" id="gd-2"><div class="gd-h"><span class="gd-n">2</span>Thêm phòng</div><p class="gd-p">Luôn tạo <b>phòng trước</b>, rồi mới thêm người thuê vào phòng. Mỗi phòng nhớ riêng giá thuê, giá điện, cách tính nước.</p><div class="gd-fig"><svg viewBox="0 0 360 272" role="img" aria-label="Minh họa form Thêm Phòng Mới"><rect class="gs-sf" x="20" y="6" width="300" height="260" rx="16"/><rect class="gs-bd" x="20" y="6" width="300" height="260" rx="16"/><text class="gs-t" x="34" y="30">Thêm Phòng Mới</text><text class="gs-t3" x="34.0" y="54">Khu</text><rect class="gs-hi" x="34.0" y="58" width="85.3" height="24" rx="8"/><text class="gs-t2" x="42.0" y="74">A</text><text class="gs-t3" x="127.3" y="54">Tầng</text><rect class="gs-hi" x="127.3" y="58" width="85.3" height="24" rx="8"/><text class="gs-t2" x="135.3" y="74">1</text><text class="gs-t3" x="220.7" y="54">Số phòng</text><rect class="gs-hi" x="220.7" y="58" width="85.3" height="24" rx="8"/><text class="gs-t2" x="228.7" y="74">01</text><circle class="gs-red" cx="336" cy="70" r="9"/><text class="gs-w" x="336" y="73.5">1</text><text class="gs-t3" x="34.0" y="98">Giá thuê (₫)</text><rect class="gs-hi" x="34.0" y="102" width="132.0" height="24" rx="8"/><text class="gs-t2" x="42.0" y="118">2.500.000</text><text class="gs-t3" x="174.0" y="98">Diện tích (m²)</text><rect class="gs-hi" x="174.0" y="102" width="132.0" height="24" rx="8"/><text class="gs-t2" x="182.0" y="118">20</text><circle class="gs-red" cx="336" cy="114" r="9"/><text class="gs-w" x="336" y="117.5">2</text><text class="gs-t3" x="34.0" y="142">Giá điện (₫/kWh)</text><rect class="gs-hi" x="34.0" y="146" width="132.0" height="24" rx="8"/><text class="gs-t2" x="42.0" y="162">3.500</text><text class="gs-t3" x="174.0" y="142">CS điện hiện tại</text><rect class="gs-hi" x="174.0" y="146" width="132.0" height="24" rx="8"/><text class="gs-t2" x="182.0" y="162">1250</text><circle class="gs-red" cx="336" cy="158" r="9"/><text class="gs-w" x="336" y="161.5">3</text><text class="gs-t3" x="34.0" y="186">Cách tính nước</text><rect class="gs-hi" x="34.0" y="190" width="132.0" height="24" rx="8"/><text class="gs-t2" x="42.0" y="206">Theo m³</text><text class="gs-t3" x="174.0" y="186">CS nước hiện tại</text><rect class="gs-hi" x="174.0" y="190" width="132.0" height="24" rx="8"/><text class="gs-t2" x="182.0" y="206">320</text><circle class="gs-red" cx="336" cy="202" r="9"/><text class="gs-w" x="336" y="205.5">4</text><rect class="gs-pr" x="34" y="224" width="272" height="30" rx="10"/><text class="gs-w" x="170" y="243" style="font-size:12px">Lưu phòng</text></svg><div class="gd-cap">Hình minh họa form thêm phòng. Các ô có số là phần quan trọng nhất.</div></div><ol class="gd-steps"><li>Vào <b>Phòng</b>, bấm nút <b>Thêm</b> ở góc trên bên phải.</li><li><b>(1)</b> Chọn <b>Khu, Tầng, Số phòng</b>. Mã phòng được app tự sinh, bạn xem ở dòng "Mã phòng tự sinh". Cần thêm khu mới (A, B, C...) thì mở phần quản lý khu.</li><li><b>(2)</b> Nhập <b>giá thuê</b> và diện tích. Các phí cố định (chìa khóa cổng, internet, rác, giữ xe) nhập số tiền hàng tháng, không có thì để trống.</li><li><b>(3)</b> Nhập <b>giá điện</b> (₫ mỗi kWh) và <b>chỉ số điện hiện tại</b> đọc trên đồng hồ.</li><li><b>(4)</b> Chọn <b>cách tính nước</b>: theo m³ (nhập giá và chỉ số nước) hoặc khoán theo người (nhập số tiền mỗi người mỗi tháng).</li><li>Bấm <b>Lưu</b>. Phòng mới hiện trong danh sách Phòng với trạng thái trống.</li></ol><div class="gd-tip"><b>💡 Mẹo:</b> Chỉ số điện, nước nhập lúc này sẽ là <b>chỉ số cũ</b> của hóa đơn đầu tiên, nên hãy đọc đồng hồ thật chính xác.</div></section>
+<section class="gd-sec" id="gd-3"><div class="gd-h"><span class="gd-n">3</span>Thêm người thuê</div><p class="gd-p">Gán người thuê vào một phòng để app biết phòng nào đang có khách, thu tiền ai, và điền sẵn vào hợp đồng.</p><div class="gd-fig"><svg viewBox="0 0 360 272" role="img" aria-label="Minh họa form Thêm Người Thuê"><rect class="gs-sf" x="20" y="6" width="300" height="260" rx="16"/><rect class="gs-bd" x="20" y="6" width="300" height="260" rx="16"/><text class="gs-t" x="34" y="30">Thêm Người Thuê</text><text class="gs-t3" x="34.0" y="54">Họ và tên</text><rect class="gs-hi" x="34.0" y="58" width="272.0" height="24" rx="8"/><text class="gs-t2" x="42.0" y="74">Nguyễn Văn An</text><circle class="gs-red" cx="336" cy="70" r="9"/><text class="gs-w" x="336" y="73.5">1</text><text class="gs-t3" x="34.0" y="98">Giới tính</text><rect class="gs-in" x="34.0" y="102" width="132.0" height="24" rx="8"/><text class="gs-t2" x="42.0" y="118">Nam</text><text class="gs-t3" x="174.0" y="98">Số điện thoại</text><rect class="gs-in" x="174.0" y="102" width="132.0" height="24" rx="8"/><text class="gs-t2" x="182.0" y="118">0901 ...</text><text class="gs-t3" x="34.0" y="142">Phòng thuê</text><rect class="gs-hi" x="34.0" y="146" width="132.0" height="24" rx="8"/><text class="gs-t2" x="42.0" y="162">A101</text><text class="gs-t3" x="174.0" y="142">Ngày vào ở</text><rect class="gs-hi" x="174.0" y="146" width="132.0" height="24" rx="8"/><text class="gs-t2" x="182.0" y="162">01/11/2026</text><circle class="gs-red" cx="336" cy="158" r="9"/><text class="gs-w" x="336" y="161.5">2</text><text class="gs-t3" x="34.0" y="186">Tiền cọc (₫)</text><rect class="gs-hi" x="34.0" y="190" width="132.0" height="24" rx="8"/><text class="gs-t2" x="42.0" y="206">2.500.000</text><text class="gs-t3" x="174.0" y="186">Số người ở</text><rect class="gs-hi" x="174.0" y="190" width="132.0" height="24" rx="8"/><text class="gs-t2" x="182.0" y="206">2</text><circle class="gs-red" cx="336" cy="202" r="9"/><text class="gs-w" x="336" y="205.5">3</text><rect class="gs-pr" x="34" y="224" width="272" height="30" rx="10"/><text class="gs-w" x="170" y="243" style="font-size:12px">Lưu người thuê</text></svg><div class="gd-cap">Hình minh họa form thêm người thuê.</div></div><ol class="gd-steps"><li>Vào <b>Người thuê</b>, bấm <b>Thêm</b>.</li><li><b>(1)</b> Nhập họ tên, giới tính, số điện thoại, ngày sinh, CCCD, biển số xe, địa chỉ thường trú (không bắt buộc hết, nhập được gì nhập).</li><li><b>(2)</b> Chọn <b>Phòng thuê</b> và <b>Ngày vào ở</b>.</li><li><b>(3)</b> Nhập <b>tiền cọc</b>, <b>số người ở</b> (quan trọng nếu phòng tính nước khoán theo người) và ghi chú.</li><li>Bấm <b>Lưu</b>. Phòng đó chuyển sang trạng thái đang thuê.</li></ol><div class="gd-tip"><b>💡 Mẹo:</b> Gõ đúng họ tên một lần, những lần sau app sẽ gợi ý lại tên để bạn bấm chọn (xem phần 9).</div></section>
+<section class="gd-sec" id="gd-4"><div class="gd-h"><span class="gd-n">4</span>Thu tiền hàng tháng</div><p class="gd-p">Đây là việc bạn làm nhiều nhất. Mỗi tháng gồm 4 bước: tạo phiếu, nhập số điện nước, lưu, thu tiền.</p><div class="gd-fig"><svg viewBox="0 0 360 282" role="img" aria-label="Sơ đồ các bước"><rect class="gs-sf" x="24" y="8" width="312" height="50" rx="14"/><rect class="gs-bd" x="24" y="8" width="312" height="50" rx="14"/><circle class="gs-pr" cx="50" cy="33" r="13"/><text class="gs-w" x="50" y="37" style="font-size:12px">1</text><text x="76" y="39" style="font-size:20px">🧾</text><text class="gs-t" x="104" y="30">Tạo phiếu thu cho phòng</text><text class="gs-t2" x="104" y="46">Vào Thu tiền, chọn phòng và tháng</text><path class="gs-ln" d="M180 61 V74 M174 69 L180 75 L186 69"/><rect class="gs-sf" x="24" y="80" width="312" height="50" rx="14"/><rect class="gs-bd" x="24" y="80" width="312" height="50" rx="14"/><circle class="gs-pr" cx="50" cy="105" r="13"/><text class="gs-w" x="50" y="109" style="font-size:12px">2</text><text x="76" y="111" style="font-size:20px">⚡</text><text class="gs-t" x="104" y="102">Nhập chỉ số điện, nước mới</text><text class="gs-t2" x="104" y="118">Chỉ số cũ lấy từ kỳ trước</text><path class="gs-ln" d="M180 133 V146 M174 141 L180 147 L186 141"/><rect class="gs-sf" x="24" y="152" width="312" height="50" rx="14"/><rect class="gs-bd" x="24" y="152" width="312" height="50" rx="14"/><circle class="gs-pr" cx="50" cy="177" r="13"/><text class="gs-w" x="50" y="181" style="font-size:12px">3</text><text x="76" y="183" style="font-size:20px">💾</text><text class="gs-t" x="104" y="174">Lưu phiếu</text><text class="gs-t2" x="104" y="190">App tự tính tổng tiền phải thu</text><path class="gs-ln" d="M180 205 V218 M174 213 L180 219 L186 213"/><rect class="gs-sf" x="24" y="224" width="312" height="50" rx="14"/><rect class="gs-bd" x="24" y="224" width="312" height="50" rx="14"/><circle class="gs-pr" cx="50" cy="249" r="13"/><text class="gs-w" x="50" y="253" style="font-size:12px">4</text><text x="76" y="255" style="font-size:20px">💵</text><text class="gs-t" x="104" y="246">Thu tiền và in phiếu</text><text class="gs-t2" x="104" y="262">Chọn hình thức, nhập số tiền khách đưa</text></svg><div class="gd-cap">Bốn bước thu tiền mỗi tháng.</div></div><ol class="gd-steps"><li>Vào <b>Thu tiền</b>, bấm tạo phiếu mới. Chọn <b>Phòng</b> và <b>Tháng/Năm</b>.</li><li>Nhập <b>chỉ số điện mới</b> và <b>chỉ số nước mới</b>. Có thể chụp ảnh công tơ điện, công tơ nước để lưu làm bằng chứng. Nếu khách đã gửi số qua cổng khách, bấm gợi ý <b>"Dùng chỉ số khách gửi"</b>.</li><li>Có phát sinh thì nhập <b>phụ thu</b>, <b>giảm giá</b> và ghi chú. Bấm <b>Lưu</b>.</li><li>Khi khách đưa tiền, mở phiếu và bấm <b>Thu tiền</b>: chọn hình thức (tiền mặt, chuyển khoản...), nhập số tiền, bấm xác nhận.</li><li>Khách trả thiếu thì phần còn lại tự thành <b>công nợ</b>. Bấm <b>In</b> để in phiếu thu, phiếu có thể kèm mã QR chuyển khoản.</li></ol><div class="gd-tip"><b>💡 Mẹo:</b> Làm hết các phòng liền một lượt cho nhanh: đi đọc đồng hồ ghi vào giấy, rồi ngồi nhập một mạch.</div><div class="gd-tip gd-warn"><b>⚠️ Lưu ý:</b> Nhập nhầm chỉ số mới sẽ làm tiền điện nước sai. Kiểm tra lại số trước khi bấm Lưu.</div></section>
+<section class="gd-sec" id="gd-5"><div class="gd-h"><span class="gd-n">5</span>Công nợ và báo cáo</div><p class="gd-p">Hai mục này giúp bạn nắm tình hình tiền bạc mà không phải tính tay.</p><div class="gd-fig"><svg viewBox="0 0 360 230" role="img" aria-label="Minh họa công nợ và báo cáo"><rect class="gs-sf" x="20" y="6" width="320" height="218" rx="16"/><rect class="gs-bd" x="20" y="6" width="320" height="218" rx="16"/><text class="gs-t" x="34" y="28">Báo cáo doanh thu</text><rect class="gs-prl" x="40" y="78" width="30" height="40" rx="6"/><text class="gs-t3 gs-tc" x="55" y="132">T7</text><rect class="gs-prl" x="88" y="56" width="30" height="62" rx="6"/><text class="gs-t3 gs-tc" x="103" y="132">T8</text><rect class="gs-prl" x="136" y="63" width="30" height="55" rx="6"/><text class="gs-t3 gs-tc" x="151" y="132">T9</text><rect class="gs-prl" x="184" y="40" width="30" height="78" rx="6"/><text class="gs-t3 gs-tc" x="199" y="132">T10</text><rect class="gs-prl" x="232" y="48" width="30" height="70" rx="6"/><text class="gs-t3 gs-tc" x="247" y="132">T11</text><rect class="gs-pr" x="280" y="26" width="30" height="92" rx="6"/><text class="gs-t3 gs-tc" x="295" y="132">T12</text><line x1="34" y1="120" x2="326" y2="120" style="stroke:var(--border);stroke-width:1.5"/><text class="gs-t" x="34" y="156">Công nợ</text><rect class="gs-in" x="34" y="164" width="292" height="22" rx="8"/><text class="gs-t2" x="44" y="179">P.101 · còn nợ</text><text class="gs-t" x="316" y="179" style="text-anchor:end;fill:#ef4444;font-size:10px">1.200.000₫</text><rect class="gs-in" x="34" y="192" width="292" height="22" rx="8"/><text class="gs-t2" x="44" y="207">P.203 · còn nợ</text><text class="gs-t" x="316" y="207" style="text-anchor:end;fill:#ef4444;font-size:10px">850.000₫</text><circle class="gs-red" cx="336" cy="90" r="9"/><text class="gs-w" x="336" y="93.5">1</text><circle class="gs-red" cx="336" cy="190" r="9"/><text class="gs-w" x="336" y="193.5">2</text></svg><div class="gd-cap">Hình minh họa: (1) biểu đồ doanh thu các tháng, (2) danh sách phòng còn nợ.</div></div><ol class="gd-steps"><li><b>Công nợ:</b> hóa đơn nào chưa trả đủ sẽ tự xuất hiện ở đây, kèm số tiền còn nợ của từng phòng. Khách trả thêm thì thu tiền ngay trong mục này.</li><li><b>Báo cáo:</b> xem doanh thu, điện nước theo tháng. Có nút xuất ra <b>Excel</b> để gửi kế toán hoặc lưu trữ.</li><li><b>Tổng quan:</b> biểu đồ doanh thu 6 tháng và mức lấp đầy phòng trong một màn hình.</li></ol><div class="gd-tip"><b>💡 Mẹo:</b> Số "Công nợ" ở màn hình chính chính là tổng các khoản còn nợ, bấm vào ô Công nợ để xem chi tiết từng phòng.</div></section>
+<section class="gd-sec" id="gd-6"><div class="gd-h"><span class="gd-n">6</span>Tạo hợp đồng thuê</div><p class="gd-p">Hợp đồng tự điền thông tin chủ trọ (từ Cài đặt) và người thuê, bạn chỉ kiểm tra lại rồi in.</p><div class="gd-fig"><svg viewBox="0 0 360 282" role="img" aria-label="Sơ đồ các bước"><rect class="gs-sf" x="24" y="8" width="312" height="50" rx="14"/><rect class="gs-bd" x="24" y="8" width="312" height="50" rx="14"/><circle class="gs-pr" cx="50" cy="33" r="13"/><text class="gs-w" x="50" y="37" style="font-size:12px">1</text><text x="76" y="39" style="font-size:20px">👤</text><text class="gs-t" x="104" y="30">Chọn người thuê</text><text class="gs-t2" x="104" y="46">Họ tên, CCCD, địa chỉ tự điền</text><path class="gs-ln" d="M180 61 V74 M174 69 L180 75 L186 69"/><rect class="gs-sf" x="24" y="80" width="312" height="50" rx="14"/><rect class="gs-bd" x="24" y="80" width="312" height="50" rx="14"/><circle class="gs-pr" cx="50" cy="105" r="13"/><text class="gs-w" x="50" y="109" style="font-size:12px">2</text><text x="76" y="111" style="font-size:20px">💰</text><text class="gs-t" x="104" y="102">Kiểm tra giá thuê, tiền cọc, điện, nước</text><text class="gs-t2" x="104" y="118">Sửa nếu khác thỏa thuận</text><path class="gs-ln" d="M180 133 V146 M174 141 L180 147 L186 141"/><rect class="gs-sf" x="24" y="152" width="312" height="50" rx="14"/><rect class="gs-bd" x="24" y="152" width="312" height="50" rx="14"/><circle class="gs-pr" cx="50" cy="177" r="13"/><text class="gs-w" x="50" y="181" style="font-size:12px">3</text><text x="76" y="183" style="font-size:20px">📅</text><text class="gs-t" x="104" y="174">Ngày bắt đầu, thời hạn (tháng), ngày ký</text><text class="gs-t2" x="104" y="190">Cả ngày thu tiền hàng tháng</text><path class="gs-ln" d="M180 205 V218 M174 213 L180 219 L186 213"/><rect class="gs-sf" x="24" y="224" width="312" height="50" rx="14"/><rect class="gs-bd" x="24" y="224" width="312" height="50" rx="14"/><circle class="gs-pr" cx="50" cy="249" r="13"/><text class="gs-w" x="50" y="253" style="font-size:12px">4</text><text x="76" y="255" style="font-size:20px">🖨️</text><text class="gs-t" x="104" y="246">Xem trước rồi in hoặc lưu</text><text class="gs-t2" x="104" y="262">Ghi điều khoản bổ sung nếu có</text></svg><div class="gd-cap">Các bước tạo hợp đồng.</div></div><ol class="gd-steps"><li>Vào <b>Hợp đồng</b>, bấm tạo mới và chọn người thuê.</li><li>Kiểm tra giá thuê, tiền cọc, giá điện, giá nước, cách tính nước. Nhập ngày bắt đầu, thời hạn bao nhiêu tháng, ngày ký và ngày thu tiền hàng tháng.</li><li>Điều khoản riêng (nuôi thú cưng, giờ giấc...) ghi vào ô <b>Ghi chú / Điều khoản bổ sung</b>.</li><li>Bấm <b>Xem trước</b>, thấy đúng thì in hoặc lưu lại. Hợp đồng đã tạo nằm trong danh sách để theo dõi ngày hết hạn.</li></ol><div class="gd-tip gd-warn"><b>⚠️ Lưu ý:</b> Hãy nhập họ tên, CCCD và địa chỉ chủ trọ trong Cài đặt trước, nếu không hợp đồng sẽ hiện thông tin mẫu.</div></section>
+<section class="gd-sec" id="gd-7"><div class="gd-h"><span class="gd-n">7</span>Chuyển phòng, trả phòng và Lịch sử</div><p class="gd-p">Khi khách đổi phòng hoặc dọn đi, hãy làm theo cách này để số điện nước và tiền cọc được chốt đúng.</p><div class="gd-fig"><svg viewBox="0 0 360 282" role="img" aria-label="Sơ đồ các bước"><rect class="gs-sf" x="24" y="8" width="312" height="50" rx="14"/><rect class="gs-bd" x="24" y="8" width="312" height="50" rx="14"/><circle class="gs-pr" cx="50" cy="33" r="13"/><text class="gs-w" x="50" y="37" style="font-size:12px">1</text><text x="76" y="39" style="font-size:20px">📂</text><text class="gs-t" x="104" y="30">Mở chi tiết phòng hoặc người thuê</text><text class="gs-t2" x="104" y="46">Vào Phòng hoặc Người thuê rồi bấm vào dòng cần xử lý</text><path class="gs-ln" d="M180 61 V74 M174 69 L180 75 L186 69"/><rect class="gs-sf" x="24" y="80" width="312" height="50" rx="14"/><rect class="gs-bd" x="24" y="80" width="312" height="50" rx="14"/><circle class="gs-pr" cx="50" cy="105" r="13"/><text class="gs-w" x="50" y="109" style="font-size:12px">2</text><text x="76" y="111" style="font-size:20px">🔁</text><text class="gs-t" x="104" y="102">Chọn Chuyển phòng hoặc Trả phòng</text><text class="gs-t2" x="104" y="118">Nhập ngày và phòng mới (nếu chuyển)</text><path class="gs-ln" d="M180 133 V146 M174 141 L180 147 L186 141"/><rect class="gs-sf" x="24" y="152" width="312" height="50" rx="14"/><rect class="gs-bd" x="24" y="152" width="312" height="50" rx="14"/><circle class="gs-pr" cx="50" cy="177" r="13"/><text class="gs-w" x="50" y="181" style="font-size:12px">3</text><text x="76" y="183" style="font-size:20px">⚡</text><text class="gs-t" x="104" y="174">Chốt chỉ số điện, nước cuối</text><text class="gs-t2" x="104" y="190">App tính tiền đến ngày khách rời</text><path class="gs-ln" d="M180 205 V218 M174 213 L180 219 L186 213"/><rect class="gs-sf" x="24" y="224" width="312" height="50" rx="14"/><rect class="gs-bd" x="24" y="224" width="312" height="50" rx="14"/><circle class="gs-pr" cx="50" cy="249" r="13"/><text class="gs-w" x="50" y="253" style="font-size:12px">4</text><text x="76" y="255" style="font-size:20px">🗄️</text><text class="gs-t" x="104" y="246">Hồ sơ cũ vào Lịch sử</text><text class="gs-t2" x="104" y="262">Khách đã dọn đi, tự xóa sau 3 tháng</text></svg><div class="gd-cap">Quy trình khi khách rời hoặc đổi phòng.</div></div><ol class="gd-steps"><li>Chuyển phòng: nhập <b>ngày chuyển</b>, <b>phòng mới</b>, chỉ số điện nước cũ và mới (để chốt tiền phòng cũ), các khoản giảm trừ nếu có.</li><li>Trả phòng: nhập chỉ số cuối, kiểm tra tiền cọc và các khoản còn nợ rồi xác nhận.</li><li>Khách đã dọn đi được chuyển sang <b>Lịch sử</b>, nơi bạn tra cứu lại hồ sơ cũ.</li></ol><div class="gd-tip gd-warn"><b>⚠️ Lưu ý:</b> Mục Lịch sử tự xóa hồ sơ sau 3 tháng. Cần giữ lâu hơn thì xuất báo cáo hoặc sao lưu trước.</div></section>
+<section class="gd-sec" id="gd-8"><div class="gd-h"><span class="gd-n">8</span>Sự cố, sửa chữa và chi phí</div><p class="gd-p">Ghi lại để không quên việc cần xử lý, và để biết tháng này thực lãi bao nhiêu.</p><ol class="gd-steps"><li><b>Sự cố &amp; sửa chữa:</b> ghi hỏng hóc (vòi nước, bóng đèn, điều hòa...), kèm chi phí và ảnh. Khách báo qua cổng khách cũng hiện ở đây.</li><li><b>Chi phí:</b> ghi các khoản chi (sửa chữa, vệ sinh, tiền điện tổng...) theo từng tháng.</li><li>Cuối tháng xem lại để biết <b>lãi hoặc lỗ</b> của tháng.</li></ol><div class="gd-tip"><b>💡 Mẹo:</b> Chụp ảnh chỗ hỏng ngay lúc ghi sự cố, sau này đối chiếu rất tiện.</div></section>
+<section class="gd-sec" id="gd-9"><div class="gd-h"><span class="gd-n">9</span>Gợi ý nhập liệu (chữ và câu đã gõ trước đó)</div><p class="gd-p">Khi bạn gõ vào các ô chữ (họ tên, địa chỉ, ghi chú, mô tả sự cố, tên khoản chi...), app nhớ những gì bạn từng nhập và <b>hiện danh sách gợi ý ngay bên dưới ô</b>. Bạn chỉ cần bấm chọn thay vì gõ lại.</p><div class="gd-fig"><svg viewBox="0 0 360 230" role="img" aria-label="Minh họa gợi ý khi nhập liệu"><rect class="gs-sf" x="20" y="6" width="320" height="218" rx="16"/><rect class="gs-bd" x="20" y="6" width="320" height="218" rx="16"/><text class="gs-t3" x="36" y="30">Họ và tên</text><rect class="gs-hi" x="34" y="36" width="272" height="30" rx="9"/><text class="gs-t" x="46" y="56" style="font-size:12px">nguy</text><rect class="gs-pr" x="78" y="44" width="1.6" height="14"/><rect class="gs-sf" x="34" y="72" width="272" height="124" rx="12" style="stroke:var(--primary);stroke-width:1.5"/><rect x="35" y="73" width="270" height="38" rx="11" style="fill:var(--primary-bg)"/><text class="gs-t" x="48" y="96" style="font-size:12px"><tspan style="fill:var(--primary);font-weight:900">Nguy</tspan>ễn Văn An</text><text class="gs-t3" x="290" y="96" style="font-size:15px;text-anchor:middle">×</text><line x1="34" y1="112" x2="306" y2="112" style="stroke:var(--border)"/><text class="gs-t" x="48" y="136" style="font-size:12px"><tspan style="fill:var(--primary);font-weight:900">Nguy</tspan>ễn Thị Hoa</text><text class="gs-t3" x="290" y="136" style="font-size:15px;text-anchor:middle">×</text><line x1="34" y1="152" x2="306" y2="152" style="stroke:var(--border)"/><text class="gs-t" x="48" y="176" style="font-size:12px">Trần <tspan style="fill:var(--primary);font-weight:900">Nguy</tspan>ên Khang</text><text class="gs-t3" x="290" y="176" style="font-size:15px;text-anchor:middle">×</text><circle class="gs-red" cx="330" cy="50" r="9"/><text class="gs-w" x="330" y="53.5">1</text><circle class="gs-red" cx="330" cy="110" r="9"/><text class="gs-w" x="330" y="113.5">2</text><circle class="gs-red" cx="330" cy="150" r="9"/><text class="gs-w" x="330" y="153.5">3</text><text class="gs-t3" x="36" y="214">Gõ không dấu "nguy" vẫn ra "Nguyễn"</text></svg><div class="gd-cap">Hình minh họa: gõ "nguy" thì hiện các tên đã nhập trước đó.</div></div><ol class="gd-steps"><li><b>(1)</b> Gõ vài chữ đầu vào ô. Gõ <b>không dấu</b> vẫn được (gõ "nguyen" ra "Nguyễn").</li><li><b>(2)</b> Bấm vào dòng gợi ý để điền cả cụm hoặc cả câu. Với ô ghi chú dài, app còn gợi ý <b>hoàn thành từ đang gõ dở</b>. Trên máy tính, dùng phím ↑ ↓ rồi Enter để chọn, Esc để đóng.</li><li><b>(3)</b> Gợi ý nào không muốn thấy nữa thì bấm dấu <b>×</b> bên phải dòng đó để xóa.</li><li>Gợi ý được học từ những gì bạn nhập xong (rời khỏi ô hoặc bấm Enter). Càng dùng, gợi ý càng đúng ý, cụm nào hay dùng sẽ lên đầu.</li></ol><div class="gd-row"><label class="gd-sw"><input type="checkbox" id="gdAcOn" onchange="ptAcSetOn(this.checked)">Bật gợi ý nhập liệu</label><span class="gd-p" style="margin:0">Đang lưu <b id="gdAcCount">0</b> gợi ý</span><button type="button" class="btn btn-sm" onclick="ptAcClear()">🗑️ Xóa toàn bộ gợi ý</button></div><div class="gd-tip"><b>💡 Mẹo:</b> Tắt hoặc xóa toàn bộ gợi ý ngay tại đây bằng các nút bên dưới. Gợi ý chỉ lưu <b>trên máy này</b>, không đồng bộ lên Firebase và không ảnh hưởng dữ liệu phòng, khách, hóa đơn.</div><div class="gd-tip gd-warn"><b>⚠️ Lưu ý:</b> Vì lý do riêng tư, app <b>không bao giờ</b> lưu gợi ý cho ô mật khẩu, email, CCCD, số tài khoản, các số điện thoại hay dãy số dài, và các ô cấu hình Firebase.</div></section>
+<section class="gd-sec" id="gd-10"><div class="gd-h"><span class="gd-n">10</span>Dùng nhiều máy và cổng khách thuê</div><p class="gd-p">Muốn nhân viên hoặc điện thoại thứ hai cùng xem dữ liệu, hoặc muốn khách tự xem hóa đơn và gửi số điện nước, bạn bật đồng bộ Firebase. Phần này chỉ cần làm khi bạn thật sự cần.</p><div class="gd-fig"><svg viewBox="0 0 360 250" role="img" aria-label="Sơ đồ đồng bộ nhiều máy và cổng khách"><rect class="gs-sf" x="10" y="12" width="100" height="62" rx="14"/><rect class="gs-bd" x="10" y="12" width="100" height="62" rx="14"/><text x="60.0" y="36" style="font-size:20px;text-anchor:middle">📱</text><text class="gs-t gs-tc" x="60.0" y="53" style="font-size:10px">Máy chủ trọ</text><text class="gs-t3 gs-tc" x="60.0" y="65">Chủ trọ</text><rect class="gs-sf" x="130" y="12" width="100" height="62" rx="14"/><rect class="gs-bd" x="130" y="12" width="100" height="62" rx="14"/><text x="180.0" y="36" style="font-size:20px;text-anchor:middle">☁️</text><text class="gs-t gs-tc" x="180.0" y="53" style="font-size:10px">Firebase</text><text class="gs-t3 gs-tc" x="180.0" y="65">Lưu trên mạng</text><rect class="gs-sf" x="250" y="12" width="100" height="62" rx="14"/><rect class="gs-bd" x="250" y="12" width="100" height="62" rx="14"/><text x="300.0" y="36" style="font-size:20px;text-anchor:middle">📱</text><text class="gs-t gs-tc" x="300.0" y="53" style="font-size:10px">Máy khác</text><text class="gs-t3 gs-tc" x="300.0" y="65">Quản lý / Nhân viên</text><path class="gs-ln" d="M110 43 H130 M230 43 H250"/><path d="M124 38 L130 43 L124 48 M236 38 L230 43 L236 48" class="gs-ln"/><rect class="gs-sf" x="130" y="112" width="100" height="62" rx="14"/><rect class="gs-bd" x="130" y="112" width="100" height="62" rx="14"/><text x="180.0" y="136" style="font-size:20px;text-anchor:middle">🔗</text><text class="gs-t gs-tc" x="180.0" y="153" style="font-size:10px">Link riêng</text><text class="gs-t3 gs-tc" x="180.0" y="165">24 ký tự ngẫu nhiên</text><path class="gs-ln" d="M180 74 V112 M174 106 L180 112 L186 106"/><rect class="gs-sf" x="130" y="190" width="100" height="62" rx="14"/><rect class="gs-bd" x="130" y="190" width="100" height="62" rx="14"/><text x="180.0" y="214" style="font-size:20px;text-anchor:middle">🧑‍🤝‍🧑</text><text class="gs-t gs-tc" x="180.0" y="231" style="font-size:10px">Khách thuê</text><text class="gs-t3 gs-tc" x="180.0" y="243">Xem hóa đơn, gửi số điện</text><path class="gs-ln" d="M180 174 V190 M174 184 L180 190 L186 184"/><text class="gs-t3" x="20" y="150">Phân quyền do Firebase</text><text class="gs-t3" x="20" y="162">Rules kiểm soát,</text><text class="gs-t3" x="20" y="174">không vượt qua được.</text></svg><div class="gd-cap">Máy chủ trọ đồng bộ qua Firebase; khách vào bằng link riêng, không cần đăng nhập.</div></div><ol class="gd-steps"><li><b>Sao lưu dữ liệu</b> trước (Cài đặt → Sao lưu).</li><li>Trong Firebase Console bật đăng nhập <b>Email/Password</b>. Trong app: Cài đặt → Firebase Sync → Kết nối, nhập email, mật khẩu, tạo tài khoản và bấm <b>Bật đồng bộ</b>.</li><li>Dán nội dung tệp <b>database.rules.json</b> vào Realtime Database → Rules rồi Publish. Quyền của từng người do Firebase kiểm soát nên không thể vượt qua.</li><li>Thêm nhân viên: họ tạo tài khoản, bạn vào <b>Cài đặt → Firebase → Thành viên</b> chọn vai trò (Quản lý, Nhân viên thu tiền...).</li><li><b>Cổng khách:</b> Cài đặt → Cổng khách thuê → <b>Tạo link</b> cho từng phòng → gửi link (Zalo, SMS) hoặc QR cho đúng người. Khách xem hóa đơn, gửi chỉ số điện nước, báo sự cố.</li></ol><div class="gd-tip gd-warn"><b>⚠️ Lưu ý:</b> Ai có link thì xem được hóa đơn phòng đó, hãy gửi đúng người. Cần chặn thì bấm <b>Đổi mã</b> hoặc <b>Thu hồi</b>. Chi tiết kỹ thuật đầy đủ nằm trong tệp HUONG_DAN_TRIEN_KHAI.md.</div></section>
+<section class="gd-sec gd-faq" id="gd-11"><div class="gd-h"><span class="gd-n">❓</span>Hỏi đáp nhanh</div><details><summary>Mất mạng thì có dùng được không?</summary><p>Được. Ứng dụng chạy ngoại tuyến sau lần mở đầu tiên. Dữ liệu lưu trên máy, có mạng và bật đồng bộ thì mới lên Firebase.</p></details><details><summary>Làm sao cài app lên màn hình điện thoại?</summary><p>Mở app bằng đường dẫn https trên Chrome hoặc Safari, vào menu trình duyệt, chọn <b>Thêm vào màn hình chính</b> (hoặc Cài đặt ứng dụng).</p></details><details><summary>Đổi điện thoại thì mất dữ liệu?</summary><p>Không nếu bạn đã sao lưu (Cài đặt → Sao lưu) hoặc bật đồng bộ Firebase. Hãy sao lưu định kỳ.</p></details><details><summary>Gợi ý nhập liệu không hiện?</summary><p>Kiểm tra công tắc "Bật gợi ý nhập liệu" ở phần 9. Gợi ý chỉ xuất hiện sau khi bạn đã nhập và rời khỏi ô ít nhất một lần, và không áp dụng cho ô nhạy cảm (CCCD, mật khẩu, số điện thoại...).</p></details><details><summary>Tôi đã có app cập nhật nhưng vẫn thấy bản cũ?</summary><p>Đóng hẳn app rồi mở lại có mạng một lần. Người triển khai cần đổi VERSION trong sw.js mỗi lần cập nhật.</p></details><div class="gd-row"><button type="button" class="btn btn-primary btn-sm" onclick="gdGo('gd-0')">⬆️ Về đầu trang</button></div></section>
+</div>
 
     <!-- ══ CÀI ĐẶT ══ -->
     <div class="page" id="pg-settings">
@@ -2545,7 +2615,8 @@ function renderHomeMenu(){
     {tab:'archived',cls:'blue',title:'Lịch sử',sub:'Khách đã dọn đi, hồ sơ cũ',svg:'<polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>'},
     {tab:'maint',cls:'red',title:'Sự cố & sửa chữa',sub:'Theo dõi, chi phí, ảnh',svg:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>'},
     {tab:'expense',cls:'teal',title:'Chi phí',sub:'Chi tiêu, lãi/lỗ theo tháng',svg:'<path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/>'},
-    {tab:'settings',cls:'orange',title:'Cài đặt',sub:'Logo, giao diện, Firebase sync',svg:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'}
+    {tab:'settings',cls:'orange',title:'Cài đặt',sub:'Logo, giao diện, Firebase sync',svg:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'},
+    {tab:'guide',cls:'purple',title:'Hướng dẫn',sub:'Cách dùng từng bước, có hình minh họa',svg:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>'}
   ];
   const grid=document.getElementById('homeMenuGrid');
   if(grid){
@@ -8450,6 +8521,202 @@ window.ptUser=null;
     return sa.apply(this,arguments);
   };
   if(window.sendAct)window.sendAct.__p=1;
+})();
+
+/* ══ GỢI Ý NHẬP LIỆU TỪ LỊCH SỬ + HƯỚNG DẪN ══════════════════════════ */
+(function(){
+'use strict';
+const KEY='pt_ac_v1',ONKEY='pt_ac_on',MAXF=80,MAXT=600;
+let st={f:{}},tm=0,cur=null,items=[],act=-1,dirtyW=true,wc=null,curQ='';
+const box=document.createElement('div');box.id='ptAc';box.setAttribute('role','listbox');
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+try{const r=JSON.parse(ls(KEY)||'null');if(r&&r.f)st=r}catch(e){}
+const isOn=()=>ls(ONKEY)!=='0';
+const save=()=>{clearTimeout(tm);tm=setTimeout(()=>ls(KEY,JSON.stringify(st)),400)};
+const nz=s=>String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* Ô nhạy cảm: không bao giờ lưu/gợi ý */
+const SENS=/cccd|cmnd|pass|mat khau|token|secret|api.?key|uid|otp|email|stk|tai khoan|firebase|database|project|appid|sender|bucket|iban|swift/;
+function lbl(el){const l=el.labels&&el.labels[0];if(l)return l.textContent;const g=el.closest('.fg');const l2=g&&g.querySelector('label');return l2?l2.textContent:''}
+function ok(el){
+  if(!el||!el.tagName)return false;
+  const t=el.tagName;
+  if(t==='INPUT'){
+    const ty=(el.getAttribute('type')||'text').toLowerCase();
+    if(ty!=='text')return false;
+    if(/numeric|decimal|tel|email|url|search/.test((el.getAttribute('inputmode')||'').toLowerCase()))return false;
+  }else if(t!=='TEXTAREA')return false;
+  if(el.readOnly||el.disabled||el.closest('[data-noac]')||el.closest('#ptAc'))return false;
+  const id=el.id||'';
+  if(/^fb/i.test(id)||/search/i.test(id))return false;
+  return !SENS.test(nz([id,el.name,el.placeholder,el.getAttribute('aria-label'),lbl(el)].join(' ')));
+}
+const key=el=>el.id||el.name||nz(el.placeholder||'')||el.tagName;
+function segs(raw,ta){
+  raw=String(raw).normalize('NFC');
+  let a;
+  if(!ta&&raw.length<=120&&raw.indexOf('\n')<0)a=[raw];
+  else a=raw.split(/[\n.;!?]+/);
+  return a.map(s=>s.replace(/\s+/g,' ').trim()).filter(s=>{
+    if(s.length<2||s.length>120)return false;
+    if(/@/.test(s))return false;
+    if(/\d{9,}/.test(s.replace(/[\s.,-]/g,'')))return false;
+    if(/^[\d\s.,:/+\-₫]+$/.test(s))return false;
+    return true;
+  }).slice(0,12);
+}
+function trimAll(){
+  const all=[];let n=0;
+  Object.keys(st.f).forEach(k=>st.f[k].forEach(x=>{all.push([k,x]);n++}));
+  if(n<=MAXT)return;
+  all.sort((a,b)=>(b[1].n-a[1].n)||(b[1].ts-a[1].ts));
+  const keep=new Set(all.slice(0,MAXT).map(a=>a[1]));
+  Object.keys(st.f).forEach(k=>{st.f[k]=st.f[k].filter(x=>keep.has(x));if(!st.f[k].length)delete st.f[k]});
+}
+function rec(el){
+  if(!isOn()||!ok(el))return;
+  const raw=el.value;if(!raw||!raw.trim())return;
+  if(el.__ar===raw&&Date.now()-el.__at<1500)return;
+  el.__ar=raw;el.__at=Date.now();
+  const k=key(el),L=st.f[k]||(st.f[k]=[]),now=Date.now();
+  segs(raw,el.tagName==='TEXTAREA').forEach(t=>{
+    const n=nz(t),h=L.find(x=>nz(x.t)===n);
+    if(h){h.n++;h.ts=now;h.t=t}else L.push({t,n:1,ts:now});
+  });
+  if(L.length>MAXF){L.sort((a,b)=>(b.n-a.n)||(b.ts-a.ts));L.length=MAXF}
+  trimAll();dirtyW=true;save();
+}
+function words(){
+  if(!dirtyW&&wc)return wc;
+  const m=new Map();
+  Object.keys(st.f).forEach(k=>st.f[k].forEach(x=>{
+    (x.t.match(/[\p{L}\p{N}]+/gu)||[]).forEach(w=>{
+      if(w.length<3||/^\d+$/.test(w))return;
+      const z=nz(w),o=m.get(z);
+      if(o)o.n+=x.n;else m.set(z,{w,z,n:x.n});
+    });
+  }));
+  wc=[...m.values()];dirtyW=false;return wc;
+}
+/* Tính danh sách gợi ý cho ô đang nhập */
+function suggest(el){
+  const v=el.value;if(!v||!v.trim())return [];
+  let prefix='',cs=v;
+  if(el.tagName==='TEXTAREA'){const m=/[\s\S]*[\n.;!?]\s*/.exec(v);if(m){prefix=m[0];cs=v.slice(prefix.length)}}
+  cs=cs.replace(/^\s+/,'');
+  const q=nz(cs.trim());if(!q)return [];
+  curQ=q;
+  const k=key(el),out=[],seen=new Set([q]);
+  const cand=[];
+  Object.keys(st.f).forEach(f=>st.f[f].forEach(x=>{
+    const z=nz(x.t),i=z.indexOf(q);
+    if(i>=0&&z!==q)cand.push({x,z,i:i===0?0:1,o:f===k?0:1});
+  }));
+  cand.sort((a,b)=>(a.i-b.i)||(a.o-b.o)||(b.x.n-a.x.n)||(b.x.ts-a.x.ts));
+  cand.forEach(c=>{if(!seen.has(c.z)){seen.add(c.z);out.push({t:c.x.t,full:prefix+c.x.t,p:1})}});
+  /* gợi ý hoàn thành TỪ đang gõ dở (khi đang gõ câu nhiều từ) */
+  const tk=(cs.match(/[\p{L}\p{N}]+$/u)||[''])[0];
+  if(tk.length>=2&&(/\s/.test(cs.trim())||el.tagName==='TEXTAREA')){
+    const tz=nz(tk);
+    words().filter(w=>w.z!==tz&&w.z.indexOf(tz)===0).sort((a,b)=>b.n-a.n).slice(0,3).forEach(w=>{
+      const t=cs.slice(0,cs.length-tk.length)+w.w,z=nz(t);
+      if(!seen.has(z)){seen.add(z);out.push({t,full:prefix+t,p:0})}
+    });
+  }
+  return out.slice(0,6);
+}
+function hl(t){
+  const z=nz(t);
+  if(z.length===t.length){const i=z.indexOf(curQ);if(i>=0)return esc(t.slice(0,i))+'<b>'+esc(t.slice(i,i+curQ.length))+'</b>'+esc(t.slice(i+curQ.length))}
+  return esc(t);
+}
+function draw(){
+  box.innerHTML=items.map((it,i)=>'<div class="ptac-it'+(i===act?' act':'')+'" role="option" data-i="'+i+'"><span class="ptac-tx">'+hl(it.t)+'</span>'+(it.p?'<button type="button" class="ptac-x" aria-label="Xóa gợi ý này" title="Xóa gợi ý này">×</button>':'')+'</div>').join('');
+}
+function pos(){
+  if(!cur||!box.classList.contains('show'))return;
+  const r=cur.getBoundingClientRect(),vv=window.visualViewport;
+  const top0=vv?vv.offsetTop:0,bot=vv?vv.offsetTop+vv.height:innerHeight;
+  const left0=vv?vv.offsetLeft:0,w0=vv?vv.width:innerWidth;
+  box.style.maxHeight='none';
+  const w=Math.min(Math.max(r.width,220),w0-16);
+  const left=Math.min(Math.max(r.left,left0+8),left0+w0-w-8);
+  box.style.width=w+'px';box.style.left=left+'px';
+  const h=box.scrollHeight,below=bot-r.bottom-8,above=r.top-top0-8;
+  let top,mh;
+  if(below>=Math.min(h,160)||below>=above){mh=Math.min(h,Math.max(below,80),240);top=r.bottom+4}
+  else{mh=Math.min(h,Math.max(above,80),240);top=r.top-mh-4}
+  box.style.maxHeight=mh+'px';box.style.top=top+'px';
+}
+function hide(){box.classList.remove('show');items=[];act=-1}
+function show(el){
+  if(!isOn()||!ok(el)||!el.getClientRects().length){hide();return}
+  if(typeof el.selectionStart==='number'&&el.selectionStart!==el.value.length){hide();return}
+  items=suggest(el);
+  if(!items.length){hide();return}
+  cur=el;act=-1;draw();box.classList.add('show');pos();
+}
+function pick(i){
+  const it=items[i];if(!it||!cur)return;
+  const el=cur;
+  el.value=it.full;
+  try{el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))}catch(e){}
+  hide();
+  try{el.focus({preventScroll:true});const n=el.value.length;el.setSelectionRange(n,n)}catch(e){}
+}
+function del(i){
+  const it=items[i];if(!it||!it.p)return;
+  const z=nz(it.t);
+  Object.keys(st.f).forEach(k=>{st.f[k]=st.f[k].filter(x=>nz(x.t)!==z);if(!st.f[k].length)delete st.f[k]});
+  dirtyW=true;save();
+  if(cur)show(cur);
+}
+function mv(d){
+  if(!items.length)return;
+  act=(act+d+items.length)%items.length;
+  draw();
+  const a=box.querySelector('.act');if(a&&a.scrollIntoView)a.scrollIntoView({block:'nearest'});
+}
+document.body.appendChild(box);
+box.addEventListener('mousedown',e=>e.preventDefault());
+box.addEventListener('pointerdown',e=>{
+  const it=e.target.closest&&e.target.closest('.ptac-it');if(!it)return;
+  e.preventDefault();
+  const i=+it.dataset.i;
+  if(e.target.closest('.ptac-x'))del(i);else pick(i);
+});
+document.addEventListener('input',e=>{if(e.isTrusted)show(e.target)},true);
+document.addEventListener('focusout',e=>{rec(e.target);if(e.target===cur)hide()},true);
+document.addEventListener('change',e=>rec(e.target),true);
+document.addEventListener('keydown',e=>{
+  if(!box.classList.contains('show')){if(e.key==='Enter')rec(e.target);return}
+  if(e.key==='ArrowDown'){e.preventDefault();mv(1)}
+  else if(e.key==='ArrowUp'){e.preventDefault();mv(-1)}
+  else if(e.key==='Escape'){e.stopPropagation();hide()}
+  else if(e.key==='Enter'){if(act>=0){e.preventDefault();e.stopPropagation();pick(act)}else rec(e.target)}
+},true);
+document.addEventListener('scroll',e=>{if(!box.contains(e.target))hide()},true);
+window.addEventListener('resize',pos);
+if(window.visualViewport){visualViewport.addEventListener('resize',pos);visualViewport.addEventListener('scroll',pos)}
+
+/* API cho trang hướng dẫn */
+function count(){let n=0;Object.keys(st.f).forEach(k=>n+=st.f[k].length);return n}
+window.ptAcRefresh=function(){
+  const c=document.getElementById('gdAcCount'),s=document.getElementById('gdAcOn');
+  if(c)c.textContent=count();
+  if(s)s.checked=isOn();
+};
+window.ptAcSetOn=function(v){ls(ONKEY,v?'1':'0');if(!v)hide();ptAcRefresh()};
+window.ptAcClear=function(){
+  if(!count()){if(typeof toast==='function')toast('Chưa có gợi ý nào được lưu','info');return}
+  if(!confirm('Xóa toàn bộ gợi ý nhập liệu đã lưu trên máy này?\n(Dữ liệu phòng, khách, hóa đơn không bị ảnh hưởng)'))return;
+  st={f:{}};dirtyW=true;wc=null;ls(KEY,JSON.stringify(st));hide();ptAcRefresh();
+  if(typeof toast==='function')toast('Đã xóa gợi ý nhập liệu','success');
+};
+window.gdGo=function(id){const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})};
+const pg=document.getElementById('pg-guide');
+if(pg){new MutationObserver(()=>{if(pg.classList.contains('active'))ptAcRefresh()}).observe(pg,{attributes:true,attributeFilter:['class']})}
+ptAcRefresh();
 })();
 </script>
 

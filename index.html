@@ -2010,22 +2010,18 @@ body[data-tab="guide"] .qa{display:none}
 
     <!-- Khu / Tầng / Số phòng -->
     <details class="fdet" open><summary class="fsect">🏢 Vị trí phòng</summary>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
-      <!-- Khu -->
-      <div class="fg">
-        <label class="flbl">Khu <span>*</span></label>
-        <div style="display:flex;gap:4px">
-          <select class="fc" id="rZone" style="flex:1" onchange="updateRoomCode()">
-            <option value="">-- Chọn --</option>
-          </select>
-          <button class="btn btn-secondary btn-xs" onclick="openZoneManager()" title="Quản lý khu" style="padding:0 8px;flex-shrink:0">⚙️</button>
-        </div>
+    <div class="fg" style="margin-bottom:10px">
+      <label class="flbl">Khu / dãy nhà <span>*</span></label>
+      <div style="display:flex;gap:8px;align-items:stretch">
+        <select class="fc" id="rZone" style="flex:1;min-width:0" onchange="updateRoomCode()"><option value="">-- Chọn khu --</option></select>
+        <button class="btn btn-secondary" type="button" onclick="openZoneManager()" title="Quản lý khu" aria-label="Quản lý khu" style="padding:0 14px;flex-shrink:0">⚙️</button>
       </div>
-      <!-- Tầng -->
+    </div>
+    <div class="frow">
       <div class="fg">
         <label class="flbl">Tầng <span>*</span></label>
         <select class="fc" id="rFloorNum" onchange="updateRoomCode()">
-          <option value="">-- Chọn --</option>
+          <option value="">-- Chọn tầng --</option>
           <option value="0">Trệt (0)</option>
           <option value="1">Lầu 1</option>
           <option value="2">Lầu 2</option>
@@ -2034,10 +2030,9 @@ body[data-tab="guide"] .qa{display:none}
           <option value="5">Lầu 5</option>
         </select>
       </div>
-      <!-- Số phòng -->
       <div class="fg">
         <label class="flbl">Số phòng <span>*</span></label>
-        <input class="fc" id="rNumber" type="number" min="1" max="99" placeholder="1" oninput="updateRoomCode()">
+        <input class="fc" id="rNumber" type="number" min="1" max="99" placeholder="VD: 1" oninput="updateRoomCode()">
       </div>
     </div>
 
@@ -2052,15 +2047,15 @@ body[data-tab="guide"] .qa{display:none}
 
 </details>
     <details class="fdet" open><summary class="fsect">💰 Giá thuê & phí cố định</summary>
-    <div class="frow"><div class="fg"><label class="flbl">Giá thuê (₫) <span>*</span></label><input class="fc" id="rPrice" type="number" placeholder="2.500.000"></div><div class="fg"><label class="flbl">Diện tích (m²)</label><input class="fc" id="rArea" type="number" placeholder="20"></div></div>
+    <div class="frow"><div class="fg"><label class="flbl">Giá thuê (₫/tháng) <span>*</span></label><input class="fc" id="rPrice" type="number" placeholder="VD: 2.500.000"></div><div class="fg"><label class="flbl">Diện tích (m²)</label><input class="fc" id="rArea" type="number" placeholder="VD: 20"></div></div>
     <div class="frow"><div class="fg"><label class="flbl">Internet (₫/tháng)</label><input class="fc" id="rNet" type="number" value="100000"></div><div class="fg"><label class="flbl">Rác (₫/tháng)</label><input class="fc" id="rGarb" type="number" value="20000"></div></div>
     <div class="frow"><div class="fg"><label class="flbl">Giữ xe (₫/tháng)</label><input class="fc" id="rPark" type="number" value="0"></div><div class="fg"></div></div>
     <div class="rep-hint" style="margin:2px 0 6px">💡 Nhập 0 cho khoản không thu. Chìa khóa không thu cố định — thêm khi lập hóa đơn lúc khách yêu cầu.</div>
     </details>
     <details class="fdet" open><summary class="fsect">⚡ Điện nước</summary>
-    <div class="frow"><div class="fg"><label class="flbl">Giá điện (₫/kWh)</label><input class="fc" id="rElecP" type="number" value="3500"></div><div class="fg"><label class="flbl">CS Điện hiện tại</label><input class="fc" id="rElecIdx" type="number" value="0"></div></div>
+    <div class="frow"><div class="fg"><label class="flbl">Giá điện (₫/kWh)</label><input class="fc" id="rElecP" type="number" value="3500"></div><div class="fg"><label class="flbl">Chỉ số điện hiện tại (kWh)</label><input class="fc" id="rElecIdx" type="number" value="0"></div></div>
     <div class="frow"><div class="fg"><label class="flbl">Cách tính nước</label><select class="fc" id="rWaterMode" onchange="roomWaterToggle()"><option value="meter">Theo công tơ (m³)</option><option value="person">Khoán theo đầu người</option></select></div><div class="fg" id="fgWP"><label class="flbl">Giá nước (₫/m³)</label><input class="fc" id="rWaterP" type="number" value="15000"></div><div class="fg" id="fgWPP" style="display:none"><label class="flbl">Khoán (₫/người/tháng)</label><input class="fc" id="rWaterPP" type="number" value="100000"></div></div>
-    <div class="frow" id="fgWIdx"><div class="fg"><label class="flbl">CS Nước hiện tại</label><input class="fc" id="rWaterIdx" type="number" value="0"></div></div>
+    <div class="frow" id="fgWIdx"><div class="fg"><label class="flbl">Chỉ số nước hiện tại (m³)</label><input class="fc" id="rWaterIdx" type="number" value="0"></div></div>
     </details>
     <details class="fdet"><summary class="fsect"><span>🛋️ Nội thất <span id="furnBadge" style="text-transform:none;font-weight:600;opacity:.8"></span></span></summary>
       <div id="rFurn"></div>

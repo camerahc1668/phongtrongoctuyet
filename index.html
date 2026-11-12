@@ -2053,8 +2053,9 @@ body[data-tab="guide"] .qa{display:none}
 </details>
     <details class="fdet" open><summary class="fsect">💰 Giá thuê & phí cố định</summary>
     <div class="frow"><div class="fg"><label class="flbl">Giá thuê (₫) <span>*</span></label><input class="fc" id="rPrice" type="number" placeholder="2.500.000"></div><div class="fg"><label class="flbl">Diện tích (m²)</label><input class="fc" id="rArea" type="number" placeholder="20"></div></div>
-    <div class="frow"><input type="hidden" id="rSvc" value="0"><div class="fg"><label class="flbl">Internet (₫)</label><input class="fc" id="rNet" type="number" value="100000"></div><div class="fg"><label class="flbl">🔑 Chìa khóa</label><div class="rep-hint" style="margin-top:0">Không thu cố định. Khi khách làm chìa, thêm ở màn hình lập hóa đơn.</div></div></div>
-    <div class="frow"><div class="fg"><label class="flbl">Rác (₫)</label><input class="fc" id="rGarb" type="number" value="20000"></div><div class="fg"><label class="flbl">Giữ xe (₫)</label><input class="fc" id="rPark" type="number" value="0"></div></div>
+    <div class="frow"><div class="fg"><label class="flbl">Internet (₫/tháng)</label><input class="fc" id="rNet" type="number" value="100000"></div><div class="fg"><label class="flbl">Rác (₫/tháng)</label><input class="fc" id="rGarb" type="number" value="20000"></div></div>
+    <div class="frow"><div class="fg"><label class="flbl">Giữ xe (₫/tháng)</label><input class="fc" id="rPark" type="number" value="0"></div><div class="fg"></div></div>
+    <div class="rep-hint" style="margin:2px 0 6px">💡 Nhập 0 cho khoản không thu. Chìa khóa không thu cố định — thêm khi lập hóa đơn lúc khách yêu cầu.</div>
     </details>
     <details class="fdet" open><summary class="fsect">⚡ Điện nước</summary>
     <div class="frow"><div class="fg"><label class="flbl">Giá điện (₫/kWh)</label><input class="fc" id="rElecP" type="number" value="3500"></div><div class="fg"><label class="flbl">CS Điện hiện tại</label><input class="fc" id="rElecIdx" type="number" value="0"></div></div>
@@ -3129,7 +3130,6 @@ function openAddRoom(){
   document.getElementById('rFloorNum').value='';
   document.getElementById('rElecP').value='3500';
   document.getElementById('rWaterP').value='15000';document.getElementById('rWaterMode').value='meter';document.getElementById('rWaterPP').value='100000';initFurn(null);roomWaterToggle();
-  document.getElementById('rSvc').value='0';
   document.getElementById('rNet').value='100000';
   document.getElementById('rGarb').value='20000';
   document.getElementById('rPark').value='0';
@@ -3157,7 +3157,6 @@ function openEditRoom(id){
   document.getElementById('rArea').value=r.area;
   document.getElementById('rElecP').value=r.elecPrice;
   document.getElementById('rWaterP').value=r.waterPrice;document.getElementById('rWaterMode').value=r.waterMode==='person'?'person':'meter';document.getElementById('rWaterPP').value=r.waterPP||100000;initFurn(r.furniture);roomWaterToggle();
-  document.getElementById('rSvc').value=r.serviceFee;
   document.getElementById('rNet').value=r.internet;
   document.getElementById('rGarb').value=r.garbage;
   document.getElementById('rPark').value=r.parking;
@@ -7062,7 +7061,7 @@ function furnCard(room){
   return '<div class="card card-body mb-3"><div style="font-size:13px;font-weight:700;margin-bottom:8px">🛋️ Nội thất</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+f.map(x=>'<span style="padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;background:'+(x.s==='bad'?'rgba(220,38,38,.12)':'rgba(22,163,74,.12)')+';color:'+(x.s==='bad'?'#dc2626':'#16a34a')+'">'+esc(x.n)+': '+(x.s==='bad'?'Hư':'Tốt')+'</span>').join('')+'</div></div>';
 }
 /* ───── Ô tiền hiển thị dấu chấm hàng nghìn (giá trị đọc ra vẫn là số thuần) ───── */
-const MONEY_IDS=['rPrice','rSvc','rNet','rGarb','rPark','rElecP','rWaterP','rWaterPP','ctRent','ctDeposit','ctElecPrice','ctWaterPrice','ctWaterPP','tDeposit','invDisc','invExtra','invKeyPrice','payAmt','exAmt','coDiscount','coExtra','tfDiscount','tfExtra','dsDamage','dsDebt','dsOther','icCost'];
+const MONEY_IDS=['rPrice','rNet','rGarb','rPark','rElecP','rWaterP','rWaterPP','ctRent','ctDeposit','ctElecPrice','ctWaterPrice','ctWaterPP','tDeposit','invDisc','invExtra','invKeyPrice','payAmt','exAmt','coDiscount','coExtra','tfDiscount','tfExtra','dsDamage','dsDebt','dsOther','icCost'];
 function moneyify(el){
   if(!el||el.__m)return;el.__m=1;
   const d=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value'),fm=v=>{const n=String(v==null?'':v).replace(/\D/g,'');return n?n.replace(/\B(?=(\d{3})+(?!\d))/g,'.'):''};

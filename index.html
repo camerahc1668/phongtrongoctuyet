@@ -1603,6 +1603,7 @@ body[data-tab="guide"] .qa{display:none}
           <div class="stg-profile-sub" id="stgAddress">Chưa cập nhật địa chỉ</div>
           <div class="stg-profile-phone" id="stgPhone"></div>
         </div>
+        <div class="stg-ver" id="stgVer"><div class="stg-ver-t">Phiên bản <b id="stgVerNum">…</b></div><button class="stg-ver-btn" type="button" onclick="checkAppUpdate(this)">🔄 Cập nhật</button></div>
         <button class="btn btn-primary btn-xs" onclick="editSetting('hotelName')" style="flex-shrink:0">Sửa</button>
       </div>
 
@@ -2722,7 +2723,7 @@ function groupByZoneAndFloor(rooms){
   });
   // Sort zones, then floors within each zone
   return Object.entries(map)
-    .sort(([a],[b])=>a.localeCompare(b))
+    .sort(([a],[b])=>{const z=(S.settings&&S.settings.zones)||[],ia=z.indexOf(a),ib=z.indexOf(b),ka=ia<0?999:ia,kb=ib<0?999:ib;return ka!==kb?ka-kb:a.localeCompare(b)})
     .map(([zone,floors])=>({
       zone,
       floors:Object.entries(floors)
@@ -2788,7 +2789,7 @@ function renderRoomsMap(rows){
 
     // Zone header
     const zoneHtml=`
-      <div class="zone-section">
+      <div class="zone-section" data-zone="${esc(zone)}">
         <div class="zone-header">
           <div class="zone-badge">🏢 Khu ${esc(zone)}</div>
           <div class="floor-line"></div>
@@ -8432,6 +8433,8 @@ function roomCmp(a,b){
   if((za<0?999:za)!==(zb<0?999:zb))return(za<0?999:za)-(zb<0?999:zb);
   const fa=+(a.floorNum??a.floor??0)||0,fb=+(b.floorNum??b.floor??0)||0;
   if(fa!==fb)return fa-fb;
+  const sa=typeof a.sortIdx==='number'?a.sortIdx:1e9,sb=typeof b.sortIdx==='number'?b.sortIdx:1e9;
+  if(sa!==sb)return sa-sb;
   const n=_natCmp(a.name,b.name);
   return n!==0?n:(a.roomNum||0)-(b.roomNum||0);
 }
@@ -8777,6 +8780,149 @@ ptAcRefresh();
 })();
 </script>
 
+<style id="ptLayoutCss">
+.stg-ver{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;color:rgba(255,255,255,.92);font-size:12px;font-weight:600}
+.stg-ver-t b{font-weight:800}
+.stg-ver-btn{border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.18);color:#fff;border-radius:999px;padding:5px 12px;font:inherit;font-weight:700;cursor:pointer;white-space:nowrap}
+.stg-ver-btn:hover{background:rgba(255,255,255,.3)}
+.stg-ver-btn:disabled{opacity:.7;cursor:default}
+.stg-profile-card{flex-wrap:wrap}
+@media (max-width:560px){.stg-ver{order:9;width:100%;flex-direction:row;justify-content:space-between;align-items:center;margin-left:0}}
+/* Sắp xếp sơ đồ phòng */
+.rmap-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.rmap-edit-bar{flex:1;min-width:220px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;border-radius:12px;font-size:12.5px;font-weight:600;color:var(--text);background:rgba(22,163,74,.12);border:1.5px dashed rgba(22,163,74,.55)}
+.rmap-edit .room-cell{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.rmap-edit .room-cell *{pointer-events:none}
+.rmap-edit .zone-header{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.rmap-edit .zone-badge::before{content:'⋮⋮ ';opacity:.7;letter-spacing:-2px}
+.rmap-edit .floor-rooms-map{outline:1.5px dashed rgba(127,127,127,.35);outline-offset:4px;border-radius:8px;min-height:60px}
+.rm-dragging{opacity:.3}
+.rm-ghost{position:fixed;z-index:9998;pointer-events:none;transform:scale(1.08);filter:drop-shadow(0 10px 18px rgba(0,0,0,.45));opacity:.95}
+.rm-ghost.zone{transform:none;background:var(--surface,#16213a);border-radius:14px;padding:8px 12px;opacity:.95}
+</style>
+<script>
+window.APP_VERSION='5.17';
+(function(){
+'use strict';
+/* ── Phiên bản + kiểm tra cập nhật ── */
+function curVer(){return window.APP_VERSION}
+function showVer(){var e=document.getElementById('stgVerNum');if(e)e.textContent=curVer()}
+showVer();
+(function(){var rs=window.renderSettings;if(typeof rs==='function'&&!rs.__ver){var f=function(){var r=rs.apply(this,arguments);try{showVer()}catch(e){}return r};f.__ver=1;Object.keys(rs).forEach(function(k){try{f[k]=rs[k]}catch(e){}});window.renderSettings=f}})();
+window.checkAppUpdate=async function(btn){
+  var old=btn.textContent;btn.disabled=true;btn.textContent='⏳ Đang kiểm tra…';
+  var done=function(msg,type){toast(msg,type||'info',{duration:5000});btn.disabled=false;btn.textContent=old};
+  try{
+    if(!/^https?:/.test(location.protocol)){done('Đang mở bằng tệp trên máy nên không kiểm tra được. Hãy mở app qua địa chỉ web (https).','warning');return}
+    var reg=null;try{reg=await navigator.serviceWorker.getRegistration()}catch(e){}
+    if(reg)try{await reg.update()}catch(e){}
+    var res=await fetch(location.pathname.replace(/[^\/]*$/,'')+'index.html?chk='+Date.now(),{cache:'no-store'});
+    var txt=await res.text(),m=txt.match(/window\.APP_VERSION\s*=\s*'([\d.]+)'/);
+    var nv=m&&m[1];
+    if(nv&&nv!==curVer()){
+      btn.textContent='⬇️ Đang cập nhật…';toast('Có bản mới '+nv+' — đang cập nhật…','success',{duration:4000});
+      try{if(window.caches){var ks=await caches.keys();await Promise.all(ks.map(function(k){return caches.delete(k)}))}}catch(e){}
+      setTimeout(function(){location.reload()},1200);return;
+    }
+    done('✅ Bạn đang dùng bản mới nhất ('+curVer()+')','success');
+  }catch(e){done('Không kiểm tra được — cần kết nối Internet','warning')}
+};
+
+/* ── Sắp xếp sơ đồ phòng: kéo thả ô phòng (trong cùng tầng) và khu vực ── */
+var editing=false;
+function toolsHtml(){
+  return editing
+   ?'<div class="rmap-edit-bar"><span>✋ Đang sắp xếp: kéo <b>ô phòng</b> để đổi chỗ trong cùng tầng, kéo <b>tên khu</b> để đổi thứ tự khu.</span><button class="btn btn-primary btn-xs" type="button" onclick="rmapToggleEdit()">✓ Xong</button></div>'
+   :'<button class="btn btn-secondary btn-xs" type="button" onclick="rmapToggleEdit()">↕️ Sắp xếp sơ đồ</button>';
+}
+function decorate(){
+  var wrap=document.querySelector('#roomGrid .rmap-wrap');if(!wrap)return;
+  var left=wrap.querySelector('.rmap-left');if(!left)return;
+  wrap.classList.toggle('rmap-edit',editing);
+  var t=left.querySelector('.rmap-tools');
+  if(!t){t=document.createElement('div');t.className='rmap-tools';left.insertBefore(t,left.firstChild)}
+  t.innerHTML=toolsHtml();
+}
+var orm=window.renderRoomsMap;
+window.renderRoomsMap=function(){var r=orm.apply(this,arguments);try{decorate()}catch(e){}return r};
+window.rmapToggleEdit=function(){
+  if(!editing){
+    var q=document.getElementById('roomSearch');
+    if((q&&q.value)||(typeof roomFilter!=='undefined'&&roomFilter!=='all')){toast('Hãy bỏ bộ lọc / ô tìm kiếm (chọn "Tất cả") trước khi sắp xếp','warning',{duration:5000});return}
+    if(typeof roomView!=='undefined'&&roomView!=='map'){toast('Chuyển sang dạng xem "Sơ đồ" để sắp xếp','warning');return}
+  }
+  editing=!editing;decorate();
+  if(!editing)toast('Đã lưu cách sắp xếp','success');
+};
+
+var drag=null;
+function ghostOf(el,zone){
+  var r=el.getBoundingClientRect(),g=el.cloneNode(true);
+  g.classList.add('rm-ghost');if(zone)g.classList.add('zone');
+  g.style.width=r.width+'px';g.style.height=r.height+'px';g.style.left=r.left+'px';g.style.top=r.top+'px';
+  document.body.appendChild(g);return g;
+}
+document.addEventListener('pointerdown',function(e){
+  if(!editing||e.button>0)return;
+  var cell=e.target.closest&&e.target.closest('#roomGrid .room-cell');
+  var zh=!cell&&e.target.closest&&e.target.closest('#roomGrid .zone-header');
+  var el=cell||(zh&&zh.parentElement);if(!el)return;
+  drag={el:el,zone:!!zh,x:e.clientX,y:e.clientY,started:false,ghost:null,id:e.pointerId,ox:0,oy:0};
+  e.preventDefault();
+},true);
+document.addEventListener('pointermove',function(e){
+  if(!drag||e.pointerId!==drag.id)return;
+  if(!drag.started){
+    if(Math.abs(e.clientX-drag.x)+Math.abs(e.clientY-drag.y)<8)return;
+    drag.started=true;var r=drag.el.getBoundingClientRect();
+    drag.ox=drag.x-r.left;drag.oy=drag.y-r.top;
+    drag.ghost=ghostOf(drag.zone?drag.el.querySelector('.zone-header'):drag.el,drag.zone);
+    drag.el.classList.add('rm-dragging');
+  }
+  var g=drag.ghost;g.style.left=(e.clientX-drag.ox)+'px';g.style.top=(e.clientY-drag.oy)+'px';
+  /* cuộn khi kéo gần mép màn hình */
+  if(e.clientY<70)window.scrollBy(0,-14);else if(e.clientY>innerHeight-70)window.scrollBy(0,14);
+  g.style.display='none';var under=document.elementFromPoint(e.clientX,e.clientY);g.style.display='';
+  if(!under)return;
+  if(drag.zone){
+    var z=under.closest('#roomGrid .zone-section');
+    if(z&&z!==drag.el&&z.parentElement===drag.el.parentElement){
+      var r2=z.getBoundingClientRect(),after=e.clientY>r2.top+r2.height/2;
+      z.parentElement.insertBefore(drag.el,after?z.nextSibling:z);
+    }
+  }else{
+    var c=under.closest('#roomGrid .room-cell');
+    if(c&&c!==drag.el&&c.parentElement===drag.el.parentElement){
+      var r3=c.getBoundingClientRect(),after2=e.clientX>r3.left+r3.width/2||(e.clientY>r3.bottom);
+      c.parentElement.insertBefore(drag.el,after2?c.nextSibling:c);
+    }
+  }
+},true);
+function finish(e){
+  if(!drag||(e&&e.pointerId!==drag.id))return;
+  var d=drag;drag=null;
+  if(d.ghost)d.ghost.remove();
+  d.el.classList.remove('rm-dragging');
+  if(!d.started)return;
+  try{
+    if(d.zone){
+      var order=[].map.call(document.querySelectorAll('#roomGrid .zone-section'),function(z){return z.dataset.zone}).filter(function(z){return z&&z!=='—'});
+      var rest=((S.settings&&S.settings.zones)||[]).filter(function(z){return order.indexOf(z)<0});
+      S.settings.zones=order.concat(rest);
+    }else{
+      var box=d.el.parentElement;
+      [].forEach.call(box.querySelectorAll('.room-cell'),function(c,i){var r=S.rooms.find(function(x){return x.id===c.dataset.rid});if(r)r.sortIdx=i});
+    }
+    save();
+  }catch(err){console.error(err)}
+  /* chặn click sau khi thả để không mở chi tiết phòng */
+  var stop=function(ev){ev.stopPropagation();ev.preventDefault()};
+  document.addEventListener('click',stop,{capture:true,once:true});setTimeout(function(){document.removeEventListener('click',stop,true)},0);
+}
+document.addEventListener('pointerup',finish,true);
+document.addEventListener('pointercancel',finish,true);
+})();
+</script>
 <script>
 /* ── Quan hệ (datalist) + ảnh khuôn mặt từ CCCD ── */
 (function(){
@@ -8897,6 +9043,8 @@ var FN={
   portalRevoke:'Nút này để thu hồi link, link cũ mất hiệu lực ngay',
   portalQR:'Nhấn để phóng to mã QR của phòng (khách quét để mở cổng)',
   portalToggle:'Nhấn để mở / thu gọn danh sách người cùng phòng',
+  rmapToggleEdit:'Nút này để bật / tắt chế độ sắp xếp: kéo thả ô phòng và khu vực',
+  checkAppUpdate:'Nút này để kiểm tra và cập nhật phiên bản mới của app',
   portalCopy:'Nút này để sao chép link cổng khách',
   portalSend:'Nút này để gửi link cổng cho khách qua Zalo / SMS',
   openMembers:'Nút này để quản lý nhân viên và phân quyền',

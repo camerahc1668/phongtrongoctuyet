@@ -2060,6 +2060,7 @@ body[data-tab="guide"] .qa{display:none}
     </details>
     <details class="fdet"><summary class="fsect"><span>🛋️ Nội thất <span id="furnBadge" style="text-transform:none;font-weight:600;opacity:.8"></span></span></summary>
       <div id="rFurn"></div>
+      <div class="fg" style="margin-top:10px"><label class="flbl">Ghi chú nội thất <small style="font-weight:500;color:var(--text3)">(in trong biên bản bàn giao)</small></label><textarea class="fc" id="rFurnNote" rows="2" maxlength="400" placeholder="VD: Tủ lạnh trầy nhẹ cạnh trái; máy lạnh bảo hành đến 12/2027..."></textarea></div>
       <div style="display:flex;gap:6px;margin:8px 0"><input class="fc" id="rFurnNew" placeholder="Thêm đồ khác..." style="flex:1"><button type="button" class="btn btn-secondary btn-xs" onclick="addFurn()">+ Thêm</button></div>
     </details>
     <details class="fdet"><summary class="fsect">📷 Ảnh & ghi chú</summary>
@@ -3141,7 +3142,7 @@ function openAddRoom(){
   document.getElementById('rZone').value='';
   document.getElementById('rFloorNum').value='';
   document.getElementById('rElecP').value='3500';
-  document.getElementById('rWaterP').value='15000';document.getElementById('rWaterMode').value='meter';document.getElementById('rWaterPP').value='100000';initFurn(null);roomWaterToggle();
+  document.getElementById('rWaterP').value='15000';document.getElementById('rWaterMode').value='meter';document.getElementById('rWaterPP').value='100000';initFurn(null);document.getElementById('rFurnNote').value='';roomWaterToggle();
   document.getElementById('rNet').value='100000';
   document.getElementById('rGarb').value='20000';
   document.getElementById('rPark').value='0';
@@ -3168,7 +3169,7 @@ function openEditRoom(id){
   document.getElementById('rPrice').value=r.price;
   document.getElementById('rArea').value=r.area;
   document.getElementById('rElecP').value=r.elecPrice;
-  document.getElementById('rWaterP').value=r.waterPrice;document.getElementById('rWaterMode').value=r.waterMode==='person'?'person':'meter';document.getElementById('rWaterPP').value=r.waterPP||100000;initFurn(r.furniture);roomWaterToggle();
+  document.getElementById('rWaterP').value=r.waterPrice;document.getElementById('rWaterMode').value=r.waterMode==='person'?'person':'meter';document.getElementById('rWaterPP').value=r.waterPP||100000;initFurn(r.furniture);document.getElementById('rFurnNote').value=r.furnNote||'';roomWaterToggle();
   document.getElementById('rNet').value=r.internet;
   document.getElementById('rGarb').value=r.garbage;
   document.getElementById('rPark').value=r.parking;
@@ -3207,7 +3208,7 @@ function saveRoom(){
     price,
     area:+document.getElementById('rArea').value||0,
     elecPrice:+document.getElementById('rElecP').value||3500,
-    waterPrice:+document.getElementById('rWaterP').value||15000,waterMode:document.getElementById('rWaterMode').value==='person'?'person':'meter',waterPP:+document.getElementById('rWaterPP').value||100000,furniture:rFurnState.filter(x=>x.s).map(x=>({n:x.n,s:x.s})),
+    waterPrice:+document.getElementById('rWaterP').value||15000,waterMode:document.getElementById('rWaterMode').value==='person'?'person':'meter',waterPP:+document.getElementById('rWaterPP').value||100000,furniture:rFurnState.filter(x=>x.s).map(x=>({n:x.n,s:x.s})),furnNote:(document.getElementById('rFurnNote').value||'').trim().slice(0,400),
     serviceFee:0,
     internet:+document.getElementById('rNet').value||0,
     garbage:+document.getElementById('rGarb').value||0,
@@ -6978,7 +6979,7 @@ async function portalPublish(force){
 var signRef=null;
 function cleanHtml(h){const d=new DOMParser().parseFromString(h,'text/html');d.querySelectorAll('script,iframe,object,embed,link,form,base').forEach(n=>n.remove());d.querySelectorAll('*').forEach(n=>[...n.attributes].forEach(a=>{if(/^on/i.test(a.name)||/^\s*javascript:/i.test(a.value))n.removeAttribute(a.name)}));return '<!doctype html>'+d.documentElement.outerHTML}
 function contractDocHtml(ct){renderContractPreview(ct);return '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:14px/1.55 "Times New Roman",serif;padding:10px;color:#111}table{border-collapse:collapse;width:100%}td,th{border:1px solid #888;padding:4px;font-size:12px}.sign-row{display:flex;justify-content:space-around;text-align:center}</style>'+document.getElementById('contractPreviewContent').innerHTML}
-async function signSend(type,tid,title,html,refId){
+async function signSend(type,tid,title,html,refId,quiet){
   if(!v2.on){toast('Hãy bật Đồng bộ theo bản ghi (Cài đặt → Firebase) trước','warning',{duration:6000});return}
   if(!portalCanPublish()){toast('Chỉ Chủ trọ/Quản lý mới gửi được','warning');return}
   const t=S.tenants.find(x=>x.id===tid);if(!t){toast('Hợp đồng/tờ khai chưa gắn với khách thuê','error');return}
@@ -6987,8 +6988,9 @@ async function signSend(type,tid,title,html,refId){
   const id=newPortalCode().slice(0,16);
   try{await dbRef('sign/'+t.portalCode+'/'+id).set({t:type,title:String(title).slice(0,100),html,at:Date.now()})}catch(e){toast('Không gửi được: '+v2Msg(e),'error');return}
   (S.signDocs=S.signDocs||[]).push({id,type,tenantId:tid,code:t.portalCode,title:String(title).slice(0,100),html,refId:refId||'',at:Date.now(),status:'sent',_u:Date.now()});save();
+  if(quiet){toast('📤 Đã gửi "'+title+'" cho '+t.name+' ký xác nhận','success',{duration:6000});return id}
   closeM('mCT01');closeM('mContractDet');
-  toast('✅ Đã gửi "'+title+'" cho '+t.name+'. Khách mở link cổng khách → tab Ký tên','success',{duration:7000});setTimeout(()=>portalSend(tid),400);
+  toast('✅ Đã gửi "'+title+'" cho '+t.name+'. Khách mở link cổng khách → tab Ký tên','success',{duration:7000});setTimeout(()=>portalSend(tid),400);return id;
 }
 function sendContractSign(id){const ct=(S.contracts||[]).find(c=>c.id===id);if(!ct)return;signSend('contract',ct.tenantId,'Hợp đồng thuê phòng '+(ct.roomName||''),contractDocHtml(ct),id)}
 function sendCT01(){window.__ct01Cb=(html,tid)=>{const t=S.tenants.find(x=>x.id===tid);signSend('ct01',tid,'Tờ khai CT01 — '+(t?t.name:''),html)};try{exportCT01()}finally{window.__ct01Cb=null}}
@@ -7001,17 +7003,27 @@ async function signHandle(all){
     const v=all[code][id],d=(S.signDocs||[]).find(x=>x.id===id&&x.code===code);
     if(!d||d.status==='signed'||!v||typeof v.img!=='string'||v.img.length>120000||!/^data:image\/png;base64,[A-Za-z0-9+\/=]+$/.test(v.img))continue;
     let hash='';try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(d.html));hash=[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch(e){}
-    Object.assign(d,{status:'signed',sig:v.img,signer:String(v.name||'').slice(0,100),signedAt:+v.at||Date.now(),hash,_u:Date.now()});save();
+    Object.assign(d,{status:'signed',sig:await sigToBlue(v.img),signer:String(v.name||'').slice(0,100),signedAt:+v.at||Date.now(),hash,_u:Date.now()});save();
     try{await dbRef('sign/'+code+'/'+id+'/signedAt').set(d.signedAt)}catch(e){}
     try{await dbRef('sign_in/'+code+'/'+id).remove()}catch(e){}
-    speakVi(d.signer+' đã ký '+d.title);toast('✍️ '+d.signer+' đã ký "'+d.title+'"','success',{duration:8000});
+    speakVi(d.signer+' đã ký '+d.title);toast('✍️ '+d.signer+' đã ký "'+d.title+'"'+(d.type==='furniture'?' — bạn hãy ký xác nhận: Cổng khách → Giấy tờ gửi khách ký':''),'success',{duration:10000});
   }
 }
-function signView(id){
+async function signView(id){
   const d=(S.signDocs||[]).find(x=>x.id===id);if(!d)return;
-  const blk=d.status==='signed'?'<div style="margin:24px 0;padding:12px;border:1px solid #888;font:13px sans-serif"><b>XÁC NHẬN KÝ ĐIỆN TỬ</b><br>Người ký: '+esc(d.signer)+'<br>Thời gian: '+esc(new Date(d.signedAt).toLocaleString('vi-VN'))+'<br>Mã băm văn bản (SHA-256): <span style="word-break:break-all;font-size:11px">'+esc(d.hash||'')+'</span><br><img src="'+d.sig+'" style="height:90px;margin-top:6px"></div>':'';
   const w=window.open('','_blank');if(!w){toast('Hãy cho phép popup để xem','error');return}
-  w.document.write(cleanHtml(d.html).replace('</body>',blk+'</body>'));w.document.close();
+  w.document.write('<p style="font:14px sans-serif;padding:20px">Đang tải…</p>');
+  const sigB=d.sig?await sigToBlue(d.sig):'',sigA=d.ownerSig?await sigToBlue(d.ownerSig):'';
+  let html=cleanHtml(d.html);
+  const when=t=>esc(new Date(t).toLocaleString('vi-VN'));
+  if(d.type==='furniture'){
+    const BLUE='color:#1d4ed8',signed=(img,who,nm,at)=>'<div style="text-align:center;'+BLUE+'"><img src="'+img+'" style="height:80px;max-width:100%"><div style="font-weight:800;margin-top:2px">✔ '+who+' đã xác nhận</div><div style="font-size:12px">'+esc(nm)+' · '+when(at)+'</div></div>';
+    const wait='<div style="text-align:center;color:#888"><div style="height:70px;border-bottom:1px dashed #999"></div><div style="font-size:12px;margin-top:4px">(chờ ký)</div></div>';
+    html=html.replace(/<div[^>]*data-s="B"[^>]*>[^<]*<\/div>/,d.status==='signed'?signed(sigB,'Khách',d.signer,d.signedAt):wait)
+             .replace(/<div[^>]*data-s="A"[^>]*>[^<]*<\/div>/,d.ownerSig?signed(sigA,'Chủ nhà',d.ownerName||'',d.ownerSignedAt):wait);
+  }
+  const blk=d.status==='signed'?'<div style="margin:24px 0;padding:12px;border:1px solid #888;font:13px sans-serif"><b>XÁC NHẬN KÝ ĐIỆN TỬ</b><br>Người ký: '+esc(d.signer)+'<br>Thời gian: '+when(d.signedAt)+(d.ownerSig?'<br>Chủ nhà xác nhận: '+esc(d.ownerName||'')+' · '+when(d.ownerSignedAt):'')+'<br>Mã băm văn bản (SHA-256): <span style="word-break:break-all;font-size:11px">'+esc(d.hash||'')+'</span>'+(d.type==='furniture'?'':'<br><img src="'+sigB+'" style="height:90px;margin-top:6px">')+'</div>':'';
+  w.document.open();w.document.write(html.replace('</body>',blk+'</body>'));w.document.close();
 }
 async function signDel(id){
   const d=(S.signDocs||[]).find(x=>x.id===id);if(!d||!confirm('Xóa "'+d.title+'"? Khách sẽ không thấy văn bản này nữa.'))return;
@@ -7020,7 +7032,7 @@ async function signDel(id){
 }
 function signList(){
   const L=(S.signDocs||[]).slice().sort((a,b)=>b.at-a.at),nm=id=>(S.tenants.find(t=>t.id===id)||{}).name||'?';
-  mkModal('mSignList','Giấy tờ gửi khách ký',L.map(d=>`<div style="padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><b>${esc(d.title)}</b><br>${esc(nm(d.tenantId))} · ${d.status==='signed'?'✅ Đã ký '+esc(new Date(d.signedAt).toLocaleString('vi-VN')):'⏳ Chờ khách ký'}<div style="display:flex;gap:6px;margin-top:6px"><button class="btn btn-secondary btn-xs" type="button" onclick="signView('${esc(d.id)}')">${d.status==='signed'?'🖨️ Xem / In bản đã ký':'👁️ Xem'}</button><button class="btn btn-secondary btn-xs" type="button" onclick="signDel('${esc(d.id)}')">🗑️ Xóa</button></div></div>`).join('')||'Chưa gửi giấy tờ nào.',
+  mkModal('mSignList','Giấy tờ gửi khách ký',L.map(d=>`<div style="padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><b>${esc(d.title)}</b><br>${esc(nm(d.tenantId))} · ${d.status==='signed'?'✅ Đã ký '+esc(new Date(d.signedAt).toLocaleString('vi-VN'))+(d.type==='furniture'?(d.ownerSig?' · ✅ Chủ nhà đã ký':' · ⏳ Chờ chủ nhà ký'):''):'⏳ Chờ khách ký'}<div style="display:flex;gap:6px;margin-top:6px"><button class="btn btn-secondary btn-xs" type="button" onclick="signView('${esc(d.id)}')">${d.status==='signed'?'🖨️ Xem / In bản đã ký':'👁️ Xem'}</button>${d.type==='furniture'&&d.status==='signed'&&!d.ownerSig?`<button class="btn btn-primary btn-xs" type="button" onclick="signOwner('${esc(d.id)}')">✍️ Chủ nhà ký xác nhận</button>`:''}<button class="btn btn-secondary btn-xs" type="button" onclick="signDel('${esc(d.id)}')">🗑️ Xóa</button></div></div>`).join('')||'Chưa gửi giấy tờ nào.',
     '<button class="btn btn-secondary" type="button" onclick="closeM(\'mSignList\')">Đóng</button>');openM('mSignList');
 }
 /* ───── Giọng đọc tiếng Việt cho thông báo (bật/tắt trong Cài đặt) ───── */
@@ -7070,7 +7082,7 @@ function addFurn(){
 }
 function furnCard(room){
   const f=room.furniture||[];if(!f.length)return '';
-  return '<div class="card card-body mb-3"><div style="font-size:13px;font-weight:700;margin-bottom:8px">🛋️ Nội thất</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+f.map(x=>'<span style="padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;background:'+(x.s==='bad'?'rgba(220,38,38,.12)':'rgba(22,163,74,.12)')+';color:'+(x.s==='bad'?'#dc2626':'#16a34a')+'">'+esc(x.n)+': '+(x.s==='bad'?'Hư':'Tốt')+'</span>').join('')+'</div></div>';
+  return '<div class="card card-body mb-3"><div style="font-size:13px;font-weight:700;margin-bottom:8px">🛋️ Nội thất</div><div style="display:flex;flex-wrap:wrap;gap:6px">'+f.map(x=>'<span style="padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;background:'+(x.s==='bad'?'rgba(220,38,38,.12)':'rgba(22,163,74,.12)')+';color:'+(x.s==='bad'?'#dc2626':'#16a34a')+'">'+esc(x.n)+': '+(x.s==='bad'?'Hư':'Tốt')+'</span>').join('')+'</div>'+(room.furnNote?'<div style="font-size:12px;color:var(--text2);margin-top:8px">📝 '+esc(room.furnNote)+'</div>':'')+'<button class="btn btn-secondary btn-sm" type="button" style="margin-top:10px" onclick="sendFurnitureDoc(\''+esc(room.id)+'\')">📤 Gửi bản nội thất cho khách ký</button></div>';
 }
 /* ───── Ô tiền hiển thị dấu chấm hàng nghìn (giá trị đọc ra vẫn là số thuần) ───── */
 const MONEY_IDS=['rPrice','rNet','rGarb','rPark','rElecP','rWaterP','rWaterPP','ctRent','ctDeposit','ctElecPrice','ctWaterPrice','ctWaterPP','tDeposit','invDisc','invExtra','invKeyPrice','payAmt','exAmt','coDiscount','coExtra','tfDiscount','tfExtra','dsDamage','dsDebt','dsOther','icCost'];
@@ -8212,8 +8224,8 @@ window.openRoomJoinQR=async function(roomId){
   if(!room.joinCode){room.joinCode=newPortalCode();save()}
   roomJoinPublish(true).catch(()=>{});
   mkModal('mRoomJoin','🔗 QR đăng ký — Phòng '+room.name,
-    `<div style="font-size:12px;color:var(--text3);margin-bottom:10px">Khách quét mã bằng camera điện thoại, điền thông tin (hoặc quét QR căn cước). Bạn nhận thông báo 🔔 để duyệt, khách sẽ vào phòng <b>${esc(room.name)}</b>. Mã chỉ dùng cho phòng này.</div><div style="text-align:center"><div id="joinQrCanvas" style="display:inline-block;padding:10px;background:#fff;border-radius:10px;min-width:120px;min-height:120px"></div></div>`,
-    `<button class="btn btn-secondary btn-sm" type="button" onclick="joinCopy('${esc(room.id)}')">📋 Chép link</button><button class="btn btn-secondary btn-sm" type="button" onclick="joinReset('${esc(room.id)}')">↺ Đổi mã</button><button class="btn btn-danger btn-sm" type="button" onclick="joinRevoke('${esc(room.id)}')">Thu hồi</button><button class="btn btn-primary btn-sm" type="button" onclick="closeM('mRoomJoin')">Đóng</button>`);
+    `<div style="font-size:12px;color:var(--text3);margin-bottom:10px">Khách quét mã bằng camera điện thoại, điền thông tin (hoặc quét QR căn cước). Bạn nhận thông báo 🔔 để duyệt, khách sẽ vào phòng <b>${esc(room.name)}</b>. Mã chỉ dùng cho phòng này.</div><div style="text-align:center"><div style="display:inline-block;padding:14px 14px 12px;background:#fff;border-radius:14px;color:#0f172a"><div style="font-size:12px;font-weight:700;color:#475569;letter-spacing:.3px">${esc(S.settings.hotelName||"Nhà trọ")}</div><div style="font-size:26px;font-weight:900;margin:2px 0 8px;letter-spacing:-.3px">PHÒNG ${esc(room.name)}</div><div id="joinQrCanvas" style="display:inline-block;min-width:120px;min-height:120px"></div><div style="font-size:12px;font-weight:600;color:#475569;margin-top:8px">Quét mã để đăng ký ở phòng ${esc(room.name)}</div></div></div>`,
+    `<button class="btn btn-secondary btn-sm" type="button" onclick="joinCopy('${esc(room.id)}')">📋 Chép link</button><button class="btn btn-secondary btn-sm" type="button" onclick="joinDownload('${esc(room.id)}')">⬇️ Tải ảnh QR</button><button class="btn btn-secondary btn-sm" type="button" onclick="joinReset('${esc(room.id)}')">↺ Đổi mã</button><button class="btn btn-danger btn-sm" type="button" onclick="joinRevoke('${esc(room.id)}')">Thu hồi</button><button class="btn btn-primary btn-sm" type="button" onclick="closeM('mRoomJoin')">Đóng</button>`);
   openM('mRoomJoin');
   try{await loadQRLib();const box=document.getElementById('joinQrCanvas');box.innerHTML='';new QRCode(box,{text:portalLink(room.joinCode),width:240,height:240,correctLevel:QRCode.CorrectLevel.L})}
   catch(e){const b=document.getElementById('joinQrCanvas');if(b)b.textContent='Cần Internet để tạo QR. Hãy dùng nút Chép link.'}
@@ -8256,6 +8268,7 @@ window.approveJoin=function(id){
   if(nt&&!nt.avatar&&nt.cmndFront)autoFaceForTenant(nt.id);
   try{dbRef('portal_in/'+q.code+'/'+id).remove()}catch(e){}
   delete window.JOINQ[id];save();renderAll();updateNotifBadge();joinApproved(q,id,nt,room,wantLink);
+  if(nt&&room.tenantId===nid)setTimeout(()=>{try{sendFurnitureDoc(room.id,true)}catch(e){console.error(e)}},600);
   toast('✅ '+q.name+' đã vào phòng '+room.name,'success');
   if(Object.keys(window.JOINQ).length)openJoinReqs();else closeM('mJoin');
   if(wantLink)setTimeout(()=>portalSend(nid),300);
@@ -8796,6 +8809,109 @@ ptAcRefresh();
 })();
 </script>
 
+<script id="ptFurnDoc">
+/* ── Biên bản bàn giao nội thất: gửi khách đại diện ký + chủ nhà xác nhận (chữ ký màu xanh) ── */
+function sigToBlue(src){
+  return new Promise(function(res){
+    try{
+      var im=new Image();
+      im.onload=function(){
+        var c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;
+        var x=c.getContext('2d');x.drawImage(im,0,0);
+        var dd=x.getImageData(0,0,c.width,c.height),a=dd.data;
+        for(var i=0;i<a.length;i+=4){
+          var lum=(a[i]+a[i+1]+a[i+2])/3;
+          a[i+3]=Math.round(a[i+3]*(1-lum/255));
+          a[i]=29;a[i+1]=78;a[i+2]=216;
+        }
+        x.putImageData(dd,0,0);res(c.toDataURL('image/png'));
+      };
+      im.onerror=function(){res(src)};im.src=src;
+    }catch(e){res(src)}
+  });
+}
+function furnDocHtml(room,t){
+  var st=S.settings||{},f=(room.furniture||[]).filter(function(x){return x.s}),
+      day=new Date().toLocaleDateString('vi-VN'),
+      addr=st.propertyAddress||st.address||'';
+  var rows=f.length?f.map(function(x,i){return '<tr><td style="text-align:center">'+(i+1)+'</td><td>'+esc(x.n)+'</td><td style="text-align:center;font-weight:700;color:'+(x.s==='bad'?'#b91c1c':'#15803d')+'">'+(x.s==='bad'?'Hư hỏng':'Tốt')+'</td></tr>'}).join('')
+    :'<tr><td colspan="3" style="text-align:center;color:#666">Chưa kê khai — hai bên ghi bổ sung vào phần Ghi chú</td></tr>';
+  return '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:14px/1.55 "Times New Roman",serif;padding:12px;color:#111}table{border-collapse:collapse;width:100%}td,th{border:1px solid #666;padding:5px 7px;font-size:13px}th{background:#f1f1f1}h2{text-align:center;margin:6px 0 2px}.c{text-align:center}.m{color:#555;font-size:12px}.nt{border:1px solid #666;padding:7px 9px;min-height:44px;white-space:pre-wrap}</style><body>'
+   +'<div class="c"><b>'+esc(st.hotelName||'Nhà trọ')+'</b><div class="m">'+esc(addr)+'</div></div>'
+   +'<h2>BIÊN BẢN BÀN GIAO NỘI THẤT</h2><div class="c m">Phòng <b>'+esc(room.name)+'</b> · Ngày '+esc(day)+'</div>'
+   +'<p><b>Bên A (Chủ nhà):</b> '+esc(st.ownerName||'')+(st.phone?' · ĐT '+esc(st.phone):'')+'<br><b>Bên B (Khách thuê, đại diện):</b> '+esc(t.name||'')+(t.cccd?' · CCCD '+esc(t.cccd):'')+(t.phone?' · ĐT '+esc(t.phone):'')+'</p>'
+   +'<p>Hai bên cùng kiểm tra và xác nhận tình trạng nội thất trong phòng tại thời điểm bàn giao như sau:</p>'
+   +'<table><tr><th style="width:44px">STT</th><th>Hạng mục</th><th style="width:110px">Tình trạng</th></tr>'+rows+'</table>'
+   +'<p><b>Ghi chú:</b></p><div class="nt">'+esc(room.furnNote||'')+'</div>'
+   +'<p style="margin-top:10px">Bên B xác nhận đã kiểm tra, nhận bàn giao nội thất đúng hiện trạng nêu trên, có trách nhiệm giữ gìn và hoàn trả khi kết thúc hợp đồng; hư hỏng do sử dụng sai cách sẽ bồi thường theo thỏa thuận.</p>'
+   +'<table style="border:0;margin-top:8px"><tr><td style="border:0;width:50%;text-align:center;vertical-align:top"><b>BÊN B — KHÁCH THUÊ</b><div class="m">(ký, ghi rõ họ tên)</div><div class="sg" data-s="B">Khách ký xác nhận ở khung bên dưới màn hình</div></td>'
+   +'<td style="border:0;width:50%;text-align:center;vertical-align:top"><b>BÊN A — CHỦ NHÀ</b><div class="m">(ký, ghi rõ họ tên)</div><div class="sg" data-s="A">Chủ nhà ký xác nhận sau khi khách ký</div></td></tr></table></body>';
+}
+async function sendFurnitureDoc(roomId,auto){
+  var room=S.rooms.find(function(r){return r.id===roomId});if(!room)return;
+  var t=S.tenants.find(function(x){return x.id===room.tenantId})||S.tenants.find(function(x){return x.roomId===roomId});
+  if(!t){toast('Phòng chưa có khách để gửi bản nội thất','warning');return}
+  if(auto){
+    if(!(v2.on&&portalCanPublish()))return;
+    if((S.signDocs||[]).some(function(d){return d.type==='furniture'&&d.refId===roomId&&d.tenantId===t.id&&d.status!=='signed'}))return;
+  }
+  return signSend('furniture',t.id,'Biên bản bàn giao nội thất — Phòng '+room.name,furnDocHtml(room,t),roomId,!!auto);
+}
+function signOwner(id){
+  var d=(S.signDocs||[]).find(function(x){return x.id===id});if(!d)return;
+  var saved=S.settings&&S.settings.ownerSig;
+  mkModal('mSignOwner','✍️ Chủ nhà ký xác nhận',
+   '<div style="font-size:13px;margin-bottom:8px">'+esc(d.title)+'<br><span style="color:var(--text3)">Khách đã ký: '+esc(d.signer||'')+'</span></div>'
+   +'<div class="fg"><label class="flbl">Họ tên chủ nhà</label><input class="fc" id="soName" maxlength="100" value="'+esc((S.settings&&S.settings.ownerName)||'')+'"></div>'
+   +'<div class="fg"><label class="flbl">Chữ ký (ký vào khung)</label><canvas id="soC" width="600" height="220" style="width:100%;height:150px;border:1.5px dashed var(--border);border-radius:12px;background:#fff;touch-action:none"></canvas></div>'
+   +'<label style="display:flex;gap:8px;align-items:center;font-size:13px;margin-top:6px"><input type="checkbox" id="soSave" style="width:auto"> Lưu làm chữ ký mặc định của chủ nhà</label>'
+   +(saved?'<button class="btn btn-secondary btn-sm" type="button" style="margin-top:8px" onclick="signOwnerUseSaved()">Dùng chữ ký đã lưu</button>':''),
+   '<button class="btn btn-secondary" type="button" onclick="document.getElementById(\'soC\').getContext(\'2d\').clearRect(0,0,600,220);window.__soN=0">Xóa</button><button class="btn btn-secondary" type="button" onclick="closeM(\'mSignOwner\')">Hủy</button><button class="btn btn-primary" type="button" onclick="signOwnerSave(\''+esc(id)+'\')">✔ Xác nhận ký</button>');
+  openM('mSignOwner');
+  var c=document.getElementById('soC'),x=c.getContext('2d'),dr=false;window.__soN=0;
+  x.lineWidth=3.5;x.lineCap='round';x.lineJoin='round';x.strokeStyle='#1d4ed8';
+  var pt=function(e){var r=c.getBoundingClientRect();return[(e.clientX-r.left)*c.width/r.width,(e.clientY-r.top)*c.height/r.height]};
+  c.onpointerdown=function(e){dr=true;c.setPointerCapture(e.pointerId);var p=pt(e);x.beginPath();x.moveTo(p[0],p[1]);x.lineTo(p[0]+.1,p[1]);x.stroke();window.__soN++;e.preventDefault()};
+  c.onpointermove=function(e){if(!dr)return;var p=pt(e);x.lineTo(p[0],p[1]);x.stroke();window.__soN++};
+  c.onpointerup=c.onpointercancel=function(){dr=false};
+}
+function signOwnerUseSaved(){
+  var src=S.settings&&S.settings.ownerSig;if(!src)return;
+  var c=document.getElementById('soC'),x=c.getContext('2d'),im=new Image();
+  im.onload=function(){x.clearRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);window.__soN=99};im.src=src;
+}
+async function signOwnerSave(id){
+  var d=(S.signDocs||[]).find(function(x){return x.id===id});if(!d)return;
+  var nm=(document.getElementById('soName').value||'').trim();
+  if(!nm){toast('Hãy nhập họ tên chủ nhà','warning');return}
+  if((window.__soN||0)<15){toast('Hãy ký vào khung chữ ký','warning');return}
+  var c=document.getElementById('soC'),img=await sigToBlue(c.toDataURL('image/png'));
+  if(img.length>120000){toast('Chữ ký quá phức tạp, hãy ký lại đơn giản hơn','warning');return}
+  d.ownerSig=img;d.ownerName=nm.slice(0,100);d.ownerSignedAt=Date.now();d._u=Date.now();
+  if(document.getElementById('soSave').checked&&S.settings)S.settings.ownerSig=img;
+  save();closeM('mSignOwner');signList();
+  toast('✅ Chủ nhà đã xác nhận ký','success');
+}
+async function joinDownload(roomId){
+  var room=S.rooms.find(function(r){return r.id===roomId});if(!room)return;
+  var src=document.querySelector('#joinQrCanvas canvas')||document.querySelector('#joinQrCanvas img');
+  if(!src){toast('Chưa tạo được mã QR (cần Internet)','warning');return}
+  var W=720,H=900,c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');
+  x.fillStyle='#fff';x.fillRect(0,0,W,H);
+  x.fillStyle='#0f172a';x.textAlign='center';
+  x.font='700 30px "Segoe UI",system-ui,sans-serif';x.fillStyle='#475569';x.fillText((S.settings.hotelName||'Nhà trọ'),W/2,78);
+  x.font='900 84px "Segoe UI",system-ui,sans-serif';x.fillStyle='#0f172a';x.fillText('PHÒNG '+room.name,W/2,185);
+  x.imageSmoothingEnabled=false;x.drawImage(src,110,235,500,500);
+  x.font='600 28px "Segoe UI",system-ui,sans-serif';x.fillStyle='#475569';x.fillText('Quét mã để đăng ký ở phòng '+room.name,W/2,800);
+  x.font='500 22px "Segoe UI",system-ui,sans-serif';x.fillText('Chủ nhà sẽ duyệt và gửi biên bản nội thất cho bạn ký',W/2,840);
+  x.strokeStyle='#16a34a';x.lineWidth=8;x.strokeRect(14,14,W-28,H-28);
+  c.toBlob(function(b){
+    if(!b)return;var a=document.createElement('a');a.href=URL.createObjectURL(b);
+    a.download='QR-Phong-'+String(room.name).replace(/[^\w\-]+/g,'_')+'.png';document.body.appendChild(a);a.click();
+    setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1500);
+  },'image/png');
+}
+</script>
 <style id="ptRoom3dCss">
 /* ═══ Sơ đồ phòng 3D — Luxury Studio Apartment ═══ */
 #roomGrid .rmap-wrap{display:block!important}
@@ -8906,7 +9022,7 @@ document.body.insertBefore(d.firstChild,document.body.firstChild);
 .rm-ghost.zone{transform:none;background:var(--surface,#16213a);border-radius:14px;padding:8px 12px;opacity:.95}
 </style>
 <script>
-window.APP_VERSION='5.20';
+window.APP_VERSION='5.21';
 (function(){
 'use strict';
 /* ── Phiên bản + kiểm tra cập nhật ── */
@@ -9149,6 +9265,9 @@ var FN={
   portalQR:'Nhấn để phóng to mã QR của phòng (khách quét để mở cổng)',
   portalToggle:'Nhấn để mở / thu gọn danh sách người cùng phòng',
   rmapToggleEdit:'Nút này để bật / tắt chế độ sắp xếp: kéo thả ô phòng và khu vực',
+  sendFurnitureDoc:'Nút này để gửi biên bản bàn giao nội thất cho khách đại diện ký',
+  signOwner:'Nút này để chủ nhà ký xác nhận biên bản nội thất',
+  joinDownload:'Nút này để tải ảnh QR có tên phòng, in ra dán ở phòng',
   checkAppUpdate:'Nút này để kiểm tra và cập nhật phiên bản mới của app',
   portalCopy:'Nút này để sao chép link cổng khách',
   portalSend:'Nút này để gửi link cổng cho khách qua Zalo / SMS',

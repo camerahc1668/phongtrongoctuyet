@@ -2125,6 +2125,7 @@ body[data-tab="guide"] .qa{display:none}
       <img id="avPrev" style="display:none">
     </div>
     <input type="file" id="avInput" accept="image/*" style="display:none" onchange="prevAvatar(this)">
+    <button type="button" class="btn btn-secondary btn-xs" id="avFaceBtn" style="margin:6px auto 0;display:block" onclick="ptFaceFromForm()">📸 Lấy ảnh mặt từ CCCD</button>
 
     <button type="button" class="scan-btn" onclick="openCccdScan()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="7" y="7" width="4" height="4"/><rect x="13" y="7" width="4" height="4"/><rect x="7" y="13" width="4" height="4"/><path d="M13 13h4v4"/></svg>
@@ -7006,7 +7007,7 @@ async function signHandle(all){
     Object.assign(d,{status:'signed',sig:await sigToBlue(v.img),signer:String(v.name||'').slice(0,100),signedAt:+v.at||Date.now(),hash,_u:Date.now()});save();
     try{await dbRef('sign/'+code+'/'+id+'/signedAt').set(d.signedAt)}catch(e){}
     try{await dbRef('sign_in/'+code+'/'+id).remove()}catch(e){}
-    speakVi(d.signer+' đã ký '+d.title);toast('✍️ '+d.signer+' đã ký "'+d.title+'"'+(d.type==='furniture'?' — bạn hãy ký xác nhận: Cổng khách → Giấy tờ gửi khách ký':''),'success',{duration:10000});
+    speakVi(d.signer+' đã ký '+d.title);toast('✍️ '+d.signer+' đã ký "'+d.title+'"'+' — bạn hãy ký xác nhận: Cổng khách → Giấy tờ gửi khách ký','success',{duration:10000});
   }
 }
 async function signView(id){
@@ -7022,7 +7023,7 @@ async function signView(id){
     html=html.replace(/<div[^>]*data-s="B"[^>]*>[^<]*<\/div>/,d.status==='signed'?signed(sigB,'Khách',d.signer,d.signedAt):wait)
              .replace(/<div[^>]*data-s="A"[^>]*>[^<]*<\/div>/,d.ownerSig?signed(sigA,'Chủ nhà',d.ownerName||'',d.ownerSignedAt):wait);
   }
-  const blk=d.status==='signed'?'<div style="margin:24px 0;padding:12px;border:1px solid #888;font:13px sans-serif"><b>XÁC NHẬN KÝ ĐIỆN TỬ</b><br>Người ký: '+esc(d.signer)+'<br>Thời gian: '+when(d.signedAt)+(d.ownerSig?'<br>Chủ nhà xác nhận: '+esc(d.ownerName||'')+' · '+when(d.ownerSignedAt):'')+'<br>Mã băm văn bản (SHA-256): <span style="word-break:break-all;font-size:11px">'+esc(d.hash||'')+'</span>'+(d.type==='furniture'?'':'<br><img src="'+sigB+'" style="height:90px;margin-top:6px">')+'</div>':'';
+  const blk=d.status==='signed'?'<div style="margin:24px 0;padding:12px;border:1px solid #888;font:13px sans-serif"><b>XÁC NHẬN KÝ ĐIỆN TỬ</b><br>Người ký: '+esc(d.signer)+'<br>Thời gian: '+when(d.signedAt)+(d.ownerSig?'<br>Chủ nhà xác nhận: '+esc(d.ownerName||'')+' · '+when(d.ownerSignedAt):'')+'<br>Mã băm văn bản (SHA-256): <span style="word-break:break-all;font-size:11px">'+esc(d.hash||'')+'</span>'+(d.type==='furniture'?'':'<div style="display:flex;gap:28px;flex-wrap:wrap;margin-top:10px;color:#1d4ed8"><div style="text-align:center"><img src="'+sigB+'" style="height:90px"><div style="font-weight:800">✔ Khách đã xác nhận</div><div style="font-size:12px">'+esc(d.signer)+'</div></div>'+(d.ownerSig?'<div style="text-align:center"><img src="'+sigA+'" style="height:90px"><div style="font-weight:800">✔ Chủ nhà đã xác nhận</div><div style="font-size:12px">'+esc(d.ownerName||'')+'</div></div>':'')+'</div>')+'</div>':'';
   w.document.open();w.document.write(html.replace('</body>',blk+'</body>'));w.document.close();
 }
 async function signDel(id){
@@ -7032,7 +7033,7 @@ async function signDel(id){
 }
 function signList(){
   const L=(S.signDocs||[]).slice().sort((a,b)=>b.at-a.at),nm=id=>(S.tenants.find(t=>t.id===id)||{}).name||'?';
-  mkModal('mSignList','Giấy tờ gửi khách ký',L.map(d=>`<div style="padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><b>${esc(d.title)}</b><br>${esc(nm(d.tenantId))} · ${d.status==='signed'?'✅ Đã ký '+esc(new Date(d.signedAt).toLocaleString('vi-VN'))+(d.type==='furniture'?(d.ownerSig?' · ✅ Chủ nhà đã ký':' · ⏳ Chờ chủ nhà ký'):''):'⏳ Chờ khách ký'}<div style="display:flex;gap:6px;margin-top:6px"><button class="btn btn-secondary btn-xs" type="button" onclick="signView('${esc(d.id)}')">${d.status==='signed'?'🖨️ Xem / In bản đã ký':'👁️ Xem'}</button>${d.type==='furniture'&&d.status==='signed'&&!d.ownerSig?`<button class="btn btn-primary btn-xs" type="button" onclick="signOwner('${esc(d.id)}')">✍️ Chủ nhà ký xác nhận</button>`:''}<button class="btn btn-secondary btn-xs" type="button" onclick="signDel('${esc(d.id)}')">🗑️ Xóa</button></div></div>`).join('')||'Chưa gửi giấy tờ nào.',
+  mkModal('mSignList','Giấy tờ gửi khách ký',L.map(d=>`<div style="padding:10px 0;border-bottom:1px solid var(--border);font-size:13px"><b>${esc(d.title)}</b><br>${esc(nm(d.tenantId))} · ${d.status==='signed'?'✅ Đã ký '+esc(new Date(d.signedAt).toLocaleString('vi-VN'))+(d.ownerSig?' · ✅ Chủ nhà đã ký':' · ⏳ Chờ chủ nhà ký'):'⏳ Chờ khách ký'}<div style="display:flex;gap:6px;margin-top:6px"><button class="btn btn-secondary btn-xs" type="button" onclick="signView('${esc(d.id)}')">${d.status==='signed'?'🖨️ Xem / In bản đã ký':'👁️ Xem'}</button>${d.status==='signed'&&!d.ownerSig?`<button class="btn btn-primary btn-xs" type="button" onclick="signOwner('${esc(d.id)}')">✍️ Chủ nhà ký xác nhận</button>`:''}<button class="btn btn-secondary btn-xs" type="button" onclick="signDel('${esc(d.id)}')">🗑️ Xóa</button></div></div>`).join('')||'Chưa gửi giấy tờ nào.',
     '<button class="btn btn-secondary" type="button" onclick="closeM(\'mSignList\')">Đóng</button>');openM('mSignList');
 }
 /* ───── Giọng đọc tiếng Việt cho thông báo (bật/tắt trong Cài đặt) ───── */
@@ -9022,7 +9023,7 @@ document.body.insertBefore(d.firstChild,document.body.firstChild);
 .rm-ghost.zone{transform:none;background:var(--surface,#16213a);border-radius:14px;padding:8px 12px;opacity:.95}
 </style>
 <script>
-window.APP_VERSION='5.21';
+window.APP_VERSION='5.22';
 (function(){
 'use strict';
 /* ── Phiên bản + kiểm tra cập nhật ── */
@@ -9161,33 +9162,85 @@ window.faceFromCard=function(src){
   return new Promise(function(resolve){
     if(!src||typeof src!=='string'){resolve(null);return}
     var img=new Image();if(/^https?:/i.test(src))img.crossOrigin='anonymous';
-    img.onerror=function(){resolve(null)};
+    var done=false,fin=function(v){if(!done){done=true;resolve(v)}};
+    setTimeout(function(){fin(null)},8000);
+    img.onerror=function(){fin(null)};
     img.onload=async function(){
       try{
-        var W=img.naturalWidth,H=img.naturalHeight;if(!W||!H||W<H){resolve(null);return}
-        var box=null;
-        if('FaceDetector' in window){
+        var W=img.naturalWidth,H=img.naturalHeight;if(!W||!H){fin(null);return}
+        var box=null,srcImg=img,hasFD=('FaceDetector' in window);
+        /* Ảnh thẻ chụp dọc: xoay ngang. Có FaceDetector thì thử cả 2 chiều; không có thì bỏ qua (tránh cắt sai) */
+        var variants=[img];
+        if(H>W*1.1){
+          var mk=function(dir){var rc=document.createElement('canvas');rc.width=H;rc.height=W;var rx=rc.getContext('2d');rx.translate(H/2,W/2);rx.rotate(dir*Math.PI/2);rx.drawImage(img,-W/2,-H/2);return rc};
+          if(!hasFD){fin(null);return}
+          variants=[mk(1),mk(-1)];var t=W;W=H;H=t;
+        }
+        if(hasFD){
           try{
-            var fs=await new window.FaceDetector({fastMode:true,maxDetectedFaces:4}).detect(img);
-            if(fs&&fs.length){
-              fs.sort(function(a,b){return b.boundingBox.width*b.boundingBox.height-a.boundingBox.width*a.boundingBox.height});
-              var b=fs[0].boundingBox,cw=b.width*1.9,ch=b.height*2.3;
-              box={x:b.x+b.width/2-cw/2,y:b.y+b.height/2-ch/2+b.height*.05,w:cw,h:ch};
+            var fd=new window.FaceDetector({fastMode:true,maxDetectedFaces:4});
+            for(var vi=0;vi<variants.length&&!box;vi++){
+              var fs=await Promise.race([fd.detect(variants[vi]),new Promise(function(r){setTimeout(function(){r(null)},2500)})]);
+              if(fs&&fs.length){
+                fs.sort(function(a,b){return b.boundingBox.width*b.boundingBox.height-a.boundingBox.width*a.boundingBox.height});
+                var b=fs[0].boundingBox,cw=b.width*1.9,ch=b.height*2.3;
+                box={x:b.x+b.width/2-cw/2,y:b.y+b.height/2-ch/2+b.height*.05,w:cw,h:ch};srcImg=variants[vi];
+              }
             }
           }catch(e){}
         }
-        if(!box)box={x:W*.025,y:H*.34,w:W*.31,h:H*.58};
+        if(!box){
+          if(variants.length>1){fin(null);return}
+          box={x:W*.025,y:H*.34,w:W*.31,h:H*.58};
+        }
         var x=Math.max(0,box.x),y=Math.max(0,box.y),w=Math.min(W-x,box.w),h=Math.min(H-y,box.h);
-        if(w<20||h<20){resolve(null);return}
+        if(w<20||h<20){fin(null);return}
         var k=Math.min(1,480/Math.max(w,h)),c=document.createElement('canvas');
         c.width=Math.round(w*k);c.height=Math.round(h*k);
-        c.getContext('2d').drawImage(img,x,y,w,h,0,0,c.width,c.height);
-        resolve(c.toDataURL('image/jpeg',.85));
-      }catch(e){resolve(null)}
+        c.getContext('2d').drawImage(srcImg,x,y,w,h,0,0,c.width,c.height);
+        fin(c.toDataURL('image/jpeg',.85));
+      }catch(e){fin(null)}
     };
     img.src=src;
   });
 };
+/* Nút thủ công trong form: lấy ảnh mặt từ CCCD mặt trước đang chọn */
+window.ptFaceFromForm=async function(){
+  if(typeof cmndFUrl==='undefined'||!cmndFUrl){toast('Hãy chọn ảnh CCCD mặt trước trước','warning');return}
+  var f=await window.faceFromCard(cmndFUrl);
+  if(!f){toast('Không cắt được khuôn mặt từ ảnh này — hãy chọn ảnh thẻ nằm ngang, rõ nét','warning',{duration:5000});return}
+  avUrl=f;var p=document.getElementById('avPrev');if(p){p.src=f;p.style.display='block'}
+  toast('📸 Đã lấy ảnh khuôn mặt từ CCCD','success');
+};
+/* Quét bổ sung: khách đã có ảnh CCCD mặt trước nhưng chưa có ảnh đại diện */
+var faceBusy=false,faceTimer=0;
+function triedMap(){try{return JSON.parse(localStorage.getItem('pt_face_tried')||'{}')}catch(e){return{}}}
+window.ptFaceBackfill=async function(){
+  if(faceBusy||typeof S==='undefined'||!S||!S.tenants)return 0;
+  if(typeof roleCan==='function'&&!roleCan('structure'))return 0;
+  var tried=triedMap(),todo=S.tenants.filter(function(t){return !t.avatar&&t.cmndFront&&typeof t.cmndFront==='string'&&tried[t.id]!==t.cmndFront.length});
+  if(!todo.length)return 0;
+  faceBusy=true;var n=0;
+  try{
+    for(var i=0;i<todo.length;i++){
+      var t=todo[i];tried[t.id]=t.cmndFront.length;
+      var f=await window.faceFromCard(t.cmndFront);
+      var cur=S.tenants.find(function(x){return x.id===t.id});
+      if(f&&cur&&!cur.avatar){cur.avatar=f;n++}
+    }
+    try{localStorage.setItem('pt_face_tried',JSON.stringify(tried))}catch(e){}
+    if(n){save();try{renderAll()}catch(e){}toast('📸 Đã lấy ảnh khuôn mặt từ CCCD làm ảnh đại diện cho '+n+' người thuê','info',{duration:6000})}
+  }finally{faceBusy=false}
+  return n;
+};
+(function(){
+  var ra=window.renderAll;
+  if(typeof ra==='function'&&!ra.__face){
+    var w=function(){var r=ra.apply(this,arguments);clearTimeout(faceTimer);faceTimer=setTimeout(function(){window.ptFaceBackfill()},3000);return r};
+    w.__face=1;Object.keys(ra).forEach(function(k){try{w[k]=ra[k]}catch(e){}});window.renderAll=w;
+  }
+  setTimeout(function(){window.ptFaceBackfill()},6000);
+})();
 /* Trong form: khách chưa có ảnh đại diện thì lấy ảnh mặt từ CCCD vừa chọn */
 window.autoFaceFormAvatar=async function(cardSrc){
   if(typeof avUrl==='undefined'||avUrl)return;
@@ -9334,6 +9387,7 @@ var FN={
   syncFromFirebase:'Nút này để tải dữ liệu từ Firebase về máy',
   resetDemo:'Nút này để đặt lại dữ liệu mẫu',
   ptAcClear:'Nút này để xóa các gợi ý nhập liệu đã lưu trên máy',
+  ptFaceFromForm:'Nút này để cắt khuôn mặt từ ảnh CCCD mặt trước làm ảnh đại diện',
   gdGo:'Nhấn để nhảy tới mục này trong hướng dẫn',
   closeM:'Nút này để đóng cửa sổ'
 };

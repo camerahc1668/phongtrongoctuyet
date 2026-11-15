@@ -9595,7 +9595,7 @@ document.body.insertBefore(d.firstChild,document.body.firstChild);
 .rm-ghost.zone{transform:none;background:var(--surface,#16213a);border-radius:14px;padding:8px 12px;opacity:.95}
 </style>
 <script>
-window.APP_VERSION='5.33';
+window.APP_VERSION='5.34';
 (function(){
 'use strict';
 /* ── Phiên bản + kiểm tra cập nhật ── */
@@ -10147,5 +10147,123 @@ var sw=document.getElementById('gdTipOn');if(sw)sw.checked=isOn();
 })();
 </script>
 
+<style id="ptCmpCss">
+/* ── Chi tiết phòng gọn: nút hành động lên đầu, nội thất bật/tắt nhanh, các mục phụ thu gọn ── */
+.ptCmpTop{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.ptCmp-art{width:132px;flex-shrink:0;border-radius:14px;padding:4px;cursor:pointer;border:1.5px solid var(--rc);background:linear-gradient(135deg,color-mix(in srgb,var(--rc) 14%,var(--surface)),var(--surface));box-shadow:0 6px 16px -8px color-mix(in srgb,var(--rc) 70%,transparent)}
+.ptCmpChips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 4px}
+.ptCmpChips span{padding:4px 10px;border-radius:999px;font-size:12px;font-weight:700;background:rgba(127,127,127,.14);color:var(--text2)}
+.ptDet{border:1px solid var(--border);border-radius:14px;margin:10px 0;background:var(--surface)}
+.ptDet.sub{border-style:dashed;margin:8px 0 0;background:transparent}
+.ptDet>summary{list-style:none;cursor:pointer;padding:10px 14px;font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px;user-select:none}
+.ptDet>summary::-webkit-details-marker{display:none}
+.ptDet>summary::after{content:'▾';margin-left:auto;opacity:.6;transition:transform .2s}
+.ptDet[open]>summary::after{transform:rotate(180deg)}
+.ptDet>.ptBody{padding:0 14px 12px}
+.ptDet .ptBody>.card{box-shadow:none;border:0;padding:0;background:transparent;margin:0!important}
+.ptChip{padding:5px 11px;border-radius:999px;border:1.5px solid var(--border);background:transparent;color:var(--text2);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.ptChip.on{background:color-mix(in srgb,var(--primary) 16%,transparent);border-color:var(--primary);color:var(--text)}
+.ptChip.bad{background:rgba(239,68,68,.14);border-color:#ef4444;color:var(--text)}
+.ptQuick{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 2px}
+@media (max-width:420px){.ptCmp-art{width:104px}}
+</style>
+<script id="ptRoomDetCompact">
+(function(){
+'use strict';
+var OPEN={nt:true};
+function room(id){return (S.rooms||[]).find(function(r){return String(r.id)===String(id)})}
+function money(n){return typeof fmt==='function'?fmt(n):String(n||0)}
+function scroller(el){while(el&&el!==document.body){if(el.scrollHeight>el.clientHeight+4&&/(auto|scroll)/.test(getComputedStyle(el).overflowY))return el;el=el.parentElement}return null}
+function chipsHtml(id){
+  var r=room(id),m={};((r&&r.furniture)||[]).forEach(function(x){if(x&&x.n)m[x.n]=x.s||''});
+  var names=(typeof FURN_PRESET!=='undefined'?FURN_PRESET.slice():[]);
+  Object.keys(m).forEach(function(n){if(names.indexOf(n)<0)names.push(n)});
+  return names.map(function(n){var s=m[n]||'';
+    return '<button type="button" class="ptChip'+(s?(s==='bad'?' bad':' on'):'')+'" data-n="'+esc(n)+'" onclick="ptFurnTog(\''+esc(id)+'\',this.dataset.n)">'+(s==='bad'?'⚠️ ':s?'✓ ':'+ ')+esc(n)+'</button>'}).join('');
+}
+/* bấm chip: chưa có → Tốt → Hư → bỏ */
+window.ptFurnTog=function(id,name){
+  var r=room(id);if(!r||!name)return;
+  if(typeof roleCan==='function'&&!roleCan('structure')){toast('Bạn không có quyền sửa nội thất','warning');return}
+  r.furniture=r.furniture||[];
+  var i=r.furniture.findIndex(function(x){return x&&x.n===name});
+  if(i<0)r.furniture.push({n:name,s:'good'});
+  else if(r.furniture[i].s==='good')r.furniture[i].s='bad';
+  else if(r.furniture[i].s==='bad')r.furniture.splice(i,1);
+  else r.furniture[i].s='good';
+  r._u=Date.now();try{save()}catch(e){}
+  var b=document.getElementById('mRoomDetBody'),sc=scroller(b),y=sc?sc.scrollTop:0;
+  try{renderRooms()}catch(e){}
+  showRoomDet(id);
+  sc=scroller(document.getElementById('mRoomDetBody'));if(sc)sc.scrollTop=y;
+};
+function det(key,title,nodes,isOpen,sub){
+  var d=document.createElement('details');d.className='ptDet'+(sub?' sub':'');
+  d.open=(OPEN[key]!==undefined)?OPEN[key]:!!isOpen;
+  d.addEventListener('toggle',function(){OPEN[key]=d.open});
+  var s=document.createElement('summary');s.innerHTML=title;d.appendChild(s);
+  var bd=document.createElement('div');bd.className='ptBody';
+  nodes.forEach(function(n){if(n)bd.appendChild(n)});d.appendChild(bd);return d;
+}
+function btn(cls,txt,fn){var b=document.createElement('button');b.type='button';b.className=cls;b.textContent=txt;b.setAttribute('onclick',fn);return b}
+function compact(id){
+  var b=document.getElementById('mRoomDetBody'),r=room(id);
+  if(!b||!r||b.querySelector('.ptCmpTop'))return;
+  var K={rest:[]};
+  [].slice.call(b.children).forEach(function(c,i){
+    var t=c.textContent||'';
+    if(i===0)K.head=c;
+    else if(c.id==='ptSzBox')K.size=c;
+    else if(c.querySelector('#ptLayBtn'))K.lay=c;
+    else if(t.indexOf('Hình người trong mô hình')>=0)K.person=c;
+    else if(t.indexOf('🛋️ Nội thất')>=0&&c.classList.contains('card'))K.furn=c;
+    else if(t.indexOf('Người đại diện ký hợp đồng')>=0)K.rep=c;
+    else if(c.classList.contains('occ-sec'))K.occ=c;
+    else if(t.indexOf('Giá thuê')>=0&&t.indexOf('Diện tích')>=0)K.price=c;
+    else if(c.querySelector('button[onclick*="openEditRoom"]'))K.act=c;
+    else K.rest.push(c);
+  });
+  if(!K.head)return;
+  var frag=document.createDocumentFragment(),st=r.status||'available';
+  /* 1) đầu: avatar + tên + mô hình thu nhỏ */
+  var top=document.createElement('div');top.className='ptCmpTop';
+  var left=document.createElement('div');left.style.cssText='display:flex;align-items:center;gap:12px;flex:1;min-width:0';
+  while(K.head.firstChild)left.appendChild(K.head.firstChild);
+  var art=document.createElement('div');art.className='rc3 rc-'+st+' ptCmp-art';art.title='Bấm để sắp xếp nội thất';
+  art.setAttribute('onclick',"ptLayOpen('"+id+"')");
+  art.innerHTML='<div class="rc3-art"><svg class="rc3-svg" style="'+(window.ptFurnStyle?ptFurnStyle(r):'')+'" viewBox="0 0 370 296" aria-hidden="true"><use href="'+(window.ptRoomUse?ptRoomUse(r):'#ptRoom3D')+'" width="370" height="296"/></svg></div>';
+  top.appendChild(left);top.appendChild(art);frag.appendChild(top);
+  /* 2) tóm tắt nhanh */
+  var sm=document.createElement('div');sm.className='ptCmpChips';
+  sm.innerHTML='<span>💰 '+money(r.price||0)+'/tháng</span><span>📐 '+(r.area?esc(r.area)+' m²':'—')+'</span><span>🏢 Tầng '+esc(r.floorNum!==undefined&&r.floorNum!==''?r.floorNum:(r.floor||'—'))+'</span>';
+  frag.appendChild(sm);
+  /* 3) nút hành động + nút nội thất */
+  if(K.act){K.act.style.marginTop='8px';frag.appendChild(K.act)}
+  var q=document.createElement('div');q.className='ptQuick';
+  var lb=K.lay&&K.lay.querySelector('#ptLayBtn');
+  if(lb){lb.className='btn btn-secondary btn-sm';lb.textContent='🪑 Sắp xếp nội thất';q.appendChild(lb)}
+  q.appendChild(btn('btn btn-secondary btn-sm','🎨 Mô hình',"closeM('mRoomDet');openRoomModelCfg()"));
+  if(r.tenantId)q.appendChild(btn('btn btn-secondary btn-sm','📤 Biên bản nội thất',"sendFurnitureDoc('"+id+"')"));
+  frag.appendChild(q);
+  /* 4) người trong phòng + hóa đơn */
+  if(K.occ){K.occ.style.marginTop='12px';frag.appendChild(K.occ)}
+  K.rest.forEach(function(c){frag.appendChild(c)});
+  /* 5) các mục phụ: thu gọn */
+  if(K.rep){var tt=K.rep.firstElementChild;if(tt&&tt.children.length===0&&tt.textContent.indexOf('Người đại diện ký hợp đồng')>=0&&tt.textContent.length<50)tt.style.display='none';frag.appendChild(det('rep','👑 Người đại diện ký hợp đồng',[K.rep],false))}
+  if(K.price)frag.appendChild(det('price','💰 Giá &amp; phí chi tiết',[K.price],false));
+  /* 6) nội thất & mô hình */
+  var inv=document.createElement('div');
+  inv.innerHTML='<div style="font-size:12px;color:var(--text3);margin:2px 0 8px">Bấm để thêm / bỏ món: <b>+</b> chưa có → <b>✓</b> tốt → <b>⚠️</b> hư → bỏ. Mô hình phòng cập nhật ngay.</div><div class="ptCmpChips" style="gap:6px">'+chipsHtml(id)+'</div>'+(r.furnNote?'<div style="font-size:12px;color:var(--text2);margin-top:8px">📝 '+esc(r.furnNote)+'</div>':'');
+  var nodes=[inv];
+  if(K.person){K.person.style.marginTop='0';var pt=K.person.firstElementChild;if(pt)pt.style.display='none';nodes.push(det('person','🧑 Hình người trong mô hình',[K.person],false,true))}
+  if(K.size){var sz=K.size.firstElementChild;if(sz)sz.style.display='none';K.size.style.marginTop='0';nodes.push(det('size','📐 Kích thước &amp; hoàn thiện phòng',[K.size],false,true))}
+  var nt=det('nt','🛋️ Nội thất &amp; mô hình phòng',nodes,true);
+  frag.appendChild(nt);
+  b.innerHTML='';b.appendChild(frag);
+}
+var o=window.showRoomDet;
+if(typeof o==='function')window.showRoomDet=function(id){var r=o.apply(this,arguments);try{compact(id)}catch(e){console.error(e)}return r};
+})();
+</script>
 </body>
 </html>

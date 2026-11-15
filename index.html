@@ -7056,7 +7056,7 @@ function roomWaterToggle(){
   const p=document.getElementById('rWaterMode').value==='person',g=(id,show)=>{const e=document.getElementById(id);if(e)e.style.display=show?'':'none'};
   g('fgWP',!p);g('fgWPP',p);g('fgWIdx',!p);
 }
-var FURN_PRESET=['Máy lạnh','Tủ lạnh','Tủ quần áo','Bếp','Đèn','Quạt','Quạt treo tường','Giường','Nệm','Bàn','Ghế','Máy nước nóng','Rèm cửa','Lavabo','Bồn cầu'];
+var FURN_PRESET=['Máy lạnh','Tủ lạnh','Tủ quần áo','Bếp','Đèn','Quạt','Quạt treo tường','Giường','Nệm','Bàn','Ghế','Máy nước nóng','Rèm cửa','Lavabo','Bồn cầu','Kệ tivi','Tivi','Ghế sofa'];
 var rFurnState=[];
 function initFurn(saved){
   const m={};(saved||[]).forEach(x=>{m[x.n]=x.s});
@@ -8918,10 +8918,10 @@ async function joinDownload(roomId){
 (function(){
 'use strict';
 var ST=[['available','Còn trống','rc-available'],['rented','Đang thuê','rc-rented'],['debt','Có nợ','rc-debt'],['due','Sắp hạn','rc-due']];
-var COMP=[['bed','🛏️ Giường'],['mattress','🛌 Nệm + chăn gối'],['fridge','🧊 Tủ lạnh (bạc)'],['table','🍳 Bếp + kệ inox'],['wardrobe','🚪 Tủ quần áo'],['ac','❄️ Máy lạnh'],['desk','🪑 Bàn'],['chair','💺 Ghế'],['wallfan','🌀 Quạt treo tường'],['fan','🌀 Quạt'],['heater','🚿 Máy nước nóng'],['toilet','🚽 Bồn cầu'],['lavabo','🚰 Lavabo'],['bath','🪞 Gương + vòi sen'],['window','🪟 Cửa sổ'],['curtain','🎀 Rèm cửa'],['light','✨ Đèn trần / đèn hắt']];
+var COMP=[['bed','🛏️ Giường'],['mattress','🛌 Nệm + chăn gối'],['fridge','🧊 Tủ lạnh (bạc)'],['table','🍳 Bếp + kệ inox'],['wardrobe','🚪 Tủ quần áo'],['ac','❄️ Máy lạnh'],['desk','🪑 Bàn'],['chair','💺 Ghế'],['wallfan','🌀 Quạt treo tường'],['fan','🌀 Quạt'],['heater','🚿 Máy nước nóng'],['toilet','🚽 Bồn cầu'],['lavabo','🚰 Lavabo'],['bath','🪞 Gương + vòi sen'],['window','🪟 Cửa sổ'],['curtain','🎀 Rèm cửa'],['light','✨ Đèn trần / đèn hắt'],['tvstand','📺 Kệ tivi'],['tv','🖥️ Tivi'],['sofa','🛋️ Ghế sofa']];
 var DEF={c:{available:'#22c55e',rented:'#3b82f6',debt:'#ef4444',due:'#f97316'},
-  hide:{available:['bed','mattress','fridge','table','wardrobe','ac','desk','chair','fan','wallfan','heater','toilet','lavabo','bath','person'],rented:[],debt:[],due:[]}};
-var FMAP={'Máy lạnh':['ac'],'Tủ lạnh':['fridge'],'Tủ quần áo':['wardrobe'],'Bếp':['table'],'Đèn':['light'],'Quạt':['fan'],'Quạt treo tường':['wallfan'],'Giường':['bed'],'Nệm':['mattress'],'Bàn':['desk'],'Ghế':['chair'],'Máy nước nóng':['heater'],'Rèm cửa':['curtain'],'Lavabo':['lavabo'],'Bồn cầu':['toilet']};
+  hide:{available:['bed','mattress','fridge','table','wardrobe','ac','desk','chair','fan','wallfan','heater','toilet','lavabo','bath','person','tvstand','tv','sofa'],rented:[],debt:[],due:[]}};
+var FMAP={'Máy lạnh':['ac'],'Tủ lạnh':['fridge'],'Tủ quần áo':['wardrobe'],'Bếp':['table'],'Đèn':['light'],'Quạt':['fan'],'Quạt treo tường':['wallfan'],'Giường':['bed'],'Nệm':['mattress'],'Bàn':['desk'],'Ghế':['chair'],'Máy nước nóng':['heater'],'Rèm cửa':['curtain'],'Lavabo':['lavabo'],'Bồn cầu':['toilet'],'Kệ tivi':['tvstand'],'Tivi':['tv'],'Ghế sofa':['sofa']};
 window.ptFurnStyle=function(room){try{if(!room)return '';var css='--s-person:'+(['rented','debt','due'].indexOf(room.status)>=0?'inline':'none')+';',on={};(room.furniture||[]).forEach(function(x){if(x&&x.s)(FMAP[x.n]||[]).forEach(function(id){on[id]=1})});Object.keys(FMAP).forEach(function(n){FMAP[n].forEach(function(id){css+='--s-'+id+':'+(on[id]?'inline':'none')+';'})});css+='--s-bath:'+(on.toilet||on.lavabo?'inline':'none')+';';return css}catch(e){return ''}};
 function clone(o){return JSON.parse(JSON.stringify(o))}
 function hex(c){return /^#[0-9a-f]{6}$/i.test(c||'')}
@@ -9043,8 +9043,11 @@ var AX=(function(){
     +'<rect x="-17.5" y="-15" width="3.4" height="11" rx="1.7" fill="'+k.skin+'" transform="rotate(-12 -15 -5)"/>'
     +'<circle cx="-17" cy="-19" r="9" fill="#7dd3fc" opacity=".18"><animate attributeName="opacity" values=".1;.3;.1" dur="1.6s" repeatCount="indefinite"/></circle>'
     +'<g transform="rotate(-15 -17 -19)"><rect x="-20.5" y="-25" width="7" height="11" rx="1.6" fill="#0f172a"/><rect x="-19.5" y="-24" width="5" height="9" rx="1" fill="#7dd3fc"><animate attributeName="fill" values="#7dd3fc;#fde68a;#a5f3fc;#7dd3fc" dur="2.4s" repeatCount="indefinite"/></rect></g></g>'};
+  X.eat=function(k){return '<g><rect x="-5.4" y="-22" width="3.8" height="22" rx="1.9" fill="'+k.bot+'"/><rect x="1.6" y="-22" width="3.8" height="22" rx="1.9" fill="'+k.bot+'"/>'+trunk(k)+limb(-10,-40,4,15,k.top,-8,-40,['6','8','6'],1.4,0,.9)+limb(6,-40,4,15,k.top,8,-40,['-70','-85','-70'],1.2,0,.9)+head(k,-49)+'<g transform="translate(17,-33)"><ellipse rx="5" ry="2" fill="#fff" stroke="#cbd5e1" stroke-width=".6"/><path d="M-5 0q5 7 10 0z" fill="#f8fafc" stroke="#cbd5e1" stroke-width=".6"/></g></g>'};
   return X;
 })();
+function bub(i,y){return '<g transform="translate(0,'+y+')"><animate attributeName="opacity" calcMode="discrete" values="1;0" keyTimes="0;.5" dur="3s" begin="-'+((i%2)*1.5)+'s" repeatCount="indefinite"/><rect x="-11" y="-9" width="22" height="13" rx="6" fill="#fff" stroke="#94a3b8" stroke-width=".8"/><path d="M-3 4l3 5 3-5z" fill="#fff" stroke="#94a3b8" stroke-width=".8"/><circle cx="-5" cy="-2.5" r="1.4" fill="#64748b"/><circle cx="0" cy="-2.5" r="1.4" fill="#64748b"/><circle cx="5" cy="-2.5" r="1.4" fill="#64748b"/></g>'}
+var BOWL='<g transform="translate(10,-8)"><ellipse rx="5" ry="2" fill="#fff" stroke="#cbd5e1" stroke-width=".6"/><path d="M-5 0q5 7 10 0z" fill="#f8fafc" stroke="#cbd5e1" stroke-width=".6"/></g>';
 function spr(t,pose,anim){
   var k=K[t]||K.trai,s='<g transform="scale('+k.sc+')">',a='';
   if(AX[pose])return '<g transform="scale('+k.sc+')">'+AX[pose](k)+'</g>';
@@ -9080,41 +9083,91 @@ function look(p){
 }
 function feat(room){var on={};(room.furniture||[]).forEach(function(x){if(x&&x.s)on[x.n]=1});return on}
 function hsh(x){var h=7;String(x).split('').forEach(function(c){h=(h*31+c.charCodeAt(0))>>>0});return h}
-function acts(f){var l=[];if(f['Ghế'])l.push('sit');if(f['Giường'])l.push('sleep','phone');if(f['Bếp'])l.push('cook','cook');l.push('run','jump','gym');return l}
+function acts(f){var l=[];if(f['Ghế'])l.push('sit');if(f['Ghế sofa']&&f['Tivi'])l.push('tv','tv');if(f['Giường'])l.push('sleep','phone');if(f['Bếp'])l.push('cook','cook');l.push('run','jump','gym');return l}
+function nav(G){
+  var O=G.obs||[],W=G.w,D=G.d,S=.5,R=.38;
+  function blk(x,y){if(x<.4||y<.4||x>W-.4||y>D-.4)return true;for(var i=0;i<O.length;i++){var o=O[i];if(x>o[0]-R&&x<o[2]+R&&y>o[1]-R&&y<o[3]+R)return true}return false}
+  function sn(p){if(!blk(p[0],p[1]))return p;var best=null,bd=1e9,dx,dy;
+    for(dx=-8;dx<=8;dx++)for(dy=-8;dy<=8;dy++){var x=p[0]+dx*S,y=p[1]+dy*S;if(!blk(x,y)&&dx*dx+dy*dy<bd){bd=dx*dx+dy*dy;best=[x,y]}}
+    return best||p}
+  function route(a,b){
+    var fr=function(x,y){return !blk(x,y)||Math.hypot(x-a[0],y-a[1])<1.1||Math.hypot(x-b[0],y-b[1])<1.1};
+    function los(p,q){var n=Math.ceil(Math.hypot(q[0]-p[0],q[1]-p[1])/.25),i;for(i=1;i<n;i++){var t=i/n;if(!fr(p[0]+(q[0]-p[0])*t,p[1]+(q[1]-p[1])*t))return false}return true}
+    if(los(a,b))return [b];
+    var nx=Math.round(W/S)+1,ny=Math.round(D/S)+1,id=function(i,j){return j*nx+i},
+        sI=[Math.round(a[0]/S),Math.round(a[1]/S)],gI=[Math.round(b[0]/S),Math.round(b[1]/S)],g={},par={},open=[],cl={},k;
+    g[id(sI[0],sI[1])]=0;open.push([sI[0],sI[1],0]);
+    var h=function(i,j){return Math.hypot(i-gI[0],j-gI[1])},ok=false;
+    while(open.length){
+      var bi=0,m;for(m=1;m<open.length;m++)if(open[m][2]>=0&&g[id(open[m][0],open[m][1])]+h(open[m][0],open[m][1])<g[id(open[bi][0],open[bi][1])]+h(open[bi][0],open[bi][1]))bi=m;
+      var cu=open.splice(bi,1)[0],ci=cu[0],cj=cu[1],ck=id(ci,cj);if(cl[ck])continue;cl[ck]=1;
+      if(ci===gI[0]&&cj===gI[1]){ok=true;break}
+      for(var dx=-1;dx<=1;dx++)for(var dy=-1;dy<=1;dy++){if(!dx&&!dy)continue;var ni=ci+dx,nj=cj+dy;if(ni<0||nj<0||ni>=nx||nj>=ny)continue;
+        if(!fr(ni*S,nj*S))continue;if(dx&&dy&&(!fr(ci*S+dx*S,cj*S)||!fr(ci*S,cj*S+dy*S)))continue;
+        var nk=id(ni,nj),ng=g[ck]+(dx&&dy?1.414:1);if(g[nk]===undefined||ng<g[nk]){g[nk]=ng;par[nk]=ck;open.push([ni,nj,0])}}}
+    if(!ok)return [b];
+    var path=[],cur=id(gI[0],gI[1]);while(cur!==undefined&&cur!==id(sI[0],sI[1])){path.unshift([(cur%nx)*S,Math.floor(cur/nx)*S]);cur=par[cur]}
+    var out=[],from=a,i=0;
+    while(i<path.length){var j=path.length-1;while(j>i&&!los(from,path[j]))j--;out.push(path[j]);from=path[j];i=j+1}
+    out.push(b);return out}
+  return {sn:sn,route:route}}
 function person(i,t,ak,h,G){
-  var v=t==='tre'?17:t==='gia'?9:13,w=[[5.4+G.dx,1.7],[3.6+G.dx/2,1.7],[1.4,1.7],[3.6+G.dx/2,1.7]],KP=P(2.2,1.3),c1=[G.w-1,2.9],c2=[G.w-1.7,G.d-1.3],XS=[[G.w-.8,2.9],[G.w-1.9,G.d-.5],[G.w*.5,G.d-.5],[3.6,G.d-.8]],bdx=-2.5,bdy=G.d-4.65,s1=(h>>>3)%4,s2=(s1+2)%4;
+  var LY=G.lay||{},lc=LY.chair||{},lt=LY.table||{},lb=LY.bed||{},NV=nav(G),sn=NV.sn,Sx=202+30*(-2.5-(G.d-4.65));
+  function mb(p){if(!lb.f)return p;var Sg=(Sx-200)/30,a=2*Sg-(p[0]-p[1]),b=p[0]+p[1];return [(a+b)/2,(b-a)/2]}
+  var v=t==='tre'?17:t==='gia'?9:13,w=[[5.4+G.dx,1.7],[3.6+G.dx/2,1.7],[1.4,1.7],[3.6+G.dx/2,1.7]],KP=P(2.2+(lt.x||0),1.3+(lt.y||0)),c1=[G.w-1,2.9],c2=[G.w-1.7,G.d-1.3],XS=[[G.w-.8,2.9],[G.w-1.9,G.d-.5],[G.w*.5,G.d-.5],[3.6,G.d-.8]],bdx=-2.5,bdy=G.d-4.65,s1=(h>>>3)%4,s2=(s1+2)%4;
+  w=w.map(sn);c1=sn(c1);c2=sn(c2);XS=XS.map(sn);var FS=[],NM=G.named||{};
+  function seat(k){var R=NM.sofa,w=R[2]-R[0],d=R[3]-R[1],q=k%2;
+    if(k>=2)return sn([(R[0]+R[2])/2+(k-2.5)*.7,R[3]+.8]);
+    return w>=d?[R[0]+w*(.3+.4*q),(R[1]+R[3])/2]:[(R[0]+R[2])/2,R[1]+d*(.3+.4*q)]}
+  function sitS(ty,pt,bowl,chat){FS.push({ty:ty,xy:P(pt[0],pt[1],15),ps:'sit',ex:(bowl?BOWL:'')+(chat?bub(i,-62):'')})}
+  function stS(ty,pt,pose,chat){FS.push({ty:ty,xy:P(pt[0],pt[1]),ps:pose,ex:chat?bub(i,-78):''})}
+  function fam(){
+    var sofa=NM.sofa,tv=sofa&&NM.tvset,hasK=!!NM.table,N=G.n,cI=hasK?hsh(G.rid)%N:-1,isC=i===cI,j=cI>=0&&i>cI?i-1:i,
+        KG=[2.2+(lt.x||0),1.3+(lt.y||0)],CE=34,EE=84,CY=110,cs=function(k){return sn([G.w*.5+(k-(N-1)/2)*.8,G.d*.5+.2])};
+    if(!(sofa||hasK))return 0;if(!hasK)CE=EE;
+    if(isC){mv(KG);act('cook',Math.max(.5,CE-T));FS.push({ty:'cook',xy:KP,ps:'cook'})}
+    else if(sofa){var s=seat(j);mv(s);act('tvA'+i,Math.max(.5,CE-T));sitS('tvA'+i,s,0,N>1)}
+    else{var c=cs(j);mv(c);act('chA'+i,Math.max(.5,CE-T));stS('chA'+i,c,'walk',N>1)}
+    if(hasK){
+      var tk=sn([KG[0]+.9+.6*(i%3),KG[1]+1]);mv(tk);act('tk'+i,4);stS('tk'+i,tk,'eat',0);
+      if(sofa){var s2=seat(i);mv(s2);act('es'+i,Math.max(.5,EE-T));sitS('es'+i,s2,1,N>1)}
+      else{var c2=cs(i);mv(c2);act('ee'+i,Math.max(.5,EE-T));stS('ee'+i,c2,'eat',N>1)}
+    }
+    return 1}
   var cur=w[0],ev=[{t:0,d:0}],ints=[],pts=[w[0]],T=0,D=0;
-  function mv(p){var s=dist(cur,p),dt=s/v;if(s<.5)return;ints.push({t0:T,t1:T+dt,ty:'walk'});T+=dt;D+=s;ev.push({t:T,d:D});pts.push(p);cur=p}
+  function mv(p){NV.route(cur,p).forEach(seg)}function seg(p){var s=dist(cur,p),dt=s/v;if(s<.5)return;ints.push({t0:T,t1:T+dt,ty:'walk'});T+=dt;D+=s;ev.push({t:T,d:D});pts.push(p);cur=p}
   function act(ty,d,el){ints.push({t0:T,t1:T+d,ty:ty,el:el});T+=d;ev.push({t:T,d:D})}
   w.slice(1).forEach(mv);
-  if(ak==='sit'){mv([4.6+G.dx,1.6]);act('sit',12)}
-  if(ak==='cook'){mv([2.2,1.3]);act('cook',18)}
+  var FM=G.fam?fam():0;if(!FM){if(ak==='tv'&&NM.sofa&&NM.tvset){var sg=seat(0);mv(sg);act('tvs',20);sitS('tvs',sg,0,0)}
+  if(ak==='sit'){mv([4.6+G.dx+(lc.x||0),1.6+(lc.y||0)]);act('sit',12)}
+  if(ak==='cook'){mv([2.2+(lt.x||0),1.3+(lt.y||0)]);act('cook',18)}
   mv(c1);mv(c2);
   if(ak==='run'||ak==='jump'||ak==='gym'){mv(XS[s1]);act(ak+'1',12);mv(XS[s2]);act(ak+'2',12)}
-  if(ak==='sleep'||ak==='phone'){mv([2.7,G.d-1.1]);act(ak==='phone'?'phone':'lie',ak==='phone'?24:20)}
-  mv(c2);mv(c1);mv(w[0]);
-  var off=(i*19+h%29).toFixed(0),d='M'+pts.map(function(p){return P(p[0],p[1]).map(f1).join(',')}).join(' L');
+  if(ak==='sleep'||ak==='phone'){mv((function(q){return [q[0]+(lb.x||0),q[1]+(lb.y||0)]})(mb([2.7,G.d-1.1])));act(ak==='phone'?'phone':'lie',ak==='phone'?24:20)}
+  mv(c2);mv(c1);mv(w[0]);}else{mv(w[0]);act('idle',Math.max(.5,110-T));FS.push({ty:'idle',xy:P(w[0][0],w[0][1]),ps:'walk'})}
+  var off=FM?'0':(i*19+h%29).toFixed(0),d='M'+pts.map(function(p){return P(p[0],p[1]).map(f1).join(',')}).join(' L');
   function dsp(ty){
     var kt=[],vl=[];ints.forEach(function(it){kt.push((it.t0/T).toFixed(4));vl.push(it.ty===ty?'inline':'none')});
     return '<animate attributeName="display" calcMode="discrete" dur="'+f1(T)+'s" begin="-'+off+'s" repeatCount="indefinite" keyTimes="'+kt.join(';')+'" values="'+vl.join(';')+'"/>';
   }
   var sh='<ellipse rx="9" ry="3.4" fill="rgba(40,25,10,.22)"/>';
-  function at(ty,xy,ps){return '<g display="none" transform="translate('+f1(xy[0])+','+f1(xy[1])+')">'+dsp(ty)+sh+spr(t,ps||ty)+'</g>'}
+  function at(ty,xy,ps,ex){return '<g display="none" transform="translate('+f1(xy[0])+','+f1(xy[1])+')">'+dsp(ty)+sh+spr(t,ps||ty)+(ex||'')+'</g>'}
   var out='<g display="none">'+dsp('walk')
    +'<animateMotion dur="'+f1(T)+'s" begin="-'+off+'s" repeatCount="indefinite" calcMode="linear" keyPoints="'+ev.map(function(e){return (e.d/D).toFixed(4)}).join(';')+'" keyTimes="'+ev.map(function(e){return (e.t/T).toFixed(4)}).join(';')+'" path="'+d+'"/>'+sh+spr(t,'walk',1)+'</g>';
-  if(ak==='sit')out+='<g display="none" transform="translate('+f1(SEAT[0]+30*G.dx)+','+f1(SEAT[1]+15*G.dx)+')">'+dsp('sit')+spr(t,'sit')+'</g>';
+  if(ak==='sit')out+='<g display="none" transform="translate('+f1(SEAT[0]+30*G.dx+30*((lc.x||0)-(lc.y||0)))+','+f1(SEAT[1]+15*G.dx+15*((lc.x||0)+(lc.y||0)))+')">'+dsp('sit')+spr(t,'sit')+'</g>';
   if(ak==='cook')out+=at('cook',KP);
   if(ak==='run'||ak==='jump'||ak==='gym')out+=at(ak+'1',XS[s1],ak)+at(ak+'2',XS[s2],ak);
-  if(ak==='sleep'||ak==='phone'){var sl=(i%2?1:-1),bx=BED[0]+sl*-9+30*(bdx-bdy),by=BED[1]+sl*4.5+15*(bdx+bdy),ty=ak==='phone'?'phone':'lie';out+='<g display="none" transform="translate('+f1(bx)+','+f1(by)+') matrix(1 .5 0 1 0 0)">'+dsp(ty)+spr(t,ty)+'</g>'}
+  if(ak==='sleep'||ak==='phone'){var sl=(i%2?1:-1),bx=(lb.f?2*Sx-(BED[0]+sl*-9+30*(bdx-bdy)):BED[0]+sl*-9+30*(bdx-bdy))+30*((lb.x||0)-(lb.y||0)),by=BED[1]+sl*4.5+15*(bdx+bdy)+15*((lb.x||0)+(lb.y||0)),ty=ak==='phone'?'phone':'lie';out+='<g display="none" transform="translate('+f1(bx)+','+f1(by)+') matrix('+(lb.f?'-1':'1')+' .5 0 1 0 0)">'+dsp(ty)+spr(t,ty)+'</g>'}
+  FS.forEach(function(s){out+=at(s.ty,s.xy,s.ps,s.ex)});
   return out;
 }
 function sig(room){
   if(['rented','debt','due'].indexOf(room.status)<0)return '';
-  var f=feat(room);return occ(room).map(look).join(',')+'|'+(f['Ghế']?1:0)+(f['Giường']?1:0)+(f['Bếp']?1:0)+'|'+room.id+'|'+JSON.stringify(window.ptRoomSz?ptRoomSz(room):0);
+  var f=feat(room);return occ(room).map(look).join(',')+'|'+(f['Ghế']?1:0)+(f['Giường']?1:0)+(f['Bếp']?1:0)+'|'+room.id+'|'+JSON.stringify(window.ptRoomSz?ptRoomSz(room):0)+'|'+JSON.stringify(room.lay||0)+'|'+(room.furniture||[]).filter(function(x){return x&&x.s}).map(function(x){return x.n}).join();
 }
 function build(room){
   var L=acts(feat(room)),G=window.ptGeo?ptGeo(room):{w:7.5,d:5.5,dx:1.5,dd:1,SC:'translate(225 142) scale(.87)'};
-  return '<g transform="'+G.SC+'">'+occ(room).map(function(p,i){var h=hsh(room.id+':'+i);return person(i,look(p),L[h%L.length],h,G)}).join('')+'</g>';
+  G.lay=room.lay||{};G.obs=window.ptLayObs?ptLayObs(room):[];G.n=occ(room).length;G.rid=room.id;G.named=G.obs.named||{};G.fam=G.n>=2;return '<g transform="'+G.SC+'">'+occ(room).map(function(p,i){var h=hsh(room.id+':'+i);return person(i,look(p),L[h%L.length],h,G)}).join('')+'</g>';
 }
 function sync(){
   try{
@@ -9241,6 +9294,136 @@ function addUi(id){
 }
 var o=window.showRoomDet;
 if(typeof o==='function')window.showRoomDet=function(id){var r=o.apply(this,arguments);addUi(id);return r};
+})();
+</script>
+<script id="ptRoomLayout">
+/* ── Sắp xếp nội thất: kéo di dời + xoay (lật) từng món, lưu riêng cho từng phòng (room.lay) ── */
+(function(){'use strict';
+var NS='http://www.w3.org/2000/svg';
+var IT={bed:['🛏️ Giường',['bed','mattress'],202],wardrobe:['🚪 Tủ quần áo',['wardrobe'],178],fridge:['🧊 Tủ lạnh',['fridge'],277],table:['🍳 Bếp + kệ',['table'],233],desk:['🪑 Bàn',['desk'],322],chair:['💺 Ghế',['chair'],308],fan:['🌀 Quạt',['fan'],258],toilet:['🚽 Bồn cầu',['toilet'],125],lavabo:['🚰 Lavabo',['lavabo'],158],wet:['🚿 Khu vệ sinh',['wet'],0],tvset:['📺 Kệ + Tivi',['tvstand','tv'],215.8],sofa:['🛋️ Ghế sofa',['sofa'],217.3]};
+var ALL=['bed','mattress','fridge','table','wardrobe','ac','desk','chair','fan','wallfan','heater','toilet','lavabo','bath','window','curtain','light'];
+function room(id){return (S.rooms||[]).find(function(r){return String(r.id)===String(id)})}
+function cl(v){return Math.max(-10,Math.min(10,Math.round(v*4)/4))}
+function T(k,o){var c=IT[k][2],x=o.x||0,y=o.y||0;return 'translate('+(30*(x-y)).toFixed(1)+' '+(15*(x+y)).toFixed(1)+')'+(o.f?' translate('+c+' 0) scale(-1 1) translate('+(-c)+' 0)':'')}
+function wet(c,o){
+  var a=c.querySelector('[data-g="wardrobe"]'),h=c.querySelector('[data-g="heater"]'),i;if(!a||!h)return;
+  for(i=0;i<7&&a;i++)a=a.nextElementSibling;if(!a)return;
+  var g=document.createElementNS(NS,'g');g.setAttribute('transform',T('wet',o));a.parentNode.insertBefore(g,a);
+  while(g.nextSibling){var n=g.nextSibling;g.appendChild(n);if(n===h)break}}
+function fix(k,o){if(k!=='wet')return;var D=window.ptRoomSz?ptRoomSz(room(ed.id)).d:5.5;o.x=0;o.y=Math.max(-2.5,Math.min(D-4.5,o.y||0))}
+/* --- nội thất mới: kệ tivi, tivi, sofa (vẽ bằng hộp iso) + tự xếp giữa phòng + vật cản cho người đi lại --- */
+function Pp(x,y,z){return [200+30*(x-y),110+15*(x+y)-(z||0)]}
+function pj(a){return a.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1)}).join(' ')}
+function pg(a,f){return '<polygon points="'+pj(a)+'" fill="'+f+'" stroke="rgba(70,45,20,.2)" stroke-width="1" stroke-linejoin="round"/>'}
+function box(x,y,z,w,d,h,c){var A=Pp(x,y,z+h),B=Pp(x+w,y,z+h),C=Pp(x+w,y+d,z+h),E=Pp(x,y+d,z+h),a=Pp(x,y+d,z),b=Pp(x+w,y+d,z),q=Pp(x+w,y,z);
+  return pg([E,C,b,a],c[1])+pg([B,C,b,q],c[2])+pg([A,B,C,E],c[0])}
+function newSvg(){
+  var wd=['#d2b184','#b58d61','#977046'],dk=['#3a3f47','#23272d','#1b1e23'],sf=['#a9bfdc','#86a0c7','#6f8bb3'],s='';
+  s+='<g data-g="tvstand" style="display:var(--s-tvstand,inline)"><ellipse cx="215.8" cy="127" rx="40" ry="14" fill="url(#rm4-sh)"/>'+box(0,0,0,1.6,.55,14,wd)
+   +'<polygon points="'+pj([Pp(.1,.55,11),Pp(.75,.55,11),Pp(.75,.55,3),Pp(.1,.55,3)])+'" fill="rgba(60,40,15,.2)"/><polygon points="'+pj([Pp(.85,.55,11),Pp(1.5,.55,11),Pp(1.5,.55,3),Pp(.85,.55,3)])+'" fill="rgba(60,40,15,.2)"/></g>';
+  s+='<g data-g="tv" style="display:var(--s-tv,inline)">'+box(.65,.2,14,.3,.15,2,dk)+box(.2,.22,16,1.2,.1,26,dk)
+   +'<polygon points="'+pj([Pp(.25,.32,38),Pp(1.35,.32,38),Pp(1.35,.32,18),Pp(.25,.32,18)])+'" fill="#0d1624"/><polygon points="'+pj([Pp(.25,.32,38),Pp(.85,.32,38),Pp(.6,.32,18),Pp(.25,.32,18)])+'" fill="rgba(125,211,252,.2)"/></g>';
+  s+='<g data-g="sofa" style="display:var(--s-sofa,inline)"><ellipse cx="217.3" cy="130" rx="46" ry="15" fill="url(#rm4-sh)"/>'+box(0,0,0,2,.85,12,sf)+box(0,0,12,.22,.85,10,sf)+box(.22,.62,12,1.56,.23,22,sf)+box(1.78,0,12,.22,.85,10,sf)
+   +'<line x1="'+Pp(1,0,12)[0].toFixed(1)+'" y1="'+Pp(1,0,12)[1].toFixed(1)+'" x2="'+Pp(1,.62,12)[0].toFixed(1)+'" y2="'+Pp(1,.62,12)[1].toFixed(1)+'" stroke="rgba(0,0,0,.22)" stroke-width=".8"/></g>';
+  return s}
+function onSet(r){var m={};((r&&r.furniture)||[]).forEach(function(x){if(x&&x.s)m[x.n]=1});return m}
+var FP={bed:[[[140,207.5],[213.5,244.2],[264.5,218.8],[191,174]],'b','Giường'],wardrobe:[[[191,114.5],[215,126.5],[165.5,151.2],[141.5,139.2]],'','Tủ quần áo'],table:[[[211.2,141.1],[237.5,154.2],[256.2,144.9],[230,131.8]],'','Bếp'],fridge:[[[256.4,161],[276.5,171.1],[297.5,160.6],[277.4,150.5]],'','Tủ lạnh'],desk:[[[300.5,182.8],[324.8,194.9],[342.2,186.2],[317.9,174.1]],'d','Bàn'],chair:[[[294.5,192.6],[308.9,199.9],[323,192.8],[308.6,185.6]],'d','Ghế']};
+function gr(p){var u=(p[0]-200)/30,v=(p[1]-110)/15;return [(u+v)/2,(v-u)/2]}
+function szOf(r){return window.ptRoomSz?ptRoomSz(r):{w:7.5,d:5.5}}
+function foot(r,k,o){var f=FP[k],a=f[0].map(gr),xs=a.map(function(p){return p[0]}),ys=a.map(function(p){return p[1]}),z=szOf(r),
+  s=f[1]==='b'?[-2.5,z.d-4.65]:f[1]==='d'?[z.w-6,0]:[0,0],
+  hw=(Math.max.apply(0,xs)-Math.min.apply(0,xs))/2,hh=(Math.max.apply(0,ys)-Math.min.apply(0,ys))/2,
+  cx=(Math.max.apply(0,xs)+Math.min.apply(0,xs))/2+s[0]+(o.x||0),cy=(Math.max.apply(0,ys)+Math.min.apply(0,ys))/2+s[1]+(o.y||0);
+  if(o.f){var t=hw;hw=hh;hh=t}return [cx-hw,cy-hh,cx+hw,cy+hh]}
+function auto(r,all){
+  var on=all?{'Kệ tivi':1,'Ghế sofa':1}:onSet(r),z=szOf(r),W=z.w,D=z.d,out={},obs=[],cx=W/2,cy=D/2;
+  var hasTv=on['Kệ tivi']||on['Tivi'];
+  Object.keys(FP).forEach(function(k){if(onSet(r)[FP[k][2]]||all)obs.push(foot(r,k,{}))});obs.push([0,2.5,1.85,4.6]);
+  function place(k,w,d,tx,ty){var best=null,bd=1e9,ix,iy;
+    for(ix=-16;ix<=16;ix++)for(iy=-12;iy<=12;iy++){var x=tx+ix*.5-w/2,y=ty+iy*.5-d/2;
+      if(x<.3||y<.3||x+w>W-.3||y+d>D-.3)continue;
+      if(obs.some(function(o){return x<o[2]+.25&&x+w>o[0]-.25&&y<o[3]+.25&&y+d>o[1]-.25}))continue;
+      var dd=ix*ix+iy*iy;if(dd<bd){bd=dd;best=[x,y,x+w,y+d]}}
+    if(!best)best=[tx-w/2,ty-d/2,tx+w/2,ty+d/2];obs.push(best);out[k]={x:best[0],y:best[1]}}
+  if(hasTv||all)place('tvset',1.6,.55,cx,cy-.8);
+  if(on['Ghế sofa']){var t=out.tvset;place('sofa',2,.85,t?t.x+.8:cx,t?t.y+.55+1.3:cy+.9)}
+  return out}
+function addNew(c,r,all){var on=all?{'Kệ tivi':1}:onSet(r);if(!(on['Kệ tivi']||on['Tivi']||on['Ghế sofa']))return;
+  var top=c.querySelector('g'),n=c.querySelector('[data-g="bed"]');if(!top||!n)return;
+  while(n.parentNode&&n.parentNode!==top)n=n.parentNode;
+  var s=document.createElementNS(NS,'g');s.innerHTML=newSvg();while(s.firstChild)top.insertBefore(s.firstChild,n)}
+window.ptLayObs=function(r){var on=onSet(r),L=r.lay||{},a=auto(r),o=[];o.named={};
+  Object.keys(FP).forEach(function(k){if(on[FP[k][2]]){var f=foot(r,k,L[k]||{});o.push(f);o.named[k]=f}});
+  o.push([0,2.5+((L.wet&&L.wet.y)||0),1.85,4.6+((L.wet&&L.wet.y)||0)]);
+  [['tvset',1.6,.55,on['Kệ tivi']||on['Tivi']],['sofa',2,.85,on['Ghế sofa']]].forEach(function(q){if(!q[3])return;
+    var l=L[q[0]]||{},m=a[q[0]]||{x:0,y:0},hw=q[1]/2,hh=q[2]/2;if(l.f){var t=hw;hw=hh;hh=t}
+    var cx=q[1]/2+m.x+(l.x||0),cy=q[2]/2+m.y+(l.y||0);var rc=[cx-hw,cy-hh,cx+hw,cy+hh];o.push(rc);o.named[q[0]]=rc});
+  return o};
+function make(id,srcId,lay,r,all){
+  var src=document.getElementById(srcId);if(!src)return false;
+  var c=src.cloneNode(true);c.id=id;
+  c.querySelectorAll('defs').forEach(function(d){d.remove()});
+  var A=r?auto(r,all):{};if(r)addNew(c,r,all);
+  if(lay.wet&&lay.wet.y)wet(c,lay.wet);
+  Object.keys(IT).forEach(function(k){var o=lay[k]||{},a=A[k]||{x:0,y:0},m={x:(o.x||0)+a.x,y:(o.y||0)+a.y,f:o.f};
+    if(k==='wet'||!(m.x||m.y||m.f))return;
+    IT[k][1].forEach(function(g){var e=c.querySelector('[data-g="'+g+'"]');if(!e)return;
+      var w=document.createElementNS(NS,'g');w.setAttribute('transform',T(k,m));e.parentNode.insertBefore(w,e);w.appendChild(e)})});
+  src.parentNode.appendChild(c);return true}
+function hs(s){var h=7;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return h.toString(36)}
+var base=window.ptRoomUse,done={};
+window.ptRoomUse=function(r){var id=base?base(r):'#ptRoom3D',L=(r&&r.lay)||{},on=r?onSet(r):{},nw=on['Kệ tivi']||on['Tivi']||on['Ghế sofa'];
+  if(!Object.keys(L).length&&!nw)return id;
+  var k='ptL_'+hs(id+JSON.stringify(L)+JSON.stringify(auto(r))+(nw?1:0));
+  if(!done[k]&&!document.getElementById(k)){if(!make(k,id.slice(1),L,r))return id;done[k]=1}
+  return '#'+k};
+/* ── Trình chỉnh sửa ── */
+var ed=null,sel='bed',cnt=0,drag=null;
+function scl(){var m=/scale\(([\d.]+)\)/.exec((window.ptGeo&&ptGeo(room(ed.id))||{}).SC||'');return m?+m[1]:.875}
+function ent(k){return ed.lay[k]||(ed.lay[k]={x:0,y:0,f:0})}
+function refresh(){
+  var r=room(ed.id),old=document.getElementById('ptLayEd'+cnt);if(old)old.remove();
+  cnt++;var k='ptLayEd'+cnt;make(k,base(r).slice(1),ed.lay,r,true);
+  var u=document.querySelector('#ptLayCv use');if(u)u.setAttribute('href','#'+k)}
+function ctl(){
+  var chips=Object.keys(IT).map(function(k){return '<button type="button" class="btn '+(k===sel?'btn-primary':'btn-secondary')+' btn-xs" onclick="ptLaySel(\''+k+'\')">'+IT[k][0]+'</button>'}).join(' ');
+  var b=function(t,a){return '<button type="button" class="btn btn-secondary btn-xs" style="min-width:44px" onclick="'+a+'">'+t+'</button>'};
+  var el=document.getElementById('ptLayCtl');if(!el)return;
+  el.innerHTML='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+chips+'</div>'
+   +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center"><b style="font-size:13px">'+IT[sel][0]+':</b>'
+   +b('↖','ptLayMv(-.5,0)')+b('↗','ptLayMv(0,-.5)')+b('↙','ptLayMv(0,.5)')+b('↘','ptLayMv(.5,0)')
+   +(sel==='wet'?b('📍 Góc trước','ptLayCorner(1)')+b('📍 Góc sau','ptLayCorner(0)'):b('🔄 Xoay','ptLayFlip()'))+b('↺ Đặt lại món','ptLayOne()')+'</div>'}
+window.ptLayCorner=function(f){sel='wet';var o=ent('wet');o.y=f?99:-99;fix('wet',o);refresh();ctl()};
+window.ptLaySel=function(k){sel=k;ctl()};
+window.ptLayMv=function(dx,dy){var o=ent(sel);o.x=cl((o.x||0)+dx);o.y=cl((o.y||0)+dy);fix(sel,o);refresh()};
+window.ptLayFlip=function(){if(sel==='wet')return;var o=ent(sel);o.f=o.f?0:1;refresh()};
+window.ptLayOne=function(){delete ed.lay[sel];refresh()};
+function clean(l){var o={};Object.keys(l).forEach(function(k){var v=l[k];if(IT[k]&&(v.x||v.y||v.f))o[k]={x:v.x||0,y:v.y||0,f:v.f?1:0}});return o}
+window.ptLayOpen=function(id){
+  var r=room(id);if(!r)return;
+  ed={id:id,lay:JSON.parse(JSON.stringify(r.lay||{}))};sel='bed';
+  var st='--s-person:none;'+ALL.map(function(i){return '--s-'+i+':inline'}).join(';');
+  mkModal('mRoomLay','🪑 Sắp xếp nội thất – '+esc(r.name||''),
+   '<div id="ptLayPrev" class="rc3 rc-'+(r.status||'available')+'" style="border-radius:16px;padding:6px;touch-action:none;cursor:grab;border:1.5px solid var(--rc)"><div class="rc3-art"><svg id="ptLayCv" class="rc3-svg" style="'+st+'" viewBox="0 0 370 296"><use width="370" height="296"/></svg></div></div>'
+   +'<div style="font-size:12px;color:var(--text3);margin:6px 0 10px">Chọn món rồi <b>kéo trực tiếp trên hình</b> hoặc bấm mũi tên. “Xoay” đổi hướng món đồ (dọc ↔ ngang). Phòng trống vẫn hiện đủ đồ để bạn sắp xếp.</div><div id="ptLayCtl"></div>',
+   '<button class="btn btn-secondary" type="button" onclick="ptLayAll()">Áp dụng mọi phòng</button><button class="btn btn-secondary" type="button" onclick="ptLayReset()">Mặc định</button><button class="btn btn-secondary" type="button" onclick="closeM(\'mRoomLay\')">Hủy</button><button class="btn btn-primary" type="button" onclick="ptLaySave()">Lưu</button>');
+  openM('mRoomLay');ctl();refresh();
+  var w=document.getElementById('ptLayPrev');
+  w.onpointerdown=function(e){var o=ent(sel);drag={px:e.clientX,py:e.clientY,x:o.x||0,y:o.y||0};try{w.setPointerCapture(e.pointerId)}catch(x){}e.preventDefault()};
+  w.onpointermove=function(e){if(!drag)return;var c=document.getElementById('ptLayCv').getBoundingClientRect(),k=Math.min(c.width/370,c.height/296)*scl(),X=(e.clientX-drag.px)/k,Y=(e.clientY-drag.py)/k,o=ent(sel);o.x=cl(drag.x+(X/30+Y/15)/2);o.y=cl(drag.y+(Y/15-X/30)/2);fix(sel,o);refresh()};
+  w.onpointerup=w.onpointercancel=function(){drag=null}};
+window.ptLayReset=function(){ed.lay={};refresh()};
+window.ptLaySave=function(){var r=room(ed.id);if(!r)return;var l=clean(ed.lay);
+  if(Object.keys(l).length)r.lay=l;else delete r.lay;
+  r._u=Date.now();try{save()}catch(e){}closeM('mRoomLay');try{renderRooms()}catch(e){}
+  toast('Đã lưu bố trí nội thất','success')};
+window.ptLayAll=function(){if(!confirm('Áp dụng bố trí này cho TẤT CẢ các phòng?'))return;
+  var l=clean(ed.lay);(S.rooms||[]).forEach(function(r){if(Object.keys(l).length)r.lay=JSON.parse(JSON.stringify(l));else delete r.lay;r._u=Date.now()});
+  try{save()}catch(e){}closeM('mRoomLay');try{renderRooms()}catch(e){}toast('Đã áp dụng cho mọi phòng','success')};
+var o=window.showRoomDet;
+if(typeof o==='function')window.showRoomDet=function(id){var r=o.apply(this,arguments);
+  try{var b=document.getElementById('mRoomDetBody');if(b&&!b.querySelector('#ptLayBtn'))b.insertAdjacentHTML('beforeend','<div style="margin-top:14px"><button id="ptLayBtn" class="btn btn-secondary" type="button" onclick="ptLayOpen(\''+id+'\')">🪑 Sắp xếp nội thất (kéo / xoay)</button></div>')}catch(e){}
+  return r};
 })();
 </script>
 <script id="ptAlerts">

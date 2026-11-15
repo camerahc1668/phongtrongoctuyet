@@ -1768,6 +1768,29 @@ body[data-tab="guide"] .qa{display:none}
           <svg class="stg-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
       </div>
+
+      <!-- Thẻ: Mã QR cài đặt ứng dụng -->
+      <div class="ptq-card" id="ptQrCard">
+        <div class="ptq-h">📲 Cài đặt ứng dụng cho mọi thiết bị</div>
+        <div class="ptq-body">
+          <div id="ptQrBox" class="ptq-qr"><span class="ptq-ph">Đang tạo mã QR…</span></div>
+          <div class="ptq-info">
+            <div class="ptq-t">Quét bằng camera điện thoại, máy tính bảng hoặc máy khác để mở và cài app.</div>
+            <input id="ptQrUrl" class="ptq-url" type="url" inputmode="url" spellcheck="false" onchange="ptQrSet(this.value)" aria-label="Đường dẫn ứng dụng">
+            <div class="ptq-btns">
+              <button type="button" class="btn btn-secondary btn-xs" onclick="ptQrCopy()">📋 Sao chép liên kết</button>
+              <button type="button" class="btn btn-secondary btn-xs" onclick="ptQrSave()">⬇️ Tải mã QR</button>
+              <button type="button" class="btn btn-primary btn-xs" onclick="installApp()">⚡ Cài trên máy này</button>
+            </div>
+            <div class="ptq-warn" id="ptQrWarn"></div>
+          </div>
+        </div>
+        <div class="ptq-guide">
+          <div><b>🍎 iPhone / iPad</b><span>Mở bằng Safari → nút Chia sẻ → <i>Thêm vào MH chính</i>.</span></div>
+          <div><b>🤖 Android</b><span>Mở bằng Chrome → menu ⋮ → <i>Cài đặt ứng dụng</i> (hoặc Thêm vào màn hình chính).</span></div>
+          <div><b>💻 Máy tính (Windows / Mac)</b><span>Mở bằng Chrome hoặc Edge → bấm biểu tượng cài đặt ⊕ ở thanh địa chỉ → <i>Cài đặt</i>.</span></div>
+        </div>
+      </div>
     </div>
 
   </main>
@@ -9298,6 +9321,48 @@ if(typeof o==='function')window.showRoomDet=function(id){var r=o.apply(this,argu
   return r};
 })();
 </script>
+<script id="ptQr">
+/* ── Mã QR cài đặt ứng dụng (Cài đặt) ── */
+(function(){
+'use strict';
+var KEY='pt_app_url';
+function dflt(){return /^https?:$/.test(location.protocol)?location.origin+location.pathname.replace(/[^\/]*$/,''):''}
+function cur(){var v='';try{v=localStorage.getItem(KEY)||''}catch(e){}return v||dflt()}
+function warn(u){
+  var w=document.getElementById('ptQrWarn');if(!w)return;
+  w.textContent=!u?'Bạn đang mở app từ tệp trên máy. Hãy nhập đường dẫn https của app (Firebase Hosting, GitHub Pages…) vào ô trên để tạo mã QR.'
+    :/^https:/.test(u)?'':'Đường dẫn chưa dùng https nên điện thoại có thể không cài được app. Hãy dùng đường dẫn https.';
+}
+window.ptQrRender=function(){
+  var box=document.getElementById('ptQrBox'),inp=document.getElementById('ptQrUrl');if(!box||!inp)return;
+  var u=cur();if(document.activeElement!==inp)inp.value=u;warn(u);
+  if(!u){box.innerHTML='<span class="ptq-ph">Nhập đường dẫn để tạo mã QR</span>';return}
+  if(typeof loadQRLib!=='function'){box.innerHTML='<span class="ptq-ph">Chưa tạo được mã QR</span>';return}
+  loadQRLib().then(function(){
+    box.innerHTML='';
+    try{new QRCode(box,{text:u,width:320,height:320,correctLevel:QRCode.CorrectLevel.M})}catch(e){box.innerHTML='<span class="ptq-ph">Chưa tạo được mã QR</span>'}
+  }).catch(function(){box.innerHTML='<span class="ptq-ph">Cần có mạng lần đầu để tạo mã QR.<br>Bạn vẫn có thể sao chép liên kết.</span>'});
+};
+window.ptQrSet=function(v){
+  v=String(v||'').trim();
+  if(v&&!/^https?:\/\//i.test(v))v='https://'+v;
+  try{if(v&&v!==dflt())localStorage.setItem(KEY,v);else localStorage.removeItem(KEY)}catch(e){}
+  ptQrRender();
+};
+window.ptQrCopy=function(){
+  var u=cur();if(!u){toast('Chưa có đường dẫn','warning');return}
+  var ok=function(){toast('Đã sao chép liên kết','success')};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(ok,function(){prompt('Sao chép liên kết:',u)});
+  else prompt('Sao chép liên kết:',u);
+};
+window.ptQrSave=function(){
+  var box=document.getElementById('ptQrBox'),c=box&&box.querySelector('canvas'),im=box&&box.querySelector('img');
+  var src=c?c.toDataURL('image/png'):(im&&im.src);if(!src){toast('Chưa có mã QR để tải','warning');return}
+  var a=document.createElement('a');a.href=src;a.download='qr-cai-dat-ung-dung.png';document.body.appendChild(a);a.click();a.remove();
+};
+setTimeout(ptQrRender,900);
+})();
+</script>
 <script id="ptSearch">
 /* ── Tìm kiếm phòng / người thuê theo mọi thông tin: tên, SĐT, CCCD, giới tính, ngày sinh, quê quán, hợp đồng, trạng thái... Gõ một phần, không cần dấu ── */
 (function(){
@@ -9373,6 +9438,22 @@ document.addEventListener('click',function(e){
 setInterval(function(){if(!document.hidden)decorate()},1000);setTimeout(decorate,400);
 })();
 </script>
+<style id="ptQrCss">
+.ptq-card{margin:14px 0 0;padding:14px;border-radius:16px;background:var(--surface);border:1.5px solid var(--border)}
+.ptq-h{font-size:13px;font-weight:800;color:var(--text);margin-bottom:12px}
+.ptq-body{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.ptq-qr{width:176px;height:176px;padding:8px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 6px rgba(0,0,0,.12);flex:0 0 auto}
+.ptq-qr img,.ptq-qr canvas{width:160px!important;height:160px!important;display:block}
+.ptq-ph{font-size:11px;color:#64748b;text-align:center}
+.ptq-info{flex:1 1 220px;min-width:200px}
+.ptq-t{font-size:12.5px;color:var(--text2);margin-bottom:8px;line-height:1.5}
+.ptq-url{width:100%;box-sizing:border-box;padding:8px 10px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text);font-size:12.5px}
+.ptq-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.ptq-warn{font-size:11.5px;color:#d97706;margin-top:6px;line-height:1.4}
+.ptq-guide{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-top:12px}
+.ptq-guide div{padding:9px 10px;border-radius:12px;background:var(--bg2);font-size:12px;line-height:1.45;color:var(--text2)}
+.ptq-guide b{display:block;color:var(--text);margin-bottom:2px}
+</style>
 <style id="ptRoom3dCss">
 .pt-ppl{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;overflow:visible}
 body.pt-noperson .pt-ppl{display:none}
@@ -9484,7 +9565,7 @@ document.body.insertBefore(d.firstChild,document.body.firstChild);
 .rm-ghost.zone{transform:none;background:var(--surface,#16213a);border-radius:14px;padding:8px 12px;opacity:.95}
 </style>
 <script>
-window.APP_VERSION='5.36';
+window.APP_VERSION='5.37';
 (function(){
 'use strict';
 /* ── Phiên bản + kiểm tra cập nhật ── */

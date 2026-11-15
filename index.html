@@ -1248,6 +1248,7 @@ body[data-tab="guide"] .qa{display:none}
       <div class="page-header">
         <div><div class="page-title">Phòng Trọ</div><div class="page-subtitle" id="roomsSub"></div></div>
         <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn btn-secondary btn-sm" onclick="ptTenantPrintOpen()" title="In thông tin người thuê">🖨️ In</button>
         <button class="btn btn-secondary btn-sm" onclick="refreshAndSort()" title="Cập nhật &amp; sắp xếp lại"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Cập nhật</button>
         <button class="btn btn-primary btn-sm" onclick="openAddRoom()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Thêm
@@ -1263,6 +1264,7 @@ body[data-tab="guide"] .qa{display:none}
         <button class="chip" data-f="rented" onclick="setRoomFilter('rented')"><i class="sdot sd-rt"></i>Đang thuê</button>
         <button class="chip" data-f="debt" onclick="setRoomFilter('debt')"><i class="sdot sd-db"></i>Có nợ</button>
         <button class="chip" data-f="due" onclick="setRoomFilter('due')"><i class="sdot sd-du"></i>Sắp hạn</button>
+        <button type="button" class="ptqp-btn" onclick="ptQrPrintOpen()" title="In mã QR phòng" aria-label="In mã QR phòng"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h3M20 17v4"/></svg></button>
       </div>
       <!-- Toggle kiểu xem -->
       <div class="room-view-toggle">
@@ -4546,7 +4548,7 @@ function renderContracts(){
         <button class="btn btn-secondary" onclick="redownloadContract('${ct.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/></svg>Tải lại</button>
         <button class="btn btn-secondary" onclick="printContract('${ct.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/></svg>In</button>
         ${ct.status!=='cancelled'?`<button class="btn" style="background:rgba(99,102,241,.12);color:var(--info);border:1px solid rgba(99,102,241,.3)" onclick="renewContract('${ct.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>Gia hạn</button>`:''}
-        ${ct.status!=='cancelled'?`<button class="btn btn-danger" onclick="cancelContract('${ct.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Hủy</button>`:`<span style="font-size:11px;color:var(--text3);padding:4px 8px">🚫 Đã hủy</span>`}
+        ${ct.status!=='cancelled'?`<button class="btn btn-danger" onclick="cancelContract('${ct.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Hủy</button>`:`<span style="font-size:11px;color:var(--text3);padding:4px 8px">🚫 Đã hủy${window.ptCancelLeft?ptCancelLeft(ct):''}</span><button class="btn btn-danger" onclick="deleteContractForever('${ct.id}')">🗑️ Xóa vĩnh viễn</button>`}
       </div>
     </div>`;
   }).join('');
@@ -4585,7 +4587,7 @@ function showContractDet(id){
       <button class="btn btn-primary" style="flex:1" onclick="sendContractSign('${id}')">✍️ Gửi khách ký</button>
       <button class="btn btn-primary" style="flex:1" onclick="closeM('mContractDet');redownloadContract('${id}')">📥 Xuất PDF</button>
       <button class="btn btn-secondary" style="flex:1" onclick="closeM('mContractDet');printContract('${id}')">🖨️ In</button>
-      ${ct.status!=='cancelled'?`<button class="btn btn-danger btn-sm" onclick="cancelContract('${id}');closeM('mContractDet')">🚫 Hủy</button>`:''}
+      ${ct.status!=='cancelled'?`<button class="btn btn-danger btn-sm" onclick="cancelContract('${id}');closeM('mContractDet')">🚫 Hủy</button>`:`<button class="btn btn-danger btn-sm" onclick="deleteContractForever('${id}');closeM('mContractDet')">🗑️ Xóa vĩnh viễn</button>`}
     </div>`;
   openM('mContractDet');
 }
@@ -4612,7 +4614,7 @@ function renewContract(id){
 function cancelContract(id){
   if(!confirm('Xác nhận hủy hợp đồng này?'))return;
   const ct=S.contracts.find(c=>c.id===id);if(!ct)return;
-  ct.status='cancelled';saveContractHistory(ct);renderContracts();
+  ct.status='cancelled';ct.cancelledAt=new Date().toISOString();saveContractHistory(ct);renderContracts();
   toast('Đã hủy hợp đồng!','warning');
 }
 
@@ -9321,6 +9323,125 @@ if(typeof o==='function')window.showRoomDet=function(id){var r=o.apply(this,argu
   return r};
 })();
 </script>
+<script id="ptPrintTools">
+/* ── In QR phòng (A4) · In người thuê · Hợp đồng đã hủy tự xóa sau 6 tháng ── */
+(function(){
+'use strict';
+var H=function(x){return (typeof esc==='function')?esc(x):String(x==null?'':x).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+function hotel(){return (S.settings&&S.settings.hotelName)||'Nhà trọ'}
+/* in qua iframe ẩn: không bị chặn popup */
+function printHtml(html){
+  var f=document.createElement('iframe');f.setAttribute('aria-hidden','true');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(f);var d=f.contentWindow.document;d.open();d.write(html);d.close();
+  var go=function(){try{f.contentWindow.focus();f.contentWindow.print()}catch(e){toast('Không mở được hộp thoại in','error')}setTimeout(function(){f.remove()},120000)};
+  var im=[].slice.call(d.images).filter(function(i){return !i.complete});
+  if(!im.length)setTimeout(go,200);else{var done=0,fin=function(){if(!done){done=1;go()}};Promise.all(im.map(function(i){return new Promise(function(r){i.onload=i.onerror=r})})).then(fin);setTimeout(fin,3000)}
+}
+function listRows(items,cls){return '<label class="ptp-row ptp-all"><input type="checkbox" id="'+cls+'All" checked> <b>Chọn tất cả (All)</b><span id="'+cls+'Cnt"></span></label><div class="ptp-list">'+items+'</div>'}
+function wire(cls,btn,label){
+  var all=document.getElementById(cls+'All'),cks=[].slice.call(document.querySelectorAll('.'+cls+'-ck')),go=document.getElementById(btn),cnt=document.getElementById(cls+'Cnt');
+  function upd(){var n=cks.filter(function(c){return c.checked}).length;all.checked=n===cks.length&&n>0;all.indeterminate=n>0&&n<cks.length;cnt.textContent=n+'/'+cks.length;if(go)go.textContent=label+' ('+n+')';if(go)go.disabled=!n}
+  all.onchange=function(){cks.forEach(function(c){c.checked=all.checked});upd()};cks.forEach(function(c){c.onchange=upd});upd()}
+function picked(cls){return [].slice.call(document.querySelectorAll('.'+cls+'-ck:checked')).map(function(c){return c.value})}
+var STL={available:'Còn trống',rented:'Đang thuê',debt:'Có nợ',due:'Sắp hạn'};
+
+/* ══ In mã QR phòng ══ */
+var LAY={1:[1,1,16,56],2:[1,2,14,44],4:[2,2,11,30],6:[2,3,10,24]};
+function pageHtml(rooms,imgs,per){
+  var n=rooms.length,p=per||(n<=1?1:n===2?2:n<=4?4:6),L=LAY[p],cap=L[0]*L[1],pages='';
+  for(var i=0;i<n;i+=cap){
+    var cards='';
+    for(var j=i;j<Math.min(n,i+cap);j++)cards+='<div class="cd"><div class="h">'+H(hotel())+'</div><div class="n">PHÒNG '+H(rooms[j].name)+'</div><div class="q"><img src="'+imgs[j]+'" alt=""></div><div class="c">Quét mã để đăng ký ở phòng '+H(rooms[j].name)+'</div></div>';
+    pages+='<div class="pg" style="--c:'+L[0]+';--r:'+L[1]+';--f1:'+L[2]+'pt;--f2:'+L[3]+'pt">'+cards+'</div>';
+  }
+  return '<!doctype html><html><head><meta charset="utf-8"><title>QR phòng</title><style>@page{size:A4;margin:8mm}*{box-sizing:border-box}html,body{margin:0;font-family:"Segoe UI",Arial,sans-serif;color:#0f172a;-webkit-print-color-adjust:exact;print-color-adjust:exact}.pg{width:194mm;height:281mm;display:grid;gap:6mm;grid-template-columns:repeat(var(--c),1fr);grid-template-rows:repeat(var(--r),1fr);page-break-after:always;break-after:page}.pg:last-child{page-break-after:auto;break-after:auto}.cd{border:1.5px dashed #94a3b8;border-radius:5mm;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4mm;text-align:center;min-height:0;min-width:0;overflow:hidden}.h{font-size:var(--f1);font-weight:700;color:#475569}.n{font-size:var(--f2);font-weight:900;margin:1mm 0 3mm;line-height:1.1}.q{flex:1;min-height:0;width:100%;display:flex}.q img{width:100%;height:100%;object-fit:contain}.c{font-size:var(--f1);font-weight:600;color:#475569;margin-top:3mm}</style></head><body>'+pages+'</body></html>';
+}
+function qrData(text){
+  var d=document.createElement('div');d.style.cssText='position:fixed;left:-9999px;top:0';document.body.appendChild(d);
+  try{new QRCode(d,{text:text,width:560,height:560,correctLevel:QRCode.CorrectLevel.L});var c=d.querySelector('canvas'),u=c?c.toDataURL('image/png'):((d.querySelector('img')||{}).src||'');return u}finally{d.remove()}
+}
+window.ptQrPagesHtml=pageHtml;
+window.ptQrPrintOpen=function(){
+  if(typeof v2==='undefined'||!v2.on){toast('Hãy bật Đồng bộ theo bản ghi (Cài đặt → Firebase) để dùng QR phòng','warning',{duration:6000});return}
+  if(!portalCanPublish()){toast('Chỉ Chủ trọ/Quản lý tạo được QR phòng','warning');return}
+  var rs=S.rooms.slice().sort(typeof roomCmp==='function'?roomCmp:function(){return 0});
+  if(!rs.length){toast('Chưa có phòng nào','info');return}
+  var rows=rs.map(function(r){var t=(typeof getRoomTenant==='function')?getRoomTenant(r):null;return '<label class="ptp-row"><input type="checkbox" class="ptqr-ck" value="'+H(r.id)+'" checked> <b>'+H(r.name)+'</b><span>'+(STL[r.status]||'')+(t?' · '+H(t.name):'')+'</span></label>'}).join('');
+  mkModal('mQrPrint','🖨️ In mã QR phòng',
+    '<div style="font-size:12px;color:var(--text3)">Chọn các phòng muốn tạo mã QR đăng ký hoặc chọn <b>All</b> cho tất cả. Khi in, mã QR được xếp đầy trang A4.</div>'+listRows(rows,'ptqr')
+    +'<div class="ptp-opt">Số QR mỗi trang A4: <select id="ptqrPer"><option value="0">Tự động (lấp đầy trang)</option><option value="1">1 mã / trang</option><option value="2">2 mã / trang</option><option value="4">4 mã / trang</option><option value="6">6 mã / trang</option></select></div>',
+    '<button class="btn btn-secondary" type="button" onclick="closeM(\'mQrPrint\')">Hủy</button><button class="btn btn-primary" type="button" id="ptqrGo" onclick="ptQrPrintRun()">🖨️ In QR</button>');
+  openM('mQrPrint');wire('ptqr','ptqrGo','🖨️ In QR');
+};
+window.ptQrPrintRun=async function(){
+  var ids=picked('ptqr');if(!ids.length)return;
+  var rooms=ids.map(function(id){return S.rooms.find(function(r){return r.id===id})}).filter(Boolean),per=+(document.getElementById('ptqrPer')||{}).value||0;
+  var btn=document.getElementById('ptqrGo');if(btn){btn.disabled=true;btn.textContent='Đang tạo mã QR…'}
+  try{
+    var made=false;rooms.forEach(function(r){if(!r.joinCode){r.joinCode=newPortalCode();made=true}});if(made)save();
+    await roomJoinPublish(true);
+    await loadQRLib();
+    var imgs=rooms.map(function(r){return qrData(portalLink(r.joinCode))});
+    if(imgs.some(function(u){return !u})){toast('Chưa tạo được mã QR (cần Internet)','warning');if(btn){btn.disabled=false;btn.textContent='🖨️ In QR'}return}
+    closeM('mQrPrint');printHtml(pageHtml(rooms,imgs,per));
+  }catch(e){toast('Không tạo được QR: '+(e&&e.message||e),'error');if(btn){btn.disabled=false;btn.textContent='🖨️ In QR'}}
+};
+
+/* ══ In thông tin người thuê ══ */
+function fd(d){return (typeof fmtDate==='function'&&d)?fmtDate(d):(d||'—')}
+function tenantHtml(list,mode){
+  var room=function(t){return S.rooms.find(function(r){return r.id===t.roomId})};
+  var head='<!doctype html><html><head><meta charset="utf-8"><title>Người thuê</title><style>@page{size:A4 '+(mode==='sheet'?'portrait':'landscape')+';margin:10mm}*{box-sizing:border-box}html,body{margin:0;font-family:"Segoe UI",Arial,sans-serif;color:#0f172a;font-size:10.5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}h1{font-size:15pt;margin:0 0 2mm}.sub{color:#475569;font-size:9.5pt;margin-bottom:4mm}table{width:100%;border-collapse:collapse}th,td{border:1px solid #94a3b8;padding:2mm 2.2mm;vertical-align:top;text-align:left}th{background:#e2e8f0;font-size:9.5pt}td{font-size:9.5pt}tr{break-inside:avoid}.sh{page-break-after:always;break-after:page}.sh:last-child{page-break-after:auto;break-after:auto}.top{display:flex;gap:6mm;align-items:center;margin-bottom:5mm}.av{width:30mm;height:36mm;object-fit:cover;border:1px solid #94a3b8;border-radius:2mm}.ph{width:30mm;height:36mm;border:1px dashed #94a3b8;border-radius:2mm;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:9pt}.kv td:first-child{width:38mm;background:#f1f5f9;font-weight:600}h2{font-size:12pt;margin:5mm 0 2mm}</style></head><body>';
+  if(mode==='sheet'){
+    return head+list.map(function(t){
+      var r=room(t),rm=(t.roommates||[]);
+      return '<div class="sh"><div class="top">'+(t.avatar?'<img class="av" src="'+H(t.avatar)+'">':'<div class="ph">Ảnh</div>')+'<div><h1>'+H(t.name)+'</h1><div class="sub">'+H(hotel())+(r?' · Phòng '+H(r.name):'')+'</div></div></div>'
+      +'<table class="kv">'+[['Họ và tên',t.name],['Giới tính',t.gender],['Ngày sinh',fd(t.dob)],['Số điện thoại',t.phone],['CCCD / CMND',t.cccd],['Địa chỉ thường trú',t.address],['Phương tiện',t.vehicle],['Phòng',r?r.name:'Chưa có phòng'],['Ngày vào ở',fd(t.moveIn)],['Số người ở',t.people||1],['Ghi chú',t.note]].map(function(p){return '<tr><td>'+p[0]+'</td><td>'+H(p[1]==null||p[1]===''?'—':p[1])+'</td></tr>'}).join('')+'</table>'
+      +(rm.length?'<h2>Người ở cùng ('+rm.length+')</h2><table><tr><th>#</th><th>Họ tên</th><th>Giới tính</th><th>Ngày sinh</th><th>SĐT</th><th>CCCD</th></tr>'+rm.map(function(m,i){return '<tr><td>'+(i+1)+'</td><td>'+H(m.name)+'</td><td>'+H(m.gender||'')+'</td><td>'+fd(m.dob)+'</td><td>'+H(m.phone||'')+'</td><td>'+H(m.cccd||'')+'</td></tr>'}).join('')+'</table>':'')+'</div>'}).join('')+'</body></html>';
+  }
+  return head+'<h1>DANH SÁCH NGƯỜI THUÊ</h1><div class="sub">'+H(hotel())+' · '+list.length+' người · In ngày '+new Date().toLocaleDateString('vi-VN')+'</div><table><tr><th>STT</th><th>Họ tên</th><th>Giới tính</th><th>Ngày sinh</th><th>SĐT</th><th>CCCD</th><th>Phòng</th><th>Ngày vào ở</th><th>Địa chỉ</th><th>Người ở cùng</th></tr>'
+   +list.map(function(t,i){var r=room(t),rm=(t.roommates||[]);return '<tr><td>'+(i+1)+'</td><td><b>'+H(t.name)+'</b></td><td>'+H(t.gender||'')+'</td><td>'+fd(t.dob)+'</td><td>'+H(t.phone||'')+'</td><td>'+H(t.cccd||'')+'</td><td>'+(r?H(r.name):'—')+'</td><td>'+fd(t.moveIn)+'</td><td>'+H(t.address||'')+'</td><td>'+(rm.length?rm.map(function(m){return H(m.name)}).join(', '):'')+'</td></tr>'}).join('')+'</table></body></html>';
+}
+window.ptTenantHtml=tenantHtml;
+window.ptTenantPrintOpen=function(){
+  var ts=S.tenants.slice();if(!ts.length){toast('Chưa có người thuê','info');return}
+  var rows=ts.map(function(t){var r=S.rooms.find(function(x){return x.id===t.roomId});return '<label class="ptp-row"><input type="checkbox" class="ptt-ck" value="'+H(t.id)+'" checked> <b>'+H(t.name)+'</b><span>'+(r?'Phòng '+H(r.name):'Chưa có phòng')+(t.phone?' · '+H(t.phone):'')+'</span></label>'}).join('');
+  mkModal('mTenPrint','🖨️ In thông tin người thuê',
+    '<div style="font-size:12px;color:var(--text3)">Chọn những người muốn in hoặc chọn <b>All</b> cho tất cả.</div>'+listRows(rows,'ptt')
+    +'<div class="ptp-opt">Kiểu in: <select id="pttMode"><option value="table">Bảng danh sách (A4 ngang)</option><option value="sheet">Mỗi người 1 phiếu (A4 dọc)</option></select></div>',
+    '<button class="btn btn-secondary" type="button" onclick="closeM(\'mTenPrint\')">Hủy</button><button class="btn btn-primary" type="button" id="pttGo" onclick="ptTenantPrintRun()">🖨️ In</button>');
+  openM('mTenPrint');wire('ptt','pttGo','🖨️ In');
+};
+window.ptTenantPrintRun=function(){
+  var ids=picked('ptt');if(!ids.length)return;
+  var list=ids.map(function(id){return S.tenants.find(function(t){return t.id===id})}).filter(Boolean),mode=(document.getElementById('pttMode')||{}).value||'table';
+  closeM('mTenPrint');printHtml(tenantHtml(list,mode));
+};
+
+/* ══ Hợp đồng đã hủy: tự xóa vĩnh viễn sau 6 tháng ══ */
+var KEEP_MONTHS=6;
+function delAt(ct){var d=new Date(ct.cancelledAt);if(isNaN(d))return null;d.setMonth(d.getMonth()+KEEP_MONTHS);return d}
+window.ptCancelLeft=function(ct){var d=delAt(ct);if(!d)return '';var n=Math.ceil((d-new Date())/864e5);return n>0?' · tự xóa sau '+n+' ngày':''};
+window.deleteContractForever=function(id){
+  var ct=(S.contracts||[]).find(function(c){return c.id===id});if(!ct)return;
+  if(ct.status!=='cancelled'){toast('Chỉ xóa vĩnh viễn được hợp đồng đã hủy','warning');return}
+  if(!confirm('Xóa vĩnh viễn hợp đồng '+(ct.roomName?'phòng '+ct.roomName+' · ':'')+(ct.tenantName||'')+'?\nHợp đồng sẽ mất hẳn và không khôi phục được.'))return;
+  S.contracts=S.contracts.filter(function(c){return c.id!==id});save();if(typeof renderContracts==='function')renderContracts();toast('Đã xóa vĩnh viễn hợp đồng','success');
+};
+window.ptPurgeContracts=function(){
+  try{
+    if(!S||!S.contracts||!S.contracts.length)return 0;
+    if(window.ptRole&&window.ptRole!=='owner'&&window.ptRole!=='manager')return 0;
+    var now=new Date(),stamped=0,gone=[];
+    S.contracts.forEach(function(c){if(c&&c.status==='cancelled'&&!c.cancelledAt){c.cancelledAt=now.toISOString();stamped++}});
+    var keep=S.contracts.filter(function(c){if(!c||c.status!=='cancelled')return true;var d=delAt(c);if(d&&d<=now){gone.push(c);return false}return true});
+    if(gone.length||stamped){S.contracts=keep;save();if(typeof renderContracts==='function')renderContracts();if(gone.length)toast('Đã tự xóa '+gone.length+' hợp đồng hủy quá 6 tháng','info')}
+    return gone.length;
+  }catch(e){return 0}
+};
+setTimeout(ptPurgeContracts,5000);setInterval(function(){if(!document.hidden)ptPurgeContracts()},6*3600*1000);
+})();
+</script>
 <script id="ptQr">
 /* ── Mã QR cài đặt ứng dụng (Cài đặt) ── */
 (function(){
@@ -9454,6 +9575,18 @@ setInterval(function(){if(!document.hidden)decorate()},1000);setTimeout(decorate
 .ptq-guide div{padding:9px 10px;border-radius:12px;background:var(--bg2);font-size:12px;line-height:1.45;color:var(--text2)}
 .ptq-guide b{display:block;color:var(--text);margin-bottom:2px}
 </style>
+<style id="ptPrintCss">
+.ptqp-btn{margin-left:auto;flex:0 0 auto;width:40px;height:40px;border-radius:12px;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.ptqp-btn svg{width:20px;height:20px}
+.ptqp-btn:active{transform:scale(.95)}
+.ptp-list{max-height:46vh;overflow:auto;margin:8px 0}
+.ptp-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;background:var(--bg2);margin-bottom:6px;cursor:pointer;font-size:13px}
+.ptp-row input{width:18px;height:18px;flex:0 0 auto}
+.ptp-row b{color:var(--text)}.ptp-row span{margin-left:auto;font-size:11.5px;color:var(--text3);text-align:right}
+.ptp-all{background:rgba(22,163,74,.12);font-weight:800}
+.ptp-opt{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--text2);margin-top:6px}
+.ptp-opt select{padding:7px 9px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text)}
+</style>
 <style id="ptRoom3dCss">
 .pt-ppl{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;overflow:visible}
 body.pt-noperson .pt-ppl{display:none}
@@ -9565,7 +9698,7 @@ document.body.insertBefore(d.firstChild,document.body.firstChild);
 .rm-ghost.zone{transform:none;background:var(--surface,#16213a);border-radius:14px;padding:8px 12px;opacity:.95}
 </style>
 <script>
-window.APP_VERSION='5.37';
+window.APP_VERSION='5.38';
 (function(){
 'use strict';
 /* ── Phiên bản + kiểm tra cập nhật ── */

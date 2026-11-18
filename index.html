@@ -7225,9 +7225,9 @@ let lastSummary='';
 function renderHomeExtras(){
   const home=document.querySelector('.home-menu');if(!home)return;
   let g=document.getElementById('homeGreet');
-  if(!g){g=document.createElement('div');g.id='homeGreet';g.className='home-greet';home.querySelector('.home-menu-header').after(g)}
+  if(!g){g=document.createElement('div');g.id='homeGreet';g.className='home-greet';home.insertBefore(g,home.firstChild)}
   const h=new Date().getHours(),hello=h<11?'Chào buổi sáng':h<14?'Chào buổi trưa':h<18?'Chào buổi chiều':'Chào buổi tối',nm=(S.settings.ownerName||'').trim().split(/\s+/).pop();
-  g.innerHTML=`<div class="hg-hello">${hello}${nm?', '+esc(nm):''} 👋</div><div class="hg-date">${esc(new Date().toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))}</div>`;
+  g.innerHTML=(window.ptHomeGreetHtml&&ptHomeGreetHtml())||`<div class="hg-hello">${hello}${nm?', '+esc(nm):''} 👋</div><div class="hg-date">${esc(new Date().toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'long',year:'numeric'}))}</div>`;
   let t=document.getElementById('homeToday');
   if(!t){t=document.createElement('div');t.id='homeToday';t.className='home-today';document.getElementById('homeSummary').before(t)}
   const chips=[],add=(n,txt,cls,tab)=>{if(n>0)chips.push(`<button class="today-chip ${cls}" type="button" onclick="switchTab('${tab}')"><b>${n}</b>${txt}</button>`)};
@@ -8403,7 +8403,7 @@ window.ptUser=null;
       else{
         if(!el){el=document.createElement('div');el.className='hg-user';el.onclick=()=>editUserName();g.appendChild(el)}
         el.title=u.email||'';el.innerHTML='<span>👤</span><b>'+esc(u.name)+'</b>'+(role?'<em>· '+esc(role)+'</em>':'');
-        const hello=g.querySelector('.hg-hello');if(hello)hello.textContent=greet()+', '+u.name.trim().split(/\s+/).pop()+' 👋';
+        const hello=g.querySelector('.hg-hello');if(hello){if(window.ptHomeRefresh)ptHomeRefresh();else hello.textContent=greet()+', '+u.name.trim().split(/\s+/).pop()+' 👋'}
       }
     }
     const sp=document.querySelector('#pg-settings .stg-profile-info');
@@ -10386,5 +10386,107 @@ var o=window.showRoomDet;
 if(typeof o==='function')window.showRoomDet=function(id){var r=o.apply(this,arguments);try{compact(id)}catch(e){console.error(e)}return r};
 })();
 </script>
+<script id="ptHomeInfo">
+/* ── Góc trái trang chủ: lời chào + dương lịch + âm lịch + ngày tốt/xấu | Hiệu ứng lật xem ảnh phòng ── */
+(function(){'use strict';
+var TZ=7,CAN=['Giáp','Ất','Bính','Đinh','Mậu','Kỷ','Canh','Tân','Nhâm','Quý'],CHI=['Tý','Sửu','Dần','Mão','Thìn','Tỵ','Ngọ','Mùi','Thân','Dậu','Tuất','Hợi'];
+function jdFromDate(d,m,y){var a=Math.floor((14-m)/12),yy=y+4800-a,mm=m+12*a-3,jd=d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045;return jd}
+function newMoon(k){var T=k/1236.85,T2=T*T,T3=T2*T,dr=Math.PI/180,J=2415020.75933+29.53058868*k+0.0001178*T2-0.000000155*T3;
+  J+=0.00033*Math.sin((166.56+132.87*T-0.009173*T2)*dr);
+  var M=359.2242+29.10535608*k-0.0000333*T2-0.00000347*T3,Mp=306.0253+385.81691806*k+0.0107306*T2+0.00001236*T3,F=21.2964+390.67050646*k-0.0016528*T2-0.00000239*T3,
+  C=(0.1734-0.000393*T)*Math.sin(M*dr)+0.0021*Math.sin(2*dr*M)-0.4068*Math.sin(Mp*dr)+0.0161*Math.sin(dr*2*Mp)-0.0004*Math.sin(dr*3*Mp)+0.0104*Math.sin(dr*2*F)-0.0051*Math.sin(dr*(M+Mp))-0.0074*Math.sin(dr*(M-Mp))+0.0004*Math.sin(dr*(2*F+M))-0.0004*Math.sin(dr*(2*F-M))-0.0006*Math.sin(dr*(2*F+Mp))+0.001*Math.sin(dr*(2*F-Mp))+0.0005*Math.sin(dr*(2*Mp+M)),dt;
+  dt=T<-11?0.001+0.000839*T+0.0002261*T2-0.00000845*T3-0.000000081*T*T3:-0.000278+0.000265*T+0.000262*T2;return J+C-dt}
+function sunDeg(jdn){var T=(jdn-2451545.0)/36525,T2=T*T,dr=Math.PI/180,M=357.5291+35999.0503*T-0.0001559*T2-0.00000048*T*T2,L0=280.46645+36000.76983*T+0.0003032*T2,
+  DL=(1.9146-0.004817*T-0.000014*T2)*Math.sin(dr*M)+(0.019993-0.000101*T)*Math.sin(dr*2*M)+0.00029*Math.sin(dr*3*M),L=(L0+DL)%360;return L<0?L+360:L}
+function sunSec(jd){return Math.floor(sunDeg(jd-0.5-TZ/24)/30)}
+function nmDay(k){return Math.floor(newMoon(k)+0.5+TZ/24)}
+function m11(y){var off=jdFromDate(31,12,y)-2415021,k=Math.floor(off/29.530588853),nm=nmDay(k);if(sunSec(nm)>=9)nm=nmDay(k-1);return nm}
+function leapOff(a11){var k=Math.floor((a11-2415021.076998695)/29.530588853+0.5),last=0,i=1,arc=sunSec(nmDay(k+i));do{last=arc;i++;arc=sunSec(nmDay(k+i))}while(arc!==last&&i<14);return i-1}
+function lunar(d,m,y){var dn=jdFromDate(d,m,y),k=Math.floor((dn-2415021.076998695)/29.530588853),ms=nmDay(k+1);if(ms>dn)ms=nmDay(k);
+  var a11=m11(y),b11=a11,ly;if(a11>=ms){ly=y;a11=m11(y-1)}else{ly=y+1;b11=m11(y+1)}
+  var ld=dn-ms+1,diff=Math.floor((ms-a11)/29),leap=0,lm=diff+11;
+  if(b11-a11>365){var lo=leapOff(a11);if(diff>=lo){lm=diff+10;if(diff===lo)leap=1}}
+  if(lm>12)lm-=12;if(lm>=11&&diff<4)ly-=1;return {d:ld,m:lm,y:ly,leap:leap,jd:dn}}
+/* 12 trực → việc nên/kỵ, viết theo việc của chủ trọ */
+var TR=[['Kiến','khai trương, đón khách mới, ký hợp đồng thuê','động thổ, sửa chữa lớn, đào móng','nhận cọc và ký hợp đồng cho khách mới'],
+['Trừ','dọn dẹp, sửa chữa nhỏ, cúng tế','ký hợp đồng, xuất hành xa','dọn vệ sinh, bảo trì phòng trống'],
+['Mãn','thu tiền, giao dịch, cúng cầu tài','động thổ, khởi công','thu tiền phòng, nhắc công nợ'],
+['Bình','việc thường ngày, sửa chữa nhỏ','khởi công lớn, ký kết quan trọng','kiểm tra điện nước, ghi chỉ số'],
+['Định','ký hợp đồng, đón khách, mua sắm đồ đạc','kiện tụng, đi xa','ký hợp đồng, chốt giá thuê'],
+['Chấp','sửa chữa, lắp đặt thiết bị','khai trương, chuyển nhà, xuất hành','sửa chữa, thay thiết bị hỏng'],
+['Phá','phá dỡ, dọn đồ cũ','khai trương, ký hợp đồng, xuất hành','tháo dỡ, dọn đồ cũ, hoãn ký kết'],
+['Nguy','cúng lễ, cầu an','leo trèo cao, khai trương, xuất hành','kiểm tra an toàn điện và PCCC'],
+['Thành','khai trương, ký hợp đồng, đón khách mới','kiện tụng, tranh chấp','ký hợp đồng mới, đón khách'],
+['Thu','thu tiền, thu nợ, cất giữ, kiểm kê','động thổ, xuất hành xa','thu tiền phòng, đòi công nợ'],
+['Khai','khai trương, đón khách, ký hợp đồng, xuất hành','an táng, đào đất','đăng tin cho thuê phòng trống'],
+['Bế','nghỉ ngơi, bảo trì, lắp khóa cửa','khai trương, ký hợp đồng, khởi công','bảo trì, kiểm kê, chưa ký kết lớn']];
+var STAR=['Thanh Long','Minh Đường','Thiên Hình','Chu Tước','Kim Quỹ','Bảo Quang','Bạch Hổ','Ngọc Đường','Thiên Lao','Huyền Vũ','Tư Mệnh','Câu Trận'],
+    HD0={2:0,8:0,3:2,9:2,4:4,10:4,5:6,11:6,0:8,6:8,1:10,7:10};
+function dayInfo(dt){
+  var d=dt.getDate(),m=dt.getMonth()+1,y=dt.getFullYear(),lu=lunar(d,m,y),jd=lu.jd,
+      cd=(jd+9)%10,hd=(jd+1)%12,
+      lam=sunDeg(jd-0.5-TZ/24),mc=(Math.floor(((lam-315+360)%360)/30)+2)%12,
+      tr=TR[(hd-mc+12)%12],si=(hd-HD0[mc]+12)%12,hoang=[0,1,4,5,7,10].indexOf(si)>=0;
+  return {lu:lu,dayName:CAN[cd]+' '+CHI[hd],monName:CAN[(lu.y*12+lu.m+3)%10]+' '+CHI[(lu.m+1)%12],yearName:CAN[(lu.y+6)%10]+' '+CHI[(lu.y+8)%12],
+    star:STAR[si],hoang:hoang,truc:tr}}
+window.ptLunar=dayInfo;
+function roleWord(){var r=window.ptRole;return r==='manager'?'quản lý':r==='staff'?'nhân viên':'chủ trọ'}
+function esc2(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+window.ptHomeGreetHtml=function(){
+  var now=new Date(),h=now.getHours(),hello=h<11?'Chào buổi sáng':h<14?'Chào buổi trưa':h<18?'Chào buổi chiều':'Chào buổi tối',
+      wd=['Chủ nhật','Thứ hai','Thứ ba','Thứ tư','Thứ năm','Thứ sáu','Thứ bảy'][now.getDay()],inf;
+  try{inf=dayInfo(now)}catch(e){inf=null}
+  var s='<div class="hg-hello">'+hello+', '+roleWord()+' 👋</div>'
+   +'<div class="hg-date">Ngày '+now.getDate()+' Tháng '+(now.getMonth()+1)+' Năm '+now.getFullYear()+' · '+wd+'</div>';
+  if(inf){var l=inf.lu;
+    s+='<div class="hg-lunar">Âm lịch: Ngày '+l.d+' Tháng '+l.m+(l.leap?' (nhuận)':'')+' Năm '+inf.yearName+'</div>'
+     +'<div class="hg-dn">Ngày '+inf.dayName+' · Tháng '+inf.monName+' · <b class="'+(inf.hoang?'hd':'hacd')+'">'+(inf.hoang?'Hoàng đạo':'Hắc đạo')+' ('+inf.star+')</b> · Trực '+inf.truc[0]+'</div>'
+     +'<div class="hg-tot"><b>Tốt cho việc:</b> '+esc2(inf.truc[1])+'</div>'
+     +'<div class="hg-xau"><b>Xấu/kỵ:</b> '+esc2(inf.truc[2])+'</div>'
+     +'<div class="hg-nen"><b>Nên:</b> '+esc2(inf.truc[3])+'</div>'}
+  return s};
+window.ptHomeRefresh=function(){var g=document.getElementById('homeGreet');if(g)g.innerHTML=window.ptHomeGreetHtml()};
+var st=document.createElement('style');st.id='ptHomeInfoCss';st.textContent=
+'.home-menu>.home-greet{position:relative;margin:0 0 10px;text-align:left;max-width:none}'
++'.home-greet .hg-user{display:none!important}'
++'.home-greet .hg-hello{font-size:14px}.home-greet .hg-date{font-size:12.5px;font-weight:700;color:var(--text2);text-transform:none;margin-top:2px}'
++'.home-greet .hg-lunar,.home-greet .hg-dn,.home-greet .hg-tot,.home-greet .hg-xau,.home-greet .hg-nen{font-size:11.5px;line-height:1.4;color:var(--text3);margin-top:2px;font-weight:600}'
++'.home-greet .hg-tot b{color:#16a34a}.home-greet .hg-xau b{color:#dc2626}.home-greet .hg-nen b{color:#2563eb}.home-greet .hd{color:#d97706}.home-greet .hacd{color:#64748b}'
++'@media(min-width:900px){.home-menu>.home-greet{position:absolute;top:16px;left:18px;z-index:3;width:min(340px,calc((100% - 420px)/2 + 80px))}}'
++'#roomGrid .floor-rooms-map,#roomGrid .room-grid{perspective:1200px}'
++'@keyframes ptFlip{0%{rotate:0 1 0 0deg}50%{rotate:0 1 0 90deg}100%{rotate:0 1 0 0deg}}'
++'#roomGrid .room-cell.rc3.pt-flipping,#roomGrid .room-card.rc3.pt-flipping{animation:ptFlip .58s ease-in-out!important}'
++'#roomGrid .room-cell.rc3,#roomGrid .room-card.rc3{position:relative}'
++'.rc3-back{position:absolute;inset:0;z-index:6;display:none;border-radius:inherit;overflow:hidden;background:linear-gradient(135deg,color-mix(in srgb,var(--rc,#16a34a) 16%,var(--surface)),var(--surface))}'
++'.pt-open>.rc3-back{display:block}'
++'.rb-ph{position:absolute;inset:0;display:grid;gap:2px}.rb-ph.n2{grid-template-columns:1fr 1fr}.rb-ph img{width:100%;height:100%;object-fit:cover;display:block}'
++'.rb-cap{position:absolute;left:10px;bottom:10px;padding:4px 12px;border-radius:99px;background:rgba(15,23,42,.64);color:#fff;font-weight:800;font-size:13px;backdrop-filter:blur(4px)}'
++'.rb-none{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:8px}'
++'.rb-none img{width:min(32%,88px);aspect-ratio:1;object-fit:contain;border-radius:18px;box-shadow:0 6px 18px rgba(0,0,0,.18)}.rb-none b{font-size:14px;color:var(--text)}.rb-none span{font-size:12px;color:var(--text3)}';
+document.head.appendChild(st);
+/* ── lật ô phòng khi rê chuột ── */
+var SEL='#roomGrid .room-cell.rc3,#roomGrid .room-card.rc3';
+function roomOf(cell){var id=cell.dataset.rid||((cell.getAttribute('onclick')||'').match(/showRoomDet\('([^']+)'/)||[])[1];return (S.rooms||[]).find(function(r){return String(r.id)===String(id)})}
+function back(cell){for(var i=0;i<cell.children.length;i++)if(cell.children[i].classList.contains('rc3-back'))return cell.children[i];
+  var r=roomOf(cell);if(!r)return null;var ph=getRoomPhotos(r),b=document.createElement('div');b.className='rc3-back';
+  b.innerHTML=ph.length?'<div class="rb-ph n'+ph.length+'">'+ph.map(function(s){return '<img src="'+esc(s)+'" alt="">'}).join('')+'</div><div class="rb-cap">'+esc(r.name)+'</div>'
+    :'<div class="rb-none"><img src="icon-192.png" alt=""><b>Chưa có hình</b><span>Phòng '+esc(r.name)+'</span></div>';
+  cell.appendChild(b);return b}
+function flip(cell,want){
+  if(!!cell._w===want)return;cell._w=want;clearTimeout(cell._t1);clearTimeout(cell._t2);
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){cell.classList.toggle('pt-open',want);return}
+  cell.classList.remove('pt-flipping');void cell.offsetWidth;cell.classList.add('pt-flipping');
+  cell._t1=setTimeout(function(){cell.classList.toggle('pt-open',want)},270);
+  cell._t2=setTimeout(function(){cell.classList.remove('pt-flipping')},580)}
+function hoverOk(){return !window.matchMedia||matchMedia('(hover:hover)').matches}
+document.addEventListener('mouseover',function(e){var c=e.target.closest&&e.target.closest(SEL);if(!c||!hoverOk())return;
+  if(e.relatedTarget&&c.contains(e.relatedTarget))return;if(!back(c))return;flip(c,true)});
+document.addEventListener('mouseout',function(e){var c=e.target.closest&&e.target.closest(SEL);if(!c)return;
+  if(e.relatedTarget&&c.contains(e.relatedTarget))return;flip(c,false)});
+setInterval(function(){try{window.ptHomeRefresh()}catch(e){}},600000);
+try{if(typeof renderHomeExtras==='function')renderHomeExtras()}catch(e){}
+})();
+</script>
+
 </body>
 </html>

@@ -9151,7 +9151,7 @@ function wet(c,o){
   for(i=0;i<7&&a;i++)a=a.nextElementSibling;if(!a)return;
   var g=document.createElementNS(NS,'g');g.setAttribute('transform',T('wet',o));a.parentNode.insertBefore(g,a);
   while(g.nextSibling){var n=g.nextSibling;g.appendChild(n);if(n===h)break}}
-function fix(k,o){if(k!=='wet'){clampOff(room(ed.id),k,o);return}var D=window.ptRoomSz?ptRoomSz(room(ed.id)).d:5.5;o.x=0;o.y=Math.max(-2.5,Math.min(D-4.5,o.y||0))}
+function fix(k,o){if(k!=='wet'){clampOff(room(ed.id),k,o);return}var z=window.ptRoomSz?ptRoomSz(room(ed.id)):{w:7.5,d:5.5};o.x=Math.max(0,Math.min(z.w-1.9,o.x||0));o.y=Math.max(-2.5,Math.min(z.d-4.5,o.y||0))}
 /* --- nội thất mới: kệ tivi, tivi, sofa (vẽ bằng hộp iso) + tự xếp giữa phòng + vật cản cho người đi lại --- */
 function Pp(x,y,z){return [200+30*(x-y),110+15*(x+y)-(z||0)]}
 function pj(a){return a.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1)}).join(' ')}
@@ -9185,7 +9185,7 @@ function rectOf(r,k,o){
   if(o.r){var u=o.r*Math.PI/180,c1=Math.abs(Math.cos(u)),s1=Math.abs(Math.sin(u)),w1=hw*c1+hh*s1,h1=hw*s1+hh*c1;hw=w1;hh=h1}
   var cx=q[0]/2+a.x+(o.x||0),cy=q[1]/2+a.y+(o.y||0);return [cx-hw,cy-hh,cx+hw,cy+hh]}
 function clampOff(r,k,o){
-  if(!r||k==='wet'||!IT[k])return;
+  if(!r||k==='wet'||!IT[k]||(!FP[k]&&!TVQ[k]))return;
   /* biên cho phép = trong phòng, hoặc đúng vùng mặc định của món đó (không làm dịch bố trí gốc) */
   var z=szOf(r),M=.05,b=rectOf(r,k,o),d=rectOf(r,k,{}),
       x0=Math.min(M,d[0]),x1=Math.max(z.w-M,d[2]),y0=Math.min(M,d[1]),y1=Math.max(z.d-M,d[3]),dx=0,dy=0;
@@ -9213,7 +9213,7 @@ function addNew(c,r,all){var on=all?{'Kệ tivi':1}:onSet(r);if(!(on['Kệ tivi'
   var s=document.createElementNS(NS,'g');s.innerHTML=newSvg();while(s.firstChild)top.insertBefore(s.firstChild,n)}
 window.ptLayObs=function(r){var on=onSet(r),L=clampLay(r,r.lay||{}),a=auto(r),o=[];o.named={};
   Object.keys(FP).forEach(function(k){if(on[FP[k][2]]){var f=foot(r,k,L[k]||{});o.push(f);o.named[k]=f}});
-  o.push([0,2.5+((L.wet&&L.wet.y)||0),1.85,4.6+((L.wet&&L.wet.y)||0)]);
+  o.push([(L.wet&&L.wet.x)||0,2.5+((L.wet&&L.wet.y)||0),1.85+((L.wet&&L.wet.x)||0),4.6+((L.wet&&L.wet.y)||0)]);
   [['tvset',1.6,.55,on['Kệ tivi']||on['Tivi']],['sofa',2,.85,on['Ghế sofa']]].forEach(function(q){if(!q[3])return;
     var l=L[q[0]]||{},m=a[q[0]]||{x:0,y:0},hw=q[1]/2,hh=q[2]/2;if(l.f){var t=hw;hw=hh;hh=t}if(l.r){var u=l.r*Math.PI/180,c1=Math.abs(Math.cos(u)),s1=Math.abs(Math.sin(u)),w1=hw*c1+hh*s1,h1=hw*s1+hh*c1;hw=w1;hh=h1}
     var cx=q[1]/2+m.x+(l.x||0),cy=q[2]/2+m.y+(l.y||0);var rc=[cx-hw,cy-hh,cx+hw,cy+hh];o.push(rc);o.named[q[0]]=rc});
@@ -9274,7 +9274,7 @@ function make(id,srcId,lay,r,all){
   var c=src.cloneNode(true);c.id=id;
   c.querySelectorAll('defs').forEach(function(d){d.remove()});
   var A=r?auto(r,all):{};if(r)addNew(c,r,all);
-  if(lay.wet&&lay.wet.y)wet(c,lay.wet);
+  if(lay.wet&&(lay.wet.x||lay.wet.y))wet(c,lay.wet);
   Object.keys(IT).forEach(function(k){var o=lay[k]||{},a=A[k]||{x:0,y:0},m={x:(o.x||0)+a.x,y:(o.y||0)+a.y,f:o.f,r:o.r};
     if(k==='wet'||!(m.x||m.y||m.f||m.r))return;
     if(m.r&&MD[k]){rotItem(c,k,m);return}
@@ -9309,7 +9309,7 @@ function ctl(){
    +b('↖','ptLayMv(-.5,0)')+b('↗','ptLayMv(0,-.5)')+b('↙','ptLayMv(0,.5)')+b('↘','ptLayMv(.5,0)')
    +(sel==='wet'?b('📍 Góc trước','ptLayCorner(1)')+b('📍 Góc sau','ptLayCorner(0)'):rotUi())+b('⬆ Lên trên','ptLayZ(1)')+b('⬇ Xuống dưới','ptLayZ(-1)')+b('↺ Đặt lại món','ptLayOne()')+'</div>'+'<div style="font-size:11.5px;color:var(--text3);margin-top:6px">Thứ tự vẽ: '+(((ed.lay[sel]||{}).z>0)?'đang ở trên cùng (che các món khác)':((ed.lay[sel]||{}).z<0)?'đang ở dưới cùng (bị các món khác che)':'mặc định')+'</div>'}
 window.ptLayZ=function(d){var o=ent(sel),m=0,n=0;Object.keys(ed.lay).forEach(function(k){var z=(ed.lay[k]||{}).z||0;if(z>m)m=z;if(z<n)n=z});o.z=d>0?m+1:d<0?n-1:0;refresh();ctl()};
-window.ptLayCorner=function(f){sel='wet';var o=ent('wet');o.y=f?99:-99;fix('wet',o);refresh();ctl()};
+window.ptLayCorner=function(f){sel='wet';var o=ent('wet');o.x=0;o.y=f?99:-99;fix('wet',o);refresh();ctl()};
 window.ptLaySel=function(k){sel=k;ctl()};
 window.ptLayMv=function(dx,dy){var o=ent(sel);o.x=cl((o.x||0)+dx);o.y=cl((o.y||0)+dy);fix(sel,o);refresh()};
 window.ptLayFlip=function(){if(sel==='wet')return;var o=ent(sel);o.f=o.f?0:1;fix(sel,o);refresh()};

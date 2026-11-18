@@ -7243,6 +7243,7 @@ function renderHomeExtras(){
   }catch(e){}
   t.innerHTML=chips.join('')||'<div class="today-ok">✅ Hôm nay mọi việc đã ổn</div>';
   prepIcons();
+  try{window.ptHomeStrip&&ptHomeStrip()}catch(e){}
   const sig=[...document.querySelectorAll('.home-summary-val')].map(e=>e.textContent).join('|');
   if(sig!==lastSummary){lastSummary=sig;document.querySelectorAll('.home-summary-val').forEach(countUp)}
 }
@@ -10438,33 +10439,42 @@ window.ptHomeGreetHtml=function(){
   try{inf=dayInfo(now)}catch(e){inf=null}
   var s='<div class="hg-hello">'+hello+', '+roleWord()+' 👋</div>'
    +'<div class="hg-date">Ngày '+now.getDate()+' Tháng '+(now.getMonth()+1)+' Năm '+now.getFullYear()+' · '+wd+'</div>';
-  if(inf){var l=inf.lu;
-    s+='<div class="hg-lunar">Âm lịch: Ngày '+l.d+' Tháng '+l.m+(l.leap?' (nhuận)':'')+' Năm '+inf.yearName+'</div>'
-     +'<div class="hg-dn">Ngày '+inf.dayName+' · Tháng '+inf.monName+' · <b class="'+(inf.hoang?'hd':'hacd')+'">'+(inf.hoang?'Hoàng đạo':'Hắc đạo')+' ('+inf.star+')</b> · Trực '+inf.truc[0]+'</div>'
-     +'<div class="hg-tot"><b>Tốt cho việc:</b> '+esc2(inf.truc[1])+'</div>'
-     +'<div class="hg-xau"><b>Xấu/kỵ:</b> '+esc2(inf.truc[2])+'</div>'
-     +'<div class="hg-nen"><b>Nên:</b> '+esc2(inf.truc[3])+'</div>'}
+  if(inf){var l=inf.lu;s+='<div class="hg-lunar">Âm lịch: Ngày '+l.d+' Tháng '+l.m+(l.leap?' (nhuận)':'')+' Năm '+inf.yearName+'</div>'}
   return s};
-window.ptHomeRefresh=function(){var g=document.getElementById('homeGreet');if(g)g.innerHTML=window.ptHomeGreetHtml()};
+
+window.ptHomeStrip=function(){
+  var sm=document.getElementById('homeSummary');if(!sm)return;var inf;try{inf=dayInfo(new Date())}catch(e){return}
+  var s=document.getElementById('homeAlmanac');if(!s){s=document.createElement('div');s.id='homeAlmanac';s.className='home-almanac'}
+  var t=document.getElementById('homeToday');if(t)t.after(s);else sm.before(s);
+  var one='<span class="alm-i">📅 Ngày '+inf.dayName+' · Tháng '+inf.monName+' · <b class="'+(inf.hoang?'hd':'hacd')+'">'+(inf.hoang?'Hoàng đạo':'Hắc đạo')+' ('+inf.star+')</b> · Trực '+inf.truc[0]+'</span>'
+   +'<span class="alm-i tot">✅ <b>Tốt cho việc:</b> '+esc2(inf.truc[1])+'</span><span class="alm-i xau">⛔ <b>Xấu/kỵ:</b> '+esc2(inf.truc[2])+'</span><span class="alm-i nen">💡 <b>Nên:</b> '+esc2(inf.truc[3])+'</span>',
+      key=one;
+  if(s.dataset.k!==key){s.dataset.k=key;s.innerHTML='<div class="alm-track"><div class="alm-seg">'+one+'</div><div class="alm-seg" aria-hidden="true">'+one+'</div></div>';
+    var len=s.textContent.length/2;s.firstChild.style.animationDuration=Math.max(28,Math.round(len*.2))+'s'}}
+window.ptHomeRefresh=function(){var g=document.getElementById('homeGreet');if(g)g.innerHTML=window.ptHomeGreetHtml();window.ptHomeStrip()};
+
 var st=document.createElement('style');st.id='ptHomeInfoCss';st.textContent=
 '.home-menu>.home-greet{position:relative;margin:0 0 10px;text-align:left;max-width:none}'
 +'.home-greet .hg-user{display:none!important}'
 +'.home-greet .hg-hello{font-size:14px}.home-greet .hg-date{font-size:12.5px;font-weight:700;color:var(--text2);text-transform:none;margin-top:2px}'
-+'.home-greet .hg-lunar,.home-greet .hg-dn,.home-greet .hg-tot,.home-greet .hg-xau,.home-greet .hg-nen{font-size:11.5px;line-height:1.4;color:var(--text3);margin-top:2px;font-weight:600}'
-+'.home-greet .hg-tot b{color:#16a34a}.home-greet .hg-xau b{color:#dc2626}.home-greet .hg-nen b{color:#2563eb}.home-greet .hd{color:#d97706}.home-greet .hacd{color:#64748b}'
++'.home-greet .hg-lunar{font-size:11.5px;line-height:1.4;color:var(--text3);margin-top:2px;font-weight:600}'
++'.home-greet .hd,.home-almanac .hd{color:#d97706}.home-greet .hacd,.home-almanac .hacd{color:#64748b}'
 +'@media(min-width:900px){.home-menu>.home-greet{position:absolute;top:16px;left:18px;z-index:3;width:min(340px,calc((100% - 420px)/2 + 80px))}}'
-+'#roomGrid .floor-rooms-map,#roomGrid .room-grid{perspective:1200px}'
-+'@keyframes ptFlip{0%{rotate:0 1 0 0deg}50%{rotate:0 1 0 90deg}100%{rotate:0 1 0 0deg}}'
-+'#roomGrid .room-cell.rc3.pt-flipping,#roomGrid .room-card.rc3.pt-flipping{animation:ptFlip .58s ease-in-out!important}'
++'.home-almanac{position:relative;z-index:1;overflow:hidden;max-width:980px;margin:0 auto 14px;padding:8px 0;border-radius:12px;background:color-mix(in srgb,var(--surface) 86%,transparent);border:1px solid var(--border);box-shadow:var(--shadow-sm);-webkit-mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent);mask-image:linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent)}'
++'.alm-track{display:flex;width:max-content;animation:almMarq 60s linear infinite}.home-almanac:hover .alm-track{animation-play-state:paused}'
++'.alm-seg{display:flex;flex-shrink:0;gap:42px;padding-right:42px;white-space:nowrap}'
++'.alm-i{font-size:12.5px;font-weight:600;color:var(--text2)}.alm-i.tot b{color:#16a34a}.alm-i.xau b{color:#dc2626}.alm-i.nen b{color:#2563eb}'
++'@keyframes almMarq{from{transform:translateX(0)}to{transform:translateX(-50%)}}'
++'@media (prefers-reduced-motion:reduce){.alm-track{animation:none;flex-wrap:wrap;width:auto}.alm-seg:nth-child(2){display:none}.alm-seg{white-space:normal;flex-wrap:wrap;gap:8px 24px;padding:0 12px}}'
 +'#roomGrid .room-cell.rc3,#roomGrid .room-card.rc3{position:relative}'
-+'.rc3-back{position:absolute;inset:0;z-index:6;display:none;border-radius:inherit;overflow:hidden;background:linear-gradient(135deg,color-mix(in srgb,var(--rc,#16a34a) 16%,var(--surface)),var(--surface))}'
-+'.pt-open>.rc3-back{display:block}'
-+'.rb-ph{position:absolute;inset:0;display:grid;gap:2px}.rb-ph.n2{grid-template-columns:1fr 1fr}.rb-ph img{width:100%;height:100%;object-fit:cover;display:block}'
++'.rc3-back{position:absolute;inset:0;z-index:6;border-radius:inherit;overflow:hidden;pointer-events:none;clip-path:inset(100% 0 0 0);transition:clip-path .5s cubic-bezier(.22,.8,.3,1);background:linear-gradient(135deg,color-mix(in srgb,var(--rc,#16a34a) 16%,var(--surface)),var(--surface))}'
++'.pt-open>.rc3-back{clip-path:inset(0 0 0 0)}'
++'.rb-ph{position:absolute;inset:0;display:grid;gap:2px}.rb-ph.n2{grid-template-columns:1fr 1fr}.rb-ph img{width:100%;height:100%;object-fit:cover;display:block;transform:translateY(12%) scale(1.08);transition:transform .6s cubic-bezier(.22,.8,.3,1)}.pt-open .rb-ph img{transform:none}'
 +'.rb-cap{position:absolute;left:10px;bottom:10px;padding:4px 12px;border-radius:99px;background:rgba(15,23,42,.64);color:#fff;font-weight:800;font-size:13px;backdrop-filter:blur(4px)}'
 +'.rb-none{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;padding:8px}'
 +'.rb-none img{width:min(32%,88px);aspect-ratio:1;object-fit:contain;border-radius:18px;box-shadow:0 6px 18px rgba(0,0,0,.18)}.rb-none b{font-size:14px;color:var(--text)}.rb-none span{font-size:12px;color:var(--text3)}';
 document.head.appendChild(st);
-/* ── lật ô phòng khi rê chuột ── */
+/* ── mở từ dưới lên để xem ảnh phòng khi rê chuột ── */
 var SEL='#roomGrid .room-cell.rc3,#roomGrid .room-card.rc3';
 function roomOf(cell){var id=cell.dataset.rid||((cell.getAttribute('onclick')||'').match(/showRoomDet\('([^']+)'/)||[])[1];return (S.rooms||[]).find(function(r){return String(r.id)===String(id)})}
 function back(cell){for(var i=0;i<cell.children.length;i++)if(cell.children[i].classList.contains('rc3-back'))return cell.children[i];
@@ -10472,19 +10482,14 @@ function back(cell){for(var i=0;i<cell.children.length;i++)if(cell.children[i].c
   b.innerHTML=ph.length?'<div class="rb-ph n'+ph.length+'">'+ph.map(function(s){return '<img src="'+esc(s)+'" alt="">'}).join('')+'</div><div class="rb-cap">'+esc(r.name)+'</div>'
     :'<div class="rb-none"><img src="icon-192.png" alt=""><b>Chưa có hình</b><span>Phòng '+esc(r.name)+'</span></div>';
   cell.appendChild(b);return b}
-function flip(cell,want){
-  if(!!cell._w===want)return;cell._w=want;clearTimeout(cell._t1);clearTimeout(cell._t2);
-  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches){cell.classList.toggle('pt-open',want);return}
-  cell.classList.remove('pt-flipping');void cell.offsetWidth;cell.classList.add('pt-flipping');
-  cell._t1=setTimeout(function(){cell.classList.toggle('pt-open',want)},270);
-  cell._t2=setTimeout(function(){cell.classList.remove('pt-flipping')},580)}
+function flip(cell,want){if(want){void cell.offsetWidth;cell.classList.add('pt-open')}else cell.classList.remove('pt-open')}
 function hoverOk(){return !window.matchMedia||matchMedia('(hover:hover)').matches}
 document.addEventListener('mouseover',function(e){var c=e.target.closest&&e.target.closest(SEL);if(!c||!hoverOk())return;
   if(e.relatedTarget&&c.contains(e.relatedTarget))return;if(!back(c))return;flip(c,true)});
 document.addEventListener('mouseout',function(e){var c=e.target.closest&&e.target.closest(SEL);if(!c)return;
   if(e.relatedTarget&&c.contains(e.relatedTarget))return;flip(c,false)});
 setInterval(function(){try{window.ptHomeRefresh()}catch(e){}},600000);
-try{if(typeof renderHomeExtras==='function')renderHomeExtras()}catch(e){}
+try{if(typeof renderHomeExtras==='function')renderHomeExtras();window.ptHomeStrip()}catch(e){}
 })();
 </script>
 

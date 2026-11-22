@@ -1339,6 +1339,9 @@ body:not([data-authed="1"]) #homeLogoutBtn{display:none}
 @keyframes lgPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 @keyframes lgShake{0%,100%{transform:none}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
 @media (prefers-reduced-motion:reduce){.lg-card,.lg-alert.show,.lg-modal,.lg-logo.pulse{animation:none}.lg-spin{animation-duration:1.6s}}
+.home-credit{text-align:center;font-size:12px;color:var(--text3);margin:26px 0 96px;line-height:1.8}
+.home-credit b{color:var(--text2);font-weight:700}
+.home-credit a{color:var(--primary);font-weight:700;text-decoration:none;white-space:nowrap}
 </style></head>
 <body>
 <div id="splash" aria-hidden="true"><div class="sp-logo"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg></div><div class="sp-name">PhòngTrọ Pro</div><div class="sp-bar"><i></i></div></div>
@@ -1371,6 +1374,7 @@ body:not([data-authed="1"]) #homeLogoutBtn{display:none}
         </div>
         <div class="home-summary" id="homeSummary"></div>
         <div class="home-grid" id="homeMenuGrid"></div>
+        <div class="home-credit" id="homeCredit">Nhà cung cấp: <b>Huy Cường</b><br><a href="tel:0907997786">📞 0907997786</a></div>
       </div>
     </div>
 
@@ -2583,7 +2587,7 @@ function save(){
   try{if(typeof v2Schedule==='function'&&!window.v2Applying)v2Schedule();}catch(e){}
 }
 function load(){try{const s=localStorage.getItem(PT_KEY());if(s){const parsed=JSON.parse(s);S={...S,...parsed};if(!S.contracts)S.contracts=[];if(!S.archived)S.archived=[];return true;}}catch(e){window.__loadError=true;try{localStorage.setItem('pt3_corrupt_backup',localStorage.getItem(PT_KEY())||'');}catch(_){}}return false;}
-function resetDemo(){if(!confirm('Reset về dữ liệu mẫu?'))return;const d=createDemo();S.rooms=d.rooms;S.tenants=d.tenants;S.invoices=d.invoices;S.payments=d.payments;save();renderAll();toast('Đã reset dữ liệu demo!','success')}
+async function resetDemo(){if(!await ptConfirm('Reset về dữ liệu mẫu?'))return;const d=createDemo();S.rooms=d.rooms;S.tenants=d.tenants;S.invoices=d.invoices;S.payments=d.payments;save();renderAll();toast('Đã reset dữ liệu demo!','success')}
 function backupData(){const b=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='phongtro_'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('Đã sao lưu!','success')}
 function restoreData(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{try{const d=JSON.parse(e.target.result);if(d.rooms&&d.tenants){S={...S,...d};save();renderAll();toast('Khôi phục thành công!','success');}}catch{toast('File không hợp lệ!','error');}};r.readAsText(f);inp.value='';}
 
@@ -3292,16 +3296,16 @@ function addZone(){
   toast(`✅ Đã thêm Khu ${val}!`,'success');
 }
 
-function removeZone(z){
+async function removeZone(z){
   const count=S.rooms.filter(r=>r.zone===z).length;
   if(count>0){toast(`Không thể xóa — Khu ${z} còn ${count} phòng!`,'error');return}
-  if(!confirm(`Xóa Khu ${z}?`))return;
+  if(!await ptConfirm(`Xóa Khu ${z}?`))return;
   S.settings.zones=S.settings.zones.filter(x=>x!==z);
   save();renderZoneList();
   toast(`Đã xóa Khu ${z}!`,'success');
 }
-function deleteRoom(id){
-  const r=S.rooms.find(x=>x.id===id);if(!r||!confirm(`Xóa phòng ${r.name}?`))return;
+async function deleteRoom(id){
+  const r=S.rooms.find(x=>x.id===id);if(!r||!await ptConfirm(`Xóa phòng ${r.name}?`))return;
   S.rooms=S.rooms.filter(x=>x.id!==id);S.tenants=S.tenants.map(t=>t.roomId===id?{...t,roomId:''}:t);S.invoices=S.invoices.filter(i=>i.roomId!==id);
   save();closeM('mRoomDet');renderRooms();toast('Đã xóa phòng!','success');
 }
@@ -3870,8 +3874,8 @@ function saveTenant(){
   }
   save();closeM('mTenant');renderTenants();
 }
-function delTenant(id){
-  const t=S.tenants.find(x=>x.id===id);if(!t||!confirm(`Xóa người thuê ${t.name}?`))return;
+async function delTenant(id){
+  const t=S.tenants.find(x=>x.id===id);if(!t||!await ptConfirm(`Xóa người thuê ${t.name}?`))return;
   if(t.roomId){const r=S.rooms.find(x=>x.id===t.roomId);if(r){r.status='available';r.tenantId='';}}
   S.tenants=S.tenants.filter(x=>x.id!==id);save();renderTenants();toast('Đã xóa!','success');
 }
@@ -4219,7 +4223,7 @@ function calcInv(){
   const total=room.price+ef+wf+keyFee+room.internet+room.garbage+room.parking+extra-disc;
   document.getElementById('invPreview').innerHTML=`<div style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:10px">📋 Chi tiết</div>${pR('Tiền phòng',fmt(room.price))}${pR(elecLabel(room,eu),fmt(ef))}${pR(waterLbl(room,wu),fmt(wf))}${keyFee?pR('Chìa khóa ('+(+document.getElementById('invKeyQty').value||0)+' chìa)',fmt(keyFee)):''}${room.internet?pR('Internet',fmt(room.internet)):''}${room.garbage?pR('Rác',fmt(room.garbage)):''}${room.parking?pR('Giữ xe',fmt(room.parking)):''}${extra?pR('Phụ thu',fmt(extra)):''}${disc?pR('Giảm giá','- '+fmt(disc)):''}<div style="display:flex;justify-content:space-between;font-size:16px;font-weight:900;color:var(--primary);padding-top:8px;border-top:2px solid var(--primary);margin-top:8px"><span>TỔNG</span><span>${fmt(total)}</span></div>`;
 }
-function saveInv(){
+async function saveInv(){
   const roomId=document.getElementById('invRoom').value,month=document.getElementById('invMonth').value;
   if(!roomId||!month){toast('Chọn phòng và tháng!','error');return}
   const room=S.rooms.find(r=>r.id===roomId),tenant=S.tenants.find(t=>t.id===room?.tenantId);
@@ -4230,14 +4234,14 @@ function saveInv(){
   const eReset=en<eo,wReset=wn<wo;
   if(eReset||wReset){
     const what=[eReset?`điện (${en} < ${eo})`:'',wReset?`nước (${wn} < ${wo})`:''].filter(Boolean).join(' và ');
-    if(!confirm(`⚠️ Chỉ số mới nhỏ hơn chỉ số cũ: ${what}.\n\nNếu công tơ đã được thay/quay vòng, bấm OK để tính tiêu thụ từ 0 đến chỉ số mới.\nNếu nhập nhầm, bấm Hủy để sửa lại.`))return;
+    if(!await ptConfirm(`⚠️ Chỉ số mới nhỏ hơn chỉ số cũ: ${what}.\n\nNếu công tơ đã được thay/quay vòng, bấm OK để tính tiêu thụ từ 0 đến chỉ số mới.\nNếu nhập nhầm, bấm Hủy để sửa lại.`))return;
   }
   const eu=eReset?en:en-eo,wu=wReset?wn:wn-wo,ef=elecCost(room||{elecPrice:3500},eu),wf=room?waterCost(room,wu):wu*15000;
-  if(eu>1500||wu>150){if(!confirm(`Mức tiêu thụ bất thường (điện ${eu} kWh, nước ${wu} m³). Vẫn tạo hóa đơn?`))return;}
+  if(eu>1500||wu>150){if(!await ptConfirm(`Mức tiêu thụ bất thường (điện ${eu} kWh, nước ${wu} m³). Vẫn tạo hóa đơn?`))return;}
   const keyQty=Math.max(0,+document.getElementById('invKeyQty').value||0),keyPrice=Math.max(0,+document.getElementById('invKeyPrice').value||0),keyFee=keyQty*keyPrice;
   const total=(room?.price||0)+ef+wf+keyFee+(room?.internet||0)+(room?.garbage||0)+(room?.parking||0)+extra-disc;
   if(total<0){toast('Giảm giá lớn hơn tổng tiền — hóa đơn bị âm!','error');return}
-  if(S.invoices.some(i=>i.roomId===roomId&&i.month===month)&&!confirm(`Phòng ${room?.name||''} đã có hóa đơn tháng ${month}.\nVẫn tạo thêm hóa đơn nữa?`))return;
+  if(S.invoices.some(i=>i.roomId===roomId&&i.month===month)&&!await ptConfirm(`Phòng ${room?.name||''} đã có hóa đơn tháng ${month}.\nVẫn tạo thêm hóa đơn nữa?`))return;
   if(room){room.elecIndex=en;room.waterIndex=wn;}
   S.invoices.push({id:'INV'+uid(),roomId,tenantId:tenant?.id||'',month,elecOld:eo,elecNew:en,waterOld:wo,waterNew:wn,roomFee:room?.price||0,elecFee:ef,waterFee:wf,waterMode:waterPerPerson(room)?'person':'meter',waterPeople:waterPerPerson(room)?roomPeople(room):0,serviceFee:keyFee,internet:room?.internet||0,garbage:room?.garbage||0,parking:room?.parking||0,extra,discount:disc,total,paid:0,debt:total,status:'unpaid',payMethod:'',note:document.getElementById('invNote').value,createdAt:new Date().toISOString()});
   if(keyPrice>0&&S.settings)S.settings.keyPrice=keyPrice;
@@ -4262,7 +4266,7 @@ function confirmPay(){
   save();closeM('mPay');renderPayment();renderDebt();
   toast(payMethod==='debt'?'Đã ghi nợ!':`✅ Thu ${fmt(amount)} thành công!`,'success');
 }
-function delInv(id){if(!confirm('Xóa hóa đơn này?'))return;S.invoices=S.invoices.filter(i=>i.id!==id);save();renderPayment();toast('Đã xóa!','success')}
+async function delInv(id){if(!await ptConfirm('Xóa hóa đơn này?'))return;S.invoices=S.invoices.filter(i=>i.id!==id);save();renderPayment();toast('Đã xóa!','success')}
 function printInv(invId){
   const inv=S.invoices.find(i=>i.id===invId);if(!inv)return;
   const room=S.rooms.find(r=>r.id===inv.roomId),t=S.tenants.find(x=>x.id===inv.tenantId);
@@ -4779,9 +4783,9 @@ function printContract(id){
   const ct=S.contracts.find(c=>c.id===id);if(!ct)return;
   currentContractData={...ct};exportContractPDF();
 }
-function renewContract(id){
+async function renewContract(id){
   const ct=S.contracts.find(c=>c.id===id);if(!ct)return;
-  const months=prompt(`Gia hạn thêm bao nhiêu tháng?\nHiện kết thúc: ${fmtDate(ct.endDate)}`,'6');
+  const months=await ptPrompt(`Gia hạn thêm bao nhiêu tháng?\nHiện kết thúc: ${fmtDate(ct.endDate)}`,'6');
   if(!months||isNaN(+months)||+months<=0)return;
   const m=+months;
   const base=getContractStatus(ct)==='expired'?today():ct.endDate;
@@ -4791,8 +4795,8 @@ function renewContract(id){
   saveContractHistory(ct);renderContracts();
   toast(`✅ Đã gia hạn ${m} tháng (đến ${fmtDate(ct.endDate)})!`,'success');
 }
-function cancelContract(id){
-  if(!confirm('Xác nhận hủy hợp đồng này?'))return;
+async function cancelContract(id){
+  if(!await ptConfirm('Xác nhận hủy hợp đồng này?'))return;
   const ct=S.contracts.find(c=>c.id===id);if(!ct)return;
   ct.status='cancelled';ct.cancelledAt=new Date().toISOString();saveContractHistory(ct);renderContracts();
   toast('Đã hủy hợp đồng!','warning');
@@ -4891,17 +4895,17 @@ function renderArchived(){
   }).join('');
 }
 
-function deleteArchivedNow(id){
-  if(!confirm('Xóa vĩnh viễn hồ sơ khách này?'))return;
+async function deleteArchivedNow(id){
+  if(!await ptConfirm('Xóa vĩnh viễn hồ sơ khách này?'))return;
   S.archived=S.archived.filter(a=>a.id!==id);
   save();renderArchived();
   toast('Đã xóa hồ sơ!','success');
 }
 
-function restoreArchived(id){
+async function restoreArchived(id){
   const a=S.archived.find(x=>x.id===id);
   if(!a)return;
-  if(!confirm(`Khôi phục khách "${a.name}" vào danh sách hiện tại?\n(Sẽ không gắn phòng, cần gán phòng thủ công)`))return;
+  if(!await ptConfirm(`Khôi phục khách "${a.name}" vào danh sách hiện tại?\n(Sẽ không gắn phòng, cần gán phòng thủ công)`))return;
   const {archivedAt,deleteAt,checkoutDate,checkoutNote,totalPaidOnCheckout,totalDebtOnCheckout,roomName,...tenant}=a;
   tenant.roomId='';
   S.tenants.push(tenant);
@@ -5495,7 +5499,7 @@ function selCOPay(m){
 }
 
 /* ── Xác nhận dọn đi ─────────────────────── */
-function confirmCheckout(){
+async function confirmCheckout(){
   const tenantId=document.getElementById('coTenantId').value;
   const t=S.tenants.find(x=>x.id===tenantId);
   if(!t){toast('Không tìm thấy người thuê!','error');return}
@@ -5522,7 +5526,7 @@ function confirmCheckout(){
   // Kiểm tra: nếu còn nợ cũ + chọn tiền mặt/bank nhưng chưa nhập đủ → cảnh báo
   if(totalDue>0&&!isPaid){
     // Ghi nợ → cho phép dọn
-    if(!confirm(`Khách còn nợ ${fmt(totalDue)}. Xác nhận ghi nợ vào hồ sơ và cho dọn đi?`)) return;
+    if(!await ptConfirm(`Khách còn nợ ${fmt(totalDue)}. Xác nhận ghi nợ vào hồ sơ và cho dọn đi?`)) return;
   }
 
   // Tạo hóa đơn thanh toán cuối kỳ
@@ -5838,9 +5842,9 @@ function resetInvPhotos(){invPhotos={e:null,w:null};['invPhotoE','invPhotoW'].fo
 const _openCreateInv=window.openCreateInv;
 window.openCreateInv=function(...a){resetInvPhotos();return _openCreateInv.apply(this,a)};
 const _saveInv=window.saveInv;
-window.saveInv=function(...a){
+window.saveInv=async function(...a){
   const n=S.invoices.length,ph={...invPhotos};
-  const r=_saveInv.apply(this,a);
+  const r=await _saveInv.apply(this,a);
   if(S.invoices.length>n){const inv=S.invoices[S.invoices.length-1];if(ph.e)inv.elecPhoto=ph.e;if(ph.w)inv.waterPhoto=ph.w;if(ph.e||ph.w){save();if(typeof renderPayment==='function')renderPayment()}resetInvPhotos()}
   return r;
 };
@@ -5986,7 +5990,7 @@ async function fbMigrateImages(){
   if(!firebase.storage){toast('Thiếu thư viện Firebase Storage','error');return}
   const items=collectDataImages();
   if(!items.length){toast('Không có ảnh nào cần chuyển','info');return}
-  if(!confirm(`Chuyển ${items.length} ảnh lên Firebase Storage?\nẢnh sẽ được thay bằng đường dẫn, giúp dữ liệu nhẹ hơn. Cần bật Storage trong Firebase Console.`))return;
+  if(!await ptConfirm(`Chuyển ${items.length} ảnh lên Firebase Storage?\nẢnh sẽ được thay bằng đường dẫn, giúp dữ liệu nhẹ hơn. Cần bật Storage trong Firebase Console.`))return;
   const st=fbApp.storage();let idx=0,ok=0,fail=0,firstErr=null;
   const info=document.getElementById('fbImgInfo');
   const worker=async()=>{
@@ -6131,20 +6135,20 @@ function doApplyLate(inv,fee){
   inv.status=inv.debt<=0?'paid':(inv.paid>0?'partial':'unpaid');
   const room=S.rooms.find(r=>r.id===inv.roomId);if(room&&inv.debt>0)room.status='debt';
 }
-function applyLateFee(id){
+async function applyLateFee(id){
   const inv=S.invoices.find(i=>i.id===id);if(!inv)return;
   const fee=lateFeeOf(inv);
   if(fee<=0){toast('Chưa có phí trễ hạn để áp dụng','info');return}
   if(inv.lateFee===fee){toast('Phí trễ hạn đã được áp dụng','info');return}
   const room=S.rooms.find(r=>r.id===inv.roomId);
-  if(!confirm(`Áp phí trễ hạn ${fmt(fee)} cho phòng ${room?room.name:''}?\nTổng tiền và công nợ của hóa đơn sẽ tăng tương ứng.`))return;
+  if(!await ptConfirm(`Áp phí trễ hạn ${fmt(fee)} cho phòng ${room?room.name:''}?\nTổng tiền và công nợ của hóa đơn sẽ tăng tương ứng.`))return;
   const snap=JSON.stringify(S);doApplyLate(inv,fee);save();renderDebt();renderPayment();undoToast(snap,'⏰ Đã áp phí trễ hạn');
 }
 function pendingLate(){return S.invoices.filter(i=>{const f=lateFeeOf(i);return f>0&&f!==(i.lateFee||0)})}
-function applyAllLate(){
+async function applyAllLate(){
   const list=pendingLate();if(!list.length){toast('Không có hóa đơn nào cần áp phí','info');return}
   const tot=list.reduce((n,i)=>n+lateFeeOf(i)-(i.lateFee||0),0);
-  if(!confirm(`Áp phí trễ hạn cho ${list.length} hóa đơn (tổng thêm ${fmt(tot)})?`))return;
+  if(!await ptConfirm(`Áp phí trễ hạn cho ${list.length} hóa đơn (tổng thêm ${fmt(tot)})?`))return;
   const snap=JSON.stringify(S);list.forEach(i=>doApplyLate(i,lateFeeOf(i)));save();renderDebt();renderPayment();undoToast(snap,`⏰ Đã áp phí cho ${list.length} hóa đơn`);
 }
 const _renderDebt=window.renderDebt;
@@ -6254,8 +6258,8 @@ function setIncStatus(id,st){
   i.status=st;if(st==='done')i.doneAt=new Date().toISOString();else delete i.doneAt;
   save();renderMaint();renderExpenses();
 }
-function delInc(id){
-  const i=incs().find(x=>x.id===id);if(!i||!confirm(`Xóa sự cố "${i.title}"?`))return;
+async function delInc(id){
+  const i=incs().find(x=>x.id===id);if(!i||!await ptConfirm(`Xóa sự cố "${i.title}"?`))return;
   const snap=JSON.stringify(S);S.incidents=incs().filter(x=>x.id!==id);save();renderMaint();renderExpenses();undoToast(snap,'🗑️ Đã xóa sự cố');
 }
 
@@ -6312,8 +6316,8 @@ function saveExp(){
   Object.assign(e,rec);expMonth=monthOf(rec.date)||expMonth;
   save();closeM('mExp');renderExpenses();toast('✅ Đã lưu khoản chi','success');
 }
-function delExp(id){
-  const e=exps().find(x=>x.id===id);if(!e||!confirm('Xóa khoản chi này?'))return;
+async function delExp(id){
+  const e=exps().find(x=>x.id===id);if(!e||!await ptConfirm('Xóa khoản chi này?'))return;
   const snap=JSON.stringify(S);S.expenses=exps().filter(x=>x.id!==id);save();renderExpenses();undoToast(snap,'🗑️ Đã xóa khoản chi');
 }
 
@@ -6374,9 +6378,9 @@ function saveDeposit(){
   save();closeM('mDep');renderArchived();toast('✅ Đã lưu quyết toán cọc','success');
 }
 const _confirmCheckout=window.confirmCheckout;
-window.confirmCheckout=function(...a){
+window.confirmCheckout=async function(...a){
   const tid=document.getElementById('coTenantId').value,n=(S.archived||[]).length;
-  const r=_confirmCheckout.apply(this,a);
+  const r=await _confirmCheckout.apply(this,a);
   const arc=S.archived||[];
   if(arc.length>n){const e=arc[arc.length-1];if(e.id===tid&&(+e.deposit||0)>0)setTimeout(()=>openDepositSettle(tid),500)}
   return r;
@@ -6408,10 +6412,10 @@ function addProp(){
   const p=getProps();if(p.some(x=>x.name.toLowerCase()===name.toLowerCase())){toast('Tên này đã có','warning');return}
   const id='p'+uid().slice(0,8);p.push({id,name});setProps(p);switchProp(id);
 }
-function deleteProp(id){
+async function deleteProp(id){
   const p=getProps(),x=p.find(q=>q.id===id);if(!x||id==='main'||id===PT_CUR())return;
-  if(!confirm(`Xóa nhà trọ "${x.name}" khỏi thiết bị này?\nDữ liệu trên máy sẽ mất. Dữ liệu đã đồng bộ lên Firebase (nếu có) không bị xóa.`))return;
-  if(!confirm('Xác nhận lần cuối: xóa vĩnh viễn?'))return;
+  if(!await ptConfirm(`Xóa nhà trọ "${x.name}" khỏi thiết bị này?\nDữ liệu trên máy sẽ mất. Dữ liệu đã đồng bộ lên Firebase (nếu có) không bị xóa.`))return;
+  if(!await ptConfirm('Xác nhận lần cuối: xóa vĩnh viễn?'))return;
   localStorage.removeItem('pt3_'+id);setProps(p.filter(q=>q.id!==id));openProps();toast('Đã xóa nhà trọ','info');
 }
 
@@ -6520,9 +6524,9 @@ window.showNotif=function(){
     });
   }
 
-  function forgotPin(){
-    if(!confirm('Quên PIN sẽ XÓA toàn bộ dữ liệu trên THIẾT BỊ NÀY để đặt lại.\nDữ liệu đã đồng bộ lên Firebase (nếu có) vẫn còn và có thể tải lại sau.\n\nTiếp tục?'))return;
-    if(!confirm('Xác nhận lần cuối: xóa dữ liệu trên thiết bị này?'))return;
+  async function forgotPin(){
+    if(!await ptConfirm('Quên PIN sẽ XÓA toàn bộ dữ liệu trên THIẾT BỊ NÀY để đặt lại.\nDữ liệu đã đồng bộ lên Firebase (nếu có) vẫn còn và có thể tải lại sau.\n\nTiếp tục?'))return;
+    if(!await ptConfirm('Xác nhận lần cuối: xóa dữ liệu trên thiết bị này?'))return;
     window.__noFlush=true;clearTimeout(__persistT);__persistKey=null;
     [K_PIN,K_AUTO,K_FAIL,'ptBio','ptProps','ptCurProp'].forEach(k=>localStorage.removeItem(k));Object.keys(localStorage).filter(k=>k.startsWith('pt3')).forEach(k=>localStorage.removeItem(k));
     location.reload();
@@ -6564,7 +6568,7 @@ window.showNotif=function(){
     for(;;){
       const a=await ask({title:'Tạo mã PIN mới',sub:'Từ 4 đến 8 chữ số',cancel:true,err});if(a===null)return;
       const b=await ask({title:'Nhập lại mã PIN',sub:'Để xác nhận',cancel:true});if(b===null)return;
-      if(a===b){await savePin(a);toast('🔐 Đã bật khóa mã PIN','success');updatePinRow();if(!bioEnabled()&&await bioSupported()&&confirm('Bật thêm mở khóa bằng vân tay / khuôn mặt?\nMã PIN vẫn dùng được khi cần.'))await bioEnable();return}
+      if(a===b){await savePin(a);toast('🔐 Đã bật khóa mã PIN','success');updatePinRow();if(!bioEnabled()&&await bioSupported()&&await ptConfirm('Bật thêm mở khóa bằng vân tay / khuôn mặt?\nMã PIN vẫn dùng được khi cần.'))await bioEnable();return}
       err='Hai lần nhập không khớp, hãy thử lại';
     }
   }
@@ -6640,10 +6644,10 @@ window.showNotif=function(){
   }
   ['deleteRoom','delTenant','delInv','deleteArchivedNow'].forEach(n=>{
     const f=window[n];if(typeof f!=='function')return;
-    window[n]=function(...a){
+    window[n]=async function(...a){
       const cnt=()=>S.rooms.length+S.tenants.length+S.invoices.length+(S.archived||[]).length+(S.contracts||[]).length;
       const before=cnt();let snap=null;try{snap=JSON.stringify(S)}catch(e){}
-      const r=f.apply(this,a);
+      const r=await f.apply(this,a);
       if(snap&&cnt()<before)offerUndo(snap,'🗑️ Đã xóa');
       return r;
     };
@@ -6864,11 +6868,11 @@ async function v2Start(user){
     scanArrKeys();
     if(!meta.exists()){
       if(role==='staff'){toast('Chưa có dữ liệu trên Firebase — nhờ Chủ trọ bật đồng bộ trước','warning');v2Set('Chưa có dữ liệu');return}
-      if(localHas&&!confirm('Firebase chưa có dữ liệu cho nhà trọ này.\nTải dữ liệu trên máy lên Firebase?')){v2Set('Đã hủy');return}
+      if(localHas&&!await ptConfirm('Firebase chưa có dữ liệu cho nhà trọ này.\nTải dữ liệu trên máy lên Firebase?')){v2Set('Đã hủy');return}
       v2.hashes={};await v2FullUpload();
     }else if(!had){
       if(localHas){const c=await v2Choose(role==='owner'||role==='manager');if(!c){v2Set('Đã hủy');return}
-        if(c==='push'){if(!confirm('Dữ liệu trên Firebase sẽ bị THAY bằng dữ liệu máy này. Tiếp tục?'))return;v2.hashes={};await v2FullUpload()}
+        if(c==='push'){if(!await ptConfirm('Dữ liệu trên Firebase sẽ bị THAY bằng dữ liệu máy này. Tiếp tục?'))return;v2.hashes={};await v2FullUpload()}
         else{v2.hashes={};await v2Pull()}}
       else{v2.hashes={};await v2Pull()}
     }
@@ -6898,18 +6902,18 @@ async function v2Manual(dir){
   const u=fbApp&&fbApp.auth&&fbApp.auth().currentUser;
   if(!u){toast('Bạn chưa đăng nhập Firebase. Nhập email, mật khẩu rồi bấm Đăng nhập trước.','warning',{duration:7000});return true}
   if(!v2.on){
-    if(confirm('Kiểu Đẩy lên / Tải về cũ đã bị Rules mới chặn.\nBật “Đồng bộ theo bản ghi” (cách mới, tự động hai chiều) ngay bây giờ?'))v2Enable();
+    if(await ptConfirm('Kiểu Đẩy lên / Tải về cũ đã bị Rules mới chặn.\nBật “Đồng bộ theo bản ghi” (cách mới, tự động hai chiều) ngay bây giờ?'))v2Enable();
     return true;
   }
   const r=window.ptRole;
   try{
     if(dir==='up'){
       if(r!=='owner'&&r!=='manager'){toast('Dữ liệu của bạn tự đồng bộ. Chỉ Chủ trọ/Quản lý mới đẩy toàn bộ lên được.','info',{duration:6000});return true}
-      if(!confirm('Thay TOÀN BỘ dữ liệu trên Firebase bằng dữ liệu của máy này?'))return true;
+      if(!await ptConfirm('Thay TOÀN BỘ dữ liệu trên Firebase bằng dữ liệu của máy này?'))return true;
       updateFbStatus('syncing');v2.hashes={};await v2FullUpload();persistHashes();updateFbStatus('connected');
       fbAddLog('⬆️ Đẩy toàn bộ (theo bản ghi) thành công');toast('✅ Đã đẩy toàn bộ dữ liệu lên Firebase','success');
     }else{
-      if(!confirm('Tải dữ liệu từ Firebase về và thay dữ liệu trên máy này?'))return true;
+      if(!await ptConfirm('Tải dữ liệu từ Firebase về và thay dữ liệu trên máy này?'))return true;
       updateFbStatus('syncing');v2.hashes={};await v2Pull();save();persistHashes();renderAll();v2Render();updateFbStatus('connected');
       fbAddLog('⬇️ Tải toàn bộ (theo bản ghi) thành công');toast('✅ Đã tải dữ liệu từ Firebase về','success');
     }
@@ -6923,9 +6927,9 @@ function v2Enable(){
   if(!u){toast('Hãy đăng nhập Firebase (mục bên trên) trước','warning');return}
   localStorage.setItem('ptV2_'+PT_CUR(),'1');v2Start(u);
 }
-function v2Disable(){
+async function v2Disable(){
   if(TEAM_LOCK){toast('Bản web này đang ở chế độ nhóm nên không tắt được đồng bộ','warning');return}
-  if(!confirm('Tắt đồng bộ theo bản ghi? Dữ liệu trên máy giữ nguyên, nhưng sẽ không còn tự đồng bộ.'))return;
+  if(!await ptConfirm('Tắt đồng bộ theo bản ghi? Dữ liệu trên máy giữ nguyên, nhưng sẽ không còn tự đồng bộ.'))return;
   localStorage.removeItem('ptV2_'+PT_CUR());v2Stop();roleOverlay(false);v2Set('Đã tắt');
 }
 function updateV2Ui(){
@@ -6983,7 +6987,7 @@ async function memRender(){
   }catch(e){el.textContent='Không tải được: '+v2Msg(e)}
 }
 async function memSetRole(uid,role){if(!role)return;try{await dbRef('members/'+uid+'/role').set(role);toast('✅ Đã cập nhật vai trò','success')}catch(e){toast('Lỗi: '+v2Msg(e),'error')}memRender()}
-async function memRemove(uid){if(!confirm('Xóa thành viên này? Họ sẽ mất quyền truy cập.'))return;try{await dbRef('members/'+uid).remove();toast('Đã xóa','info')}catch(e){toast('Lỗi: '+v2Msg(e),'error')}memRender()}
+async function memRemove(uid){if(!await ptConfirm('Xóa thành viên này? Họ sẽ mất quyền truy cập.'))return;try{await dbRef('members/'+uid).remove();toast('Đã xóa','info')}catch(e){toast('Lỗi: '+v2Msg(e),'error')}memRender()}
 
 /* ── Cổng khách thuê ── */
 const portalSeen=new Set(),portalHash={};let portalT=null,portalRef=null;
@@ -7059,7 +7063,7 @@ async function signView(id){
   w.document.open();w.document.write(html.replace('</body>',blk+'</body>'));w.document.close();
 }
 async function signDel(id){
-  const d=(S.signDocs||[]).find(x=>x.id===id);if(!d||!confirm('Xóa "'+d.title+'"? Khách sẽ không thấy văn bản này nữa.'))return;
+  const d=(S.signDocs||[]).find(x=>x.id===id);if(!d||!await ptConfirm('Xóa "'+d.title+'"? Khách sẽ không thấy văn bản này nữa.'))return;
   try{await dbRef('sign/'+d.code+'/'+id).remove()}catch(e){}
   S.signDocs=S.signDocs.filter(x=>x.id!==id);save();signList();
 }
@@ -7236,13 +7240,13 @@ async function portalThumbs(){
 }
 async function portalIssue(tid,reset){
   const t=S.tenants.find(x=>x.id===tid);if(!t)return;
-  if(reset&&!confirm('Đổi mã sẽ làm link cũ của khách này hết hiệu lực. Tiếp tục?'))return;
+  if(reset&&!await ptConfirm('Đổi mã sẽ làm link cũ của khách này hết hiệu lực. Tiếp tục?'))return;
   if(reset&&t.portalCode){try{await dbRef('portal/'+t.portalCode).remove()}catch(e){}delete portalHash[t.portalCode]}
   t.portalCode=newPortalCode();save();
   const n=await portalPublish(true);toast(n?'✅ Đã tạo link cho '+t.name:'Đã tạo mã, đang chờ đồng bộ','success');openPortal();
 }
 async function portalRevoke(tid){
-  const t=S.tenants.find(x=>x.id===tid);if(!t||!t.portalCode||!confirm('Thu hồi link của '+t.name+'? Khách sẽ không xem được nữa.'))return;
+  const t=S.tenants.find(x=>x.id===tid);if(!t||!t.portalCode||!await ptConfirm('Thu hồi link của '+t.name+'? Khách sẽ không xem được nữa.'))return;
   try{await dbRef('portal/'+t.portalCode).remove()}catch(e){toast('Lỗi: '+v2Msg(e),'error');return}
   delete portalHash[t.portalCode];delete t.portalCode;save();toast('Đã thu hồi link','info');openPortal();
 }
@@ -7383,7 +7387,7 @@ function storedImgStats(){const it=collectDataImages();return{n:it.length,bytes:
 async function optimizeStoredImages(){
   const big=collectDataImages().filter(([o,k])=>o[k].length*.75>140e3);
   if(!big.length){toast('Ảnh đã được tối ưu, không cần nén thêm','info');return}
-  if(!confirm(`Tối ưu ${big.length} ảnh lớn đang lưu trên máy?\nẢnh vẫn rõ nét, dung lượng giảm nhiều. Nên sao lưu trước.`))return;
+  if(!await ptConfirm(`Tối ưu ${big.length} ảnh lớn đang lưu trên máy?\nẢnh vẫn rõ nét, dung lượng giảm nhiều. Nên sao lưu trước.`))return;
   const row=document.getElementById('imgSettingRow');let before=0,after=0,n=0,i=0;
   for(const [o,k] of big){
     const src=o[k];before+=src.length*.75;i++;
@@ -7543,8 +7547,8 @@ function getFbDeviceId(){
   if(!id){id='dv_'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem('fbDeviceId',id);}
   return id;
 }
-function resetFbDefault(){
-  if(!confirm('Điền lại cấu hình Firebase mặc định?'))return;
+async function resetFbDefault(){
+  if(!await ptConfirm('Điền lại cấu hình Firebase mặc định?'))return;
   localStorage.removeItem('fbConfig');
   loadFbConfig();
   toast('Đã điền cấu hình mặc định — bấm "Kết nối Firebase"','info');
@@ -7692,7 +7696,7 @@ async function syncFromFirebase(){
     const data=snap.val();
     if(!data){toast('Firebase chưa có dữ liệu. Hãy đẩy lên trước!','warning');updateFbStatus('connected');return;}
     const t2=data.syncedAt?new Date(data.syncedAt).toLocaleString('vi-VN'):'';
-    if(!confirm(`Tải dữ liệu từ Firebase về?
+    if(!await ptConfirm(`Tải dữ liệu từ Firebase về?
 Sẽ ghi đè dữ liệu local hiện tại.
 Nguồn: ${(data.deviceName||'?')} · ${t2}`)){updateFbStatus('connected');return;}
     window.fbApplyingRemote=true;
@@ -8075,11 +8079,11 @@ function healRooms(){
   if(ch){try{save()}catch(e){}}
   return ch;
 }
-function chooseRep(roomId,excludeId){
+async function chooseRep(roomId,excludeId){
   const others=occupants(roomId).filter(x=>x.id!==excludeId);
   if(!others.length)return null;
   if(others.length===1)return others[0].id;
-  const ans=prompt('Chọn người đại diện mới của phòng (nhập số):\n'+others.map((r,i)=>(i+1)+'. '+r.name).join('\n'),'1');
+  const ans=await ptPrompt('Chọn người đại diện mới của phòng (nhập số):\n'+others.map((r,i)=>(i+1)+'. '+r.name).join('\n'),'1');
   if(ans===null)return null;
   return others[Math.min(others.length,Math.max(1,parseInt(ans)||1))-1].id;
 }
@@ -8091,14 +8095,14 @@ window.setRoomRep=function(roomId,tid){
   save();renderAll();toast('👑 '+t.name+' là người đại diện phòng '+room.name,'success');
   const b=document.getElementById('mRoomDetBody');if(b&&b.closest('.overlay').classList.contains('open'))showRoomDet(roomId);
 };
-window.leaveRoom=function(id){
+window.leaveRoom=async function(id){
   if(!roleCan('structure')){toast('🔒 Vai trò "'+(ROLE_NAMES[window.ptRole]||'')+'" không có quyền thực hiện thao tác này','warning');return}
   const t=S.tenants.find(x=>x.id===id);if(!t)return;
   const room=S.rooms.find(r=>r.id===t.roomId);if(!room)return;
   const others=occupants(room.id).filter(x=>x.id!==id);
   let nr=null;
-  if(room.tenantId===id&&others.length){nr=chooseRep(room.id,id);if(!nr)return}
-  if(!confirm(t.name+' rời phòng '+room.name+'?'+(others.length?' Phòng vẫn còn '+others.length+' người.':'')))return;
+  if(room.tenantId===id&&others.length){nr=await chooseRep(room.id,id);if(!nr)return}
+  if(!await ptConfirm(t.name+' rời phòng '+room.name+'?'+(others.length?' Phòng vẫn còn '+others.length+' người.':'')))return;
   const del=new Date();del.setMonth(del.getMonth()+3);
   (S.archived||(S.archived=[])).push({...t,archivedAt:new Date().toISOString(),deleteAt:del.toISOString(),checkoutDate:today(),checkoutNote:'Rời phòng (phòng vẫn còn người ở)',roomName:room.name,totalPaidOnCheckout:0,totalDebtOnCheckout:0});
   S.tenants=S.tenants.filter(x=>x.id!==id);
@@ -8114,12 +8118,12 @@ window.moveGuest=function(id){
     `<button class="btn btn-secondary" type="button" onclick="closeM('mMoveGuest')">Hủy</button><button class="btn btn-primary" type="button" onclick="doMoveGuest('${esc(id)}')">Chuyển</button>`);
   openM('mMoveGuest');
 };
-window.doMoveGuest=function(id){
+window.doMoveGuest=async function(id){
   if(!roleCan('structure')){toast('🔒 Vai trò "'+(ROLE_NAMES[window.ptRole]||'')+'" không có quyền thực hiện thao tác này','warning');return}
   const t=S.tenants.find(x=>x.id===id),nr=S.rooms.find(r=>r.id===document.getElementById('mgRoom').value);
   if(!t||!nr)return;
   const oldId=t.roomId,old=S.rooms.find(r=>r.id===oldId);let np=null;
-  if(old&&old.tenantId===id&&occupants(oldId).length>1){np=chooseRep(oldId,id);if(!np)return}
+  if(old&&old.tenantId===id&&occupants(oldId).length>1){np=await chooseRep(oldId,id);if(!np)return}
   const want=document.getElementById('mgRep').checked;
   if(np){old.tenantId=np;S.invoices.forEach(i=>{if(i.tenantId===id&&i.roomId===oldId)i.tenantId=np})}
   t.moveIn=today();placeInRoom(id,nr.id,want);reassignRoom(oldId);
@@ -8145,15 +8149,15 @@ window.tRoomChanged=function(){
   if(!others.length){cb.checked=true;cb.disabled=true;hint.textContent='Phòng đang trống: người này là người đại diện ký hợp đồng.'}
   else{cb.disabled=false;cb.checked=!!eid&&room.tenantId===eid;const rp=others.find(x=>x.id===room.tenantId);hint.textContent=rp?'Người đại diện hiện tại: '+rp.name:''}
 };
-window.saveTenant=function(){
+window.saveTenant=async function(){
   if(!roleCan('structure')){toast('🔒 Vai trò "'+(ROLE_NAMES[window.ptRole]||'')+'" không có quyền thực hiện thao tác này','warning');return}
   const g=id=>document.getElementById(id);
   const name=g('tName').value.trim(),phone=g('tPhone').value.trim(),cccdV=g('tCccd').value.replace(/\s/g,'');
   if(!name){toast('Nhập họ tên!','error');g('tName').focus();return}
   if(!cccdV){toast('Nhập số CCCD/CMND (bắt buộc)!','error');g('tCccd').focus();return}
-  if(!/^\d{9}$|^\d{12}$/.test(cccdV)&&!confirm('Số CCCD "'+cccdV+'" chưa đúng định dạng (9 hoặc 12 chữ số). Vẫn lưu?'))return;
+  if(!/^\d{9}$|^\d{12}$/.test(cccdV)&&!await ptConfirm('Số CCCD "'+cccdV+'" chưa đúng định dạng (9 hoặc 12 chữ số). Vẫn lưu?'))return;
   {const dupC=S.tenants.find(t=>t.id!==g('tEditId').value&&t.cccd&&t.cccd.replace(/\s/g,'')===cccdV);
-   if(dupC&&!confirm('CCCD này đã có trong danh sách: '+dupC.name+'. Vẫn lưu?'))return;}
+   if(dupC&&!await ptConfirm('CCCD này đã có trong danh sách: '+dupC.name+'. Vẫn lưu?'))return;}
   const id=g('tEditId').value,roomId=g('tRoom').value,want=!!(g('tRep')&&g('tRep').checked);
   const data={name,phone,roomId:'',gender:g('tGender').value,dob:g('tDob').value,cccd:g('tCccd').value,address:g('tAddr').value,vehicle:g('tVehicle').value,moveIn:g('tMoveIn').value,deposit:+g('tDeposit').value||0,people:+g('tPeople').value||1,note:g('tNote').value,avatar:avUrl,cmndFront:cmndFUrl,cmndBack:cmndBUrl,relation:(g('tRelation')?g('tRelation').value.trim():'')};
   data.cccd=cccdV;
@@ -8185,11 +8189,11 @@ window.saveTenant=function(){
   const oc=window.openCheckout;
   window.openCheckout=function(id){const t=S.tenants.find(x=>x.id===id);if(t&&t.roomId&&occupants(t.roomId).length>1)return leaveRoom(id);return oc.apply(this,arguments)};
   const dt=window.delTenant;
-  window.delTenant=function(id){
+  window.delTenant=async function(id){
     const t=S.tenants.find(x=>x.id===id);if(!t)return dt.apply(this,arguments);
     const rid=t.roomId,room=S.rooms.find(r=>r.id===rid);let keep=room?room.tenantId:'';
-    if(room&&isRep(t)&&occupants(rid).length>1){keep=chooseRep(rid,id);if(!keep)return}
-    const r=dt.apply(this,arguments);
+    if(room&&isRep(t)&&occupants(rid).length>1){keep=await chooseRep(rid,id);if(!keep)return}
+    const r=await dt.apply(this,arguments);
     if(room&&!S.tenants.some(x=>x.id===id)){
       if(keep&&keep!==id&&S.tenants.some(x=>x.id===keep)){room.tenantId=keep;S.invoices.forEach(i=>{if(i.tenantId===id)i.tenantId=keep})}
       reassignRoom(rid);save();renderAll();
@@ -8266,12 +8270,12 @@ window.openRoomJoinQR=async function(roomId){
 };
 window.joinCopy=function(roomId){const r=S.rooms.find(x=>x.id===roomId);if(r&&r.joinCode)copyAny(portalLink(r.joinCode),'Đã sao chép link đăng ký')};
 window.joinReset=async function(roomId){
-  const r=S.rooms.find(x=>x.id===roomId);if(!r||!confirm('Đổi mã sẽ làm QR/link cũ của phòng này hết hiệu lực. Tiếp tục?'))return;
+  const r=S.rooms.find(x=>x.id===roomId);if(!r||!await ptConfirm('Đổi mã sẽ làm QR/link cũ của phòng này hết hiệu lực. Tiếp tục?'))return;
   if(r.joinCode){try{await dbRef('portal/'+r.joinCode).remove();await dbRef('portal_ok/'+r.joinCode).remove()}catch(e){}delete joinHash[r.joinCode]}
   r.joinCode=newPortalCode();save();await roomJoinPublish(true);openRoomJoinQR(roomId);
 };
 window.joinRevoke=async function(roomId){
-  const r=S.rooms.find(x=>x.id===roomId);if(!r||!r.joinCode||!confirm('Thu hồi QR đăng ký của phòng '+r.name+'?'))return;
+  const r=S.rooms.find(x=>x.id===roomId);if(!r||!r.joinCode||!await ptConfirm('Thu hồi QR đăng ký của phòng '+r.name+'?'))return;
   try{await dbRef('portal/'+r.joinCode).remove()}catch(e){toast('Lỗi: '+v2Msg(e),'error');return}
   try{await dbRef('portal_ok/'+r.joinCode).remove()}catch(e){}
   delete joinHash[r.joinCode];delete r.joinCode;save();closeM('mRoomJoin');toast('Đã thu hồi QR đăng ký','info');
@@ -8288,12 +8292,12 @@ async function joinApproved(q,id,nt,room,want){
   try{await portalPublish(true);await dbRef('portal_ok/'+q.code+'/'+id).set({c:nt.portalCode,room:String(room.name||'').slice(0,30),at:Date.now()})}
   catch(e){toast('Chưa báo được cho khách: '+v2Msg(e)+' — hãy gửi link bằng Zalo','warning',{duration:7000})}
 }
-window.approveJoin=function(id){
+window.approveJoin=async function(id){
   if(!roleCan('structure')){toast('🔒 Vai trò "'+(ROLE_NAMES[window.ptRole]||'')+'" không có quyền thực hiện thao tác này','warning');return}
   const q=window.JOINQ[id];if(!q)return;
   const room=S.rooms.find(r=>r.id===q.roomId);if(!room){rejectJoin(id);return}
   const dup=S.tenants.find(t=>q.cccd&&t.cccd===q.cccd);
-  if(dup&&!confirm('CCCD này đã có trong danh sách: '+dup.name+'. Vẫn thêm?'))return;
+  if(dup&&!await ptConfirm('CCCD này đã có trong danh sách: '+dup.name+'. Vẫn thêm?'))return;
   const wantLink=!!(document.getElementById('jl_'+id)||{}).checked;
   const nid='T'+uid();
   S.tenants.push({id:nid,avatarColor:COLORS[S.tenants.length%COLORS.length],name:q.name,phone:q.phone,roomId:'',gender:/^n[ữu]$/i.test(q.gender)?'Nữ':/^nam$/i.test(q.gender)?'Nam':'Khác',dob:/^\d{4}-\d{2}-\d{2}$/.test(q.dob)?q.dob:'',cccd:q.cccd,address:q.address,vehicle:q.vehicle,moveIn:today(),deposit:0,people:1,note:'Đăng ký qua QR phòng',avatar:q.avatar||'',cmndFront:q.cmndFront||'',cmndBack:q.cmndBack||''});
@@ -8445,13 +8449,13 @@ function syncRentRow(){const e=document.getElementById('rentRemindRow');if(!e)re
 /* Lập hóa đơn đầy đủ: thay hóa đơn tiền nhà tạm */
 (function(){
   const si=window.saveInv;
-  if(typeof si==='function')window.saveInv=function(){
+  if(typeof si==='function')window.saveInv=async function(){
     const roomId=document.getElementById('invRoom').value,month=document.getElementById('invMonth').value;
     const old=S.invoices.find(i=>i.rentOnly&&i.roomId===roomId&&i.month===month);
     if(!old)return si.apply(this,arguments);
     const idx=S.invoices.indexOf(old);S.invoices.splice(idx,1);
     const before=S.invoices.length;
-    const r=si.apply(this,arguments);
+    const r=await si.apply(this,arguments);
     const nw=S.invoices.length>before?S.invoices[S.invoices.length-1]:null;
     if(!nw){S.invoices.splice(idx,0,old);return r}
     if(old.paid>0){
@@ -8610,9 +8614,9 @@ window.ptUser=null;
       }
     }
   };
-  window.editUserName=function(){
+  window.editUserName=async function(){
     const u=window.ptUser;if(!u)return;
-    const v=prompt('Tên hiển thị của bạn (chỉ đổi trên máy này'+(window.ptRole==='owner'?' và lưu cho tài khoản':'')+'):',u.name);
+    const v=await ptPrompt('Tên hiển thị của bạn (chỉ đổi trên máy này'+(window.ptRole==='owner'?' và lưu cho tài khoản':'')+'):',u.name);
     if(v===null)return;
     const n=v.trim().slice(0,100);
     try{if(n)localStorage.setItem('pt_uname_'+u.uid,n);else localStorage.removeItem('pt_uname_'+u.uid)}catch(e){}
@@ -8830,9 +8834,9 @@ window.ptAcRefresh=function(){
   if(s)s.checked=isOn();
 };
 window.ptAcSetOn=function(v){ls(ONKEY,v?'1':'0');if(!v)hide();ptAcRefresh()};
-window.ptAcClear=function(){
+window.ptAcClear=async function(){
   if(!count()){if(typeof toast==='function')toast('Chưa có gợi ý nào được lưu','info');return}
-  if(!confirm('Xóa toàn bộ gợi ý nhập liệu đã lưu trên máy này?\n(Dữ liệu phòng, khách, hóa đơn không bị ảnh hưởng)'))return;
+  if(!await ptConfirm('Xóa toàn bộ gợi ý nhập liệu đã lưu trên máy này?\n(Dữ liệu phòng, khách, hóa đơn không bị ảnh hưởng)'))return;
   st={f:{}};dirtyW=true;wc=null;ls(KEY,JSON.stringify(st));hide();ptAcRefresh();
   if(typeof toast==='function')toast('Đã xóa gợi ý nhập liệu','success');
 };
@@ -9602,7 +9606,7 @@ window.ptLaySave=function(){var r=room(ed.id);if(!r)return;var l=clean(ed.lay);
   if(Object.keys(l).length)r.lay=l;else delete r.lay;
   r._u=Date.now();try{save()}catch(e){}closeM('mRoomLay');try{renderRooms()}catch(e){}
   toast('Đã lưu bố trí nội thất','success')};
-window.ptLayAll=function(){if(!confirm('Áp dụng bố trí này cho TẤT CẢ các phòng?'))return;
+window.ptLayAll=async function(){if(!await ptConfirm('Áp dụng bố trí này cho TẤT CẢ các phòng?'))return;
   var l=clean(ed.lay);(S.rooms||[]).forEach(function(r){if(Object.keys(l).length)r.lay=JSON.parse(JSON.stringify(l));else delete r.lay;r._u=Date.now()});
   try{save()}catch(e){}closeM('mRoomLay');try{renderRooms()}catch(e){}toast('Đã áp dụng cho mọi phòng','success')};
 var o=window.showRoomDet;
@@ -9710,10 +9714,10 @@ window.ptTenantPrintRun=function(){
 var KEEP_MONTHS=6;
 function delAt(ct){var d=new Date(ct.cancelledAt);if(isNaN(d))return null;d.setMonth(d.getMonth()+KEEP_MONTHS);return d}
 window.ptCancelLeft=function(ct){var d=delAt(ct);if(!d)return '';var n=Math.ceil((d-new Date())/864e5);return n>0?' · tự xóa sau '+n+' ngày':''};
-window.deleteContractForever=function(id){
+window.deleteContractForever=async function(id){
   var ct=(S.contracts||[]).find(function(c){return c.id===id});if(!ct)return;
   if(ct.status!=='cancelled'){toast('Chỉ xóa vĩnh viễn được hợp đồng đã hủy','warning');return}
-  if(!confirm('Xóa vĩnh viễn hợp đồng '+(ct.roomName?'phòng '+ct.roomName+' · ':'')+(ct.tenantName||'')+'?\nHợp đồng sẽ mất hẳn và không khôi phục được.'))return;
+  if(!await ptConfirm('Xóa vĩnh viễn hợp đồng '+(ct.roomName?'phòng '+ct.roomName+' · ':'')+(ct.tenantName||'')+'?\nHợp đồng sẽ mất hẳn và không khôi phục được.'))return;
   S.contracts=S.contracts.filter(function(c){return c.id!==id});save();if(typeof renderContracts==='function')renderContracts();toast('Đã xóa vĩnh viễn hợp đồng','success');
 };
 window.ptPurgeContracts=function(){
@@ -9758,11 +9762,11 @@ window.ptQrSet=function(v){
   try{if(v&&v!==dflt())localStorage.setItem(KEY,v);else localStorage.removeItem(KEY)}catch(e){}
   ptQrRender();
 };
-window.ptQrCopy=function(){
+window.ptQrCopy=async function(){
   var u=cur();if(!u){toast('Chưa có đường dẫn','warning');return}
   var ok=function(){toast('Đã sao chép liên kết','success')};
-  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(ok,function(){prompt('Sao chép liên kết:',u)});
-  else prompt('Sao chép liên kết:',u);
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(u).then(ok,async function(){await ptPrompt('Sao chép liên kết:',u)});
+  else await ptPrompt('Sao chép liên kết:',u);
 };
 window.ptQrSave=function(){
   var box=document.getElementById('ptQrBox'),c=box&&box.querySelector('canvas'),im=box&&box.querySelector('img');
@@ -9986,7 +9990,7 @@ document.body.insertBefore(d.firstChild,document.body.firstChild);
 .rm-ghost.zone{transform:none;background:var(--surface,#16213a);border-radius:14px;padding:8px 12px;opacity:.95}
 </style>
 <script>
-window.APP_VERSION='5.43';
+window.APP_VERSION='5.44';
 (function(){
 'use strict';
 /* ── Phiên bản + kiểm tra cập nhật ── */
@@ -11018,7 +11022,7 @@ try{if(typeof renderHomeExtras==='function')renderHomeExtras();window.ptHomeStri
       clearFail();ls(LS_EMAIL,rem?em:null);
       try{
         if(!bl()&&!ls(LS_BLNO)&&await bioSupp()){
-          if(confirm('Bật đăng nhập nhanh bằng vân tay / khuôn mặt trên máy này?\nMật khẩu được mã hóa và chỉ mở được sau khi xác thực sinh trắc. Có thể tắt trong Cài đặt.')){
+          if(await ptConfirm('Bật đăng nhập nhanh bằng vân tay / khuôn mặt trên máy này?\nMật khẩu được mã hóa và chỉ mở được sau khi xác thực sinh trắc. Có thể tắt trong Cài đặt.')){
             try{await blEnable(em,pw);tst('👆 Đã bật đăng nhập nhanh bằng vân tay / khuôn mặt','success')}catch(x){if(!(x&&x.name==='NotAllowedError'))tst('Chưa bật được đăng nhập nhanh','warning')}
           }else ls(LS_BLNO,'1');
         }
@@ -11300,6 +11304,44 @@ try{if(typeof renderHomeExtras==='function')renderHomeExtras();window.ptHomeStri
     try{await sendReset(em);if(typeof toast==='function')toast('📧 Nếu email đã đăng ký, thư đặt lại mật khẩu đã được gửi','success',{duration:6000})}
     catch(e){if(typeof toast==='function')toast(authMsg2(e),'error')}
   };
+
+
+  /* ══ Hộp thoại xác nhận / nhập liệu của ứng dụng ══
+     Thay confirm()/prompt() gốc của trình duyệt (vốn luôn hiện tên miền như "xxx.github.io cho biết"). */
+  function appName(){var st=(typeof S!=='undefined'&&S&&S.settings)||{},n=String(st.hotelName||'').trim();return (!n||n==='Nhà Trọ Xanh')?'PhòngTrọ Pro':n}
+  function dlg(kind,msg,def){
+    return new Promise(function(res){
+      var old=$('ptDlg');if(old){if(old.__cancel)old.__cancel();else old.remove()}
+      var text=String(msg==null?'':msg);
+      var danger=/xóa|reset|thay toàn bộ|thay bằng|sẽ mất|hủy hợp đồng|thu hồi|vĩnh viễn|quên pin/i.test(text);
+      var m=document.createElement('div');m.id='ptDlg';m.className='lg-modal';m.style.zIndex='100000';
+      m.innerHTML='<div class="lg-card" role="alertdialog" aria-modal="true" aria-labelledby="ptDlgT">'+
+        '<div class="lg-big '+(danger?'red':'key')+'" style="width:52px;height:52px;margin-bottom:10px">'+
+        svg(danger?'<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>':P.shield)+'</div>'+
+        '<h2 class="lg-h" id="ptDlgT" style="font-size:17px">'+E(appName())+'</h2>'+
+        '<div class="lg-sub" style="white-space:pre-line;color:var(--text);margin-bottom:'+(kind==='prompt'?'12px':'18px')+'">'+E(text)+'</div>'+
+        (kind==='prompt'?'<div class="lg-fld"><div class="lg-in noeye"><input id="ptDlgIn" type="text" autocomplete="off" style="padding-left:14px"></div></div>':'')+
+        '<div class="lg-mrow"><button type="button" class="lg-btn ghost sm" id="ptDlgNo">Hủy</button>'+
+        '<button type="button" class="lg-btn sm'+(danger?' danger':'')+'" id="ptDlgOk">'+(danger?'Đồng ý':'OK')+'</button></div></div>';
+      document.body.appendChild(m);
+      var done=false;
+      function fin(v){if(done)return;done=true;document.removeEventListener('keydown',key,true);m.remove();res(v)}
+      function ok(){fin(kind==='prompt'?$('ptDlgIn').value:true)}
+      m.__cancel=function(){fin(kind==='prompt'?null:false)};
+      function key(e){
+        if(e.key==='Escape'){e.preventDefault();e.stopPropagation();m.__cancel()}
+        else if(e.key==='Enter'&&(kind==='prompt'||document.activeElement.id!=='ptDlgNo')){e.preventDefault();e.stopPropagation();ok()}
+      }
+      document.addEventListener('keydown',key,true);
+      $('ptDlgNo').onclick=m.__cancel;$('ptDlgOk').onclick=ok;
+      m.addEventListener('mousedown',function(e){if(e.target===m)m.__cancel()});
+      var inp=$('ptDlgIn');
+      if(inp){inp.value=def==null?'':String(def);setTimeout(function(){inp.focus();inp.select()},30)}
+      else setTimeout(function(){var b=$(danger?'ptDlgNo':'ptDlgOk');if(b)b.focus()},30);
+    });
+  }
+  window.ptConfirm=function(m){return dlg('confirm',m)};
+  window.ptPrompt=function(m,d){return dlg('prompt',m,d)};
 
   /* ── theo dõi đăng nhập để ẩn/hiện nút Đăng xuất ở trang chủ ── */
   function setAuthed(u){try{document.body.dataset.authed=u?'1':'0'}catch(e){}}

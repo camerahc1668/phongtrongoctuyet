@@ -41,6 +41,13 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
 .scanbox{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3;margin-top:10px;display:none}
 .scanbox video{width:100%;height:100%;object-fit:cover;display:block}
 .scanbox i{position:absolute;inset:12% 16%;border:3px solid #22c55e;border-radius:14px;box-shadow:0 0 0 999px rgba(0,0,0,.38);pointer-events:none}
+.hdr h1{padding-right:108px}
+.hbtn{position:absolute;top:12px;right:12px;display:flex;gap:6px}
+.hbtn .vc{position:static}
+.hrow{display:flex;gap:12px;align-items:center}.hmain{min-width:0;flex:1}
+.avt{width:64px;height:64px;border-radius:50%;border:2.5px solid rgba(255,255,255,.9);background:rgba(255,255,255,.22);color:#fff;font:800 26px/1 inherit;overflow:hidden;padding:0;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.avt img{width:100%;height:100%;object-fit:cover;display:block}
+.avt.big{width:84px;height:84px;font-size:32px;background:var(--pri);border-color:var(--border);cursor:default}
 </style>
 </head>
 <body>
@@ -234,12 +241,76 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
   }
   $app.addEventListener('click',e=>{const b=e.target.closest('[data-a="sgn"]');if(b)signOpen(b.dataset.id)});
 
-  function render(){
+  /* ───── Cài đặt của khách: ảnh đại diện + kiểm tra / sửa thông tin ───── */
+  let setDirty=false;
+  const jpg=v=>typeof v==='string'&&v.length<=200000&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(v)?v:'';
+  const lsGet=k=>{try{return localStorage.getItem(k)||''}catch(e){return ''}};
+  const lsSet=(k,v)=>{try{v?localStorage.setItem(k,v):localStorage.removeItem(k)}catch(e){}};
+  const curAv=()=>lsGet('pp_avx_'+code)?'':(jpg(lsGet('pp_av_'+code))||jpg(data&&data.av));
+  const ini=n=>{const w=String(n||'').trim().split(/\s+/);return (w[w.length-1]||'?').charAt(0).toUpperCase()};
+  const avInner=()=>{const s=curAv();return s?'<img alt="" src="'+s+'">':esc(ini(data&&data.tenant))};
+  const avatarBtn=()=>'<button type="button" class="avt" data-a="set" aria-label="Ảnh đại diện, bấm để mở cài đặt">'+avInner()+'</button>';
+  const vnDate=d=>/^\d{4}-\d{2}-\d{2}$/.test(d||'')?d.split('-').reverse().join('/'):'';
+  function setTab(){
+    const me=data.me||{};
+    const row=(k,v)=>'<div class="row"><span class="muted">'+k+'</span><b style="text-align:right;word-break:break-word">'+(v?esc(v):'—')+'</b></div>';
+    const opt=v=>'<option'+(me.gender===v?' selected':'')+'>'+v+'</option>';
+    return '<div class="card"><button type="button" class="sec" data-a="back">← Quay lại</button>'
+      +'<div style="margin-top:12px"><b>Ảnh đại diện</b> <span class="muted">(tùy chọn)</span></div>'
+      +'<div style="display:flex;align-items:center;gap:14px;margin-top:10px"><div class="avt big" aria-hidden="true">'+avInner()+'</div><div class="muted" style="flex:1">Ảnh hiện ở đầu trang của bạn, không thay đổi hồ sơ thuê phòng.</div></div>'
+      +photoBox('av')
+      +'<div class="two" style="margin-top:10px"><button class="pri" data-a="avsave">Lưu ảnh</button><button class="sec" data-a="avclr"'+(curAv()?'':' disabled')+'>Gỡ ảnh</button></div><div id="avMsg"></div></div>'
+      +'<div class="card"><b>Thông tin của bạn</b><div class="muted">Kiểm tra xem đã đúng chưa. Nếu sai, sửa ở phần bên dưới.</div><div style="margin-top:8px">'
+      +row('Họ tên',me.name||data.tenant)+row('Số điện thoại',me.phone)+row('Phòng',data.room)+row('Giới tính',me.gender)+row('Ngày sinh',vnDate(me.dob))+row('Số CCCD',me.cccd)+row('Địa chỉ thường trú',me.address)+row('Biển số xe',me.vehicle)+row('Ngày vào ở',vnDate(me.moveIn))+'</div></div>'
+      +'<div class="card" id="pfForm"><b>Sửa thông tin</b><div class="muted">Chủ trọ sẽ xem và duyệt, thông tin chỉ đổi sau khi được duyệt. Chỉ cần sửa ô nào sai.</div>'
+      +'<label>Họ tên</label><input id="pfName" maxlength="100" autocomplete="name" value="'+esc(me.name||data.tenant||'')+'">'
+      +'<label>Số điện thoại</label><input id="pfPhone" type="tel" maxlength="20" inputmode="tel" autocomplete="tel" value="'+esc(me.phone||'')+'">'
+      +'<div class="two"><div><label>Giới tính</label><select id="pfGender"><option value="">—</option>'+opt('Nam')+opt('Nữ')+opt('Khác')+'</select></div><div><label>Ngày sinh</label><input id="pfDob" type="date" value="'+esc(me.dob||'')+'"></div></div>'
+      +'<label>Địa chỉ thường trú</label><input id="pfAddr" maxlength="200" value="'+esc(me.address||'')+'">'
+      +'<label>Biển số xe</label><input id="pfVeh" maxlength="20" value="'+esc(me.vehicle||'')+'">'
+      +'<label>Số CCCD / CMND <span class="muted">(để trống nếu không đổi)</span></label><input id="pfCccd" inputmode="numeric" maxlength="15" placeholder="'+esc(me.cccd||'')+'">'
+      +'<div style="margin-top:12px"><button class="pri" data-a="pfsend">Gửi yêu cầu cập nhật</button></div><div id="pfMsg"></div></div>';
+  }
+  const pushIn=o=>db.ref('portal_in/'+code).push().set(Object.assign({type:'profile',at:Date.now()},o));
+  const say2=(id,cls,t)=>{const m=document.getElementById(id);if(m)m.innerHTML='<div class="'+cls+'">'+esc(t)+'</div>'};
+  function avSave(b){
+    if(!photos.av){say2('avMsg','err','Hãy chụp hoặc chọn một ảnh trước.');return}
+    const img=photos.av;b.disabled=true;
+    lsSet('pp_av_'+code,img);lsSet('pp_avx_'+code,'');
+    pushIn({av:img}).catch(()=>{});
+    photos.av='';setDirty=false;render(true);say2('avMsg','ok','✅ Đã lưu ảnh đại diện');
+  }
+  function avClear(b){
+    b.disabled=true;lsSet('pp_av_'+code,'');lsSet('pp_avx_'+code,'1');
+    pushIn({avClear:1}).catch(()=>{});
+    photos.av='';setDirty=false;render(true);say2('avMsg','ok','Đã gỡ ảnh đại diện');
+  }
+  function pfSend(b){
+    const me=data.me||{},v=id=>document.getElementById(id).value.trim(),f={};
+    const name=v('pfName'),phone=v('pfPhone').replace(/[^\d+ ]/g,''),g=v('pfGender'),dob=v('pfDob'),addr=v('pfAddr'),veh=v('pfVeh'),cc=v('pfCccd').replace(/\s/g,'');
+    if(!name){say2('pfMsg','err','Họ tên không được để trống.');return}
+    if(phone&&phone.replace(/\D/g,'').length<8){say2('pfMsg','err','Số điện thoại chưa đúng.');return}
+    if(cc&&!/^\d{9}$|^\d{12}$/.test(cc)){say2('pfMsg','err','CCCD gồm 9 hoặc 12 chữ số.');return}
+    if(name!==(me.name||data.tenant||''))f.name=name;
+    if(phone!==(me.phone||''))f.phone=phone;
+    if(g&&g!==(me.gender||''))f.gender=g;
+    if(dob&&dob!==(me.dob||''))f.dob=dob;
+    if(addr!==(me.address||''))f.address=addr;
+    if(veh!==(me.vehicle||''))f.vehicle=veh;
+    if(cc)f.cccd=cc;
+    if(!Object.keys(f).length){say2('pfMsg','err','Bạn chưa sửa gì cả.');return}
+    b.disabled=true;
+    pushIn(f).then(()=>{setDirty=false;say2('pfMsg','ok','✅ Đã gửi cho chủ trọ. Thông tin sẽ cập nhật sau khi được duyệt.');setTimeout(()=>{b.disabled=false},15000)})
+      .catch(()=>{b.disabled=false;say2('pfMsg','err','Không gửi được. Vui lòng thử lại sau.')});
+  }
+  $app.addEventListener('input',()=>{if(tab==='set')setDirty=true});
+  function render(force){
+    if(tab==='set'&&setDirty&&!force)return;
     const invs=(data.invoices||[]).slice().sort((a,b)=>String(b.month).localeCompare(String(a.month)));
     const totalDebt=invs.reduce((n,i)=>n+(+i.debt||0),0);
-    let h='<div class="hdr"><button class="vc" type="button" data-a="vc" title="Bật/tắt giọng đọc thông báo">'+vLbl()+'</button><h1>'+esc(data.hotel||'Nhà trọ')+'</h1><p>'+esc(data.tenant||'')+(data.room?' · Phòng '+esc(data.room):'')+'</p>'+(data.phone?'<p>Liên hệ: <a href="tel:'+esc(String(data.phone).replace(/\s/g,''))+'">'+esc(data.phone)+'</a></p>':'')+'</div>'
+    let h='<div class="hdr"><div class="hbtn"><button class="vc" type="button" data-a="vc" title="Bật/tắt giọng đọc thông báo">'+vLbl()+'</button><button class="vc" type="button" data-a="set" title="Cài đặt" aria-label="Cài đặt">⚙️</button></div><div class="hrow">'+avatarBtn()+'<div class="hmain"><h1>'+esc(data.hotel||'Nhà trọ')+'</h1><p>'+esc(data.tenant||'')+(data.room?' · Phòng '+esc(data.room):'')+'</p>'+(data.phone?'<p>Liên hệ: <a href="tel:'+esc(String(data.phone).replace(/\s/g,''))+'">'+esc(data.phone)+'</a></p>':'')+'</div></div></div>'
       +'<div class="tabs"><button class="tab '+(tab==='inv'?'on':'')+'" data-t="inv">Hóa đơn</button><button class="tab '+(tab==='meter'?'on':'')+'" data-t="meter">Gửi chỉ số</button><button class="tab '+(tab==='issue'?'on':'')+'" data-t="issue">Báo sự cố</button><button class="tab '+(tab==='sign'?'on':'')+'" data-t="sign">Ký tên'+signBadge()+'</button></div>';
-    if(tab==='inv'){
+    if(tab==='set'){h+=setTab();}else if(tab==='inv'){
       h+='<div class="card" style="text-align:center"><div class="muted">Tổng số tiền còn phải trả</div><div style="font-size:26px;font-weight:800;color:'+(totalDebt>0?'var(--danger)':'var(--pri)')+'">'+fmt(totalDebt)+'</div></div>'
         +(invs.length?invs.map(invHtml).join(''):'<div class="center">Chưa có hóa đơn nào</div>')
         +'<div class="muted" style="text-align:center;margin-top:6px">Cập nhật lúc '+esc(new Date(data.at||Date.now()).toLocaleString('vi-VN'))+'</div>';
@@ -265,9 +336,14 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
     }).catch(()=>{msg.innerHTML='<div class="err">Không gửi được. Vui lòng thử lại sau.</div>'});
   }
   $app.addEventListener('click',e=>{
-    const t=e.target.closest('[data-t]');if(t){tab=t.dataset.t;render();return}
+    const t=e.target.closest('[data-t]');if(t){tab=t.dataset.t;setDirty=false;render(true);return}
     const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,id=b.dataset.id;
     if(a==='det'){openId=openId===id?null:id;render()}
+    else if(a==='set'){tab='set';setDirty=false;render(true);window.scrollTo(0,0)}
+    else if(a==='back'){tab='inv';setDirty=false;render(true)}
+    else if(a==='avsave')avSave(b)
+    else if(a==='avclr')avClear(b)
+    else if(a==='pfsend')pfSend(b)
     else if(a==='pay'){qrId=qrId===id?null:id;render()}
     else if(a==='copy'){(navigator.clipboard?navigator.clipboard.writeText(b.dataset.v):Promise.reject()).then(()=>{b.textContent='Đã chép ✓'}).catch(()=>{b.textContent=b.dataset.v})}
     else if(a==='meter'){

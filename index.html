@@ -1193,6 +1193,31 @@ body[data-tab="guide"] .qa{display:none}
 .ptac-tx b{color:var(--primary);font-weight:900}
 .ptac-x{flex-shrink:0;width:34px;height:34px;border:0;background:transparent;color:var(--text3);font-size:18px;line-height:1;border-radius:8px;cursor:pointer}
 .ptac-x:hover{color:#ef4444}
+
+/* ── v5.47: Menu chính co giãn theo thiết bị + bỏ nút "+" thao tác nhanh ── */
+.qa,.qa-scrim{display:none!important}
+.home-menu{padding-left:clamp(12px,2.2vw,40px);padding-right:clamp(12px,2.2vw,40px)}
+.home-summary,.home-grid{width:100%;max-width:min(1560px,100%)}
+.home-grid{gap:clamp(10px,1.3vw,22px)}
+.home-summary{gap:clamp(8px,1.1vw,18px)}
+.menu-card{--ic:52px;--tile:var(--ic)}
+.menu-card-icon{width:var(--ic);height:var(--ic)}
+@media(min-width:760px){
+.menu-card{--ic:clamp(52px,5vw,72px);min-height:clamp(104px,10vw,156px);padding:clamp(16px,1.6vw,26px);gap:clamp(13px,1.3vw,20px);border-radius:clamp(20px,1.8vw,26px)}
+.menu-card-icon svg{width:calc(var(--ic)*.5);height:calc(var(--ic)*.5)}
+.menu-card-title{font-size:clamp(16px,1.5vw,22px)}
+.menu-card-sub{font-size:clamp(12px,1.05vw,15px)}
+.home-summary-item{padding:clamp(14px,1.4vw,24px)}
+.home-summary-val{font-size:clamp(23px,2.3vw,34px)}
+.home-summary-lbl{font-size:clamp(11px,.95vw,14px)}
+}
+@media(min-width:1200px){
+.home-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+@media(max-width:759px){
+.menu-card{--ic:clamp(40px,11vw,54px)}
+.menu-card-icon svg{width:calc(var(--ic)*.5);height:calc(var(--ic)*.5)}
+}
 </style>
 <style id="gdCss2">
 #pg-guide{max-width:760px;padding:0 0 96px!important}
@@ -7534,7 +7559,7 @@ function buildQA(){
 function qaToggle(){const q=document.getElementById('qa');if(!q)return;const o=q.classList.toggle('open');document.getElementById('qaFab').setAttribute('aria-expanded',o);document.getElementById('qaScrim').classList.toggle('on',o)}
 function qaClose(){const q=document.getElementById('qa');if(!q)return;q.classList.remove('open');document.getElementById('qaFab').setAttribute('aria-expanded','false');document.getElementById('qaScrim').classList.remove('on')}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')qaClose()});
-buildQA();
+/* nút thao tác nhanh (+) đã được gỡ bỏ */
 
 /* ── Hiệu ứng chạm (ripple), xoay nút sáng/tối ── */
 document.addEventListener('pointerdown',e=>{
@@ -10060,7 +10085,7 @@ document.body.insertBefore(d.firstChild,document.body.firstChild);
 .rm-ghost.zone{transform:none;background:var(--surface,#16213a);border-radius:14px;padding:8px 12px;opacity:.95}
 </style>
 <script>
-window.APP_VERSION='5.46';
+window.APP_VERSION='5.47';
 (function(){
 'use strict';
 /* ── Phiên bản + kiểm tra cập nhật ── */

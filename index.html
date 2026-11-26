@@ -1239,6 +1239,10 @@ background:linear-gradient(90deg,var(--primary),var(--secondary,#0ea5e9));box-sh
 .home-grid .menu-card:active{transform:none!important;background:color-mix(in srgb,var(--primary) 9%,var(--surface))}
 .today-chip:hover,.stat-card:hover,.home-summary-item:hover{transform:none!important}
 }
+
+/* Gợn sóng không bao giờ được chiếm chỗ trong ô (trước đây bị luật ">span:last-child" bắt nhầm) */
+.menu-card>.rip{position:absolute!important;display:block!important;flex:none!important;min-width:0;max-width:none;transition:none!important;z-index:0}
+.menu-card>.rip~*{position:relative;z-index:1}
 </style>
 <style id="gdCss2">
 #pg-guide{max-width:760px;padding:0 0 96px!important}
@@ -7588,7 +7592,7 @@ document.addEventListener('pointerdown',e=>{
   if(!t||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   const r=t.getBoundingClientRect(),d=Math.max(r.width,r.height),s=document.createElement('span');
   s.className='rip';s.style.cssText=`width:${d}px;height:${d}px;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px`;
-  t.appendChild(s);setTimeout(()=>s.remove(),650);
+  if(t.classList.contains('menu-card'))t.insertBefore(s,t.firstChild);else t.appendChild(s);setTimeout(()=>s.remove(),650);
 },{passive:true});
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.home-action-btn[onclick*="toggleDark"]');if(b){b.classList.remove('spin');void b.offsetWidth;b.classList.add('spin')}});
 
@@ -10106,7 +10110,7 @@ document.body.insertBefore(d.firstChild,document.body.firstChild);
 .rm-ghost.zone{transform:none;background:var(--surface,#16213a);border-radius:14px;padding:8px 12px;opacity:.95}
 </style>
 <script>
-window.APP_VERSION='5.48';
+window.APP_VERSION='5.49';
 (function(){
 'use strict';
 /* ── Phiên bản + kiểm tra cập nhật ── */
@@ -11077,6 +11081,17 @@ try{if(typeof renderHomeExtras==='function')renderHomeExtras();window.ptHomeStri
   var EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
   /* ══ MÀN HÌNH: đang kiểm tra phiên ══ */
+  function leaveBoot(fn){
+    if(lg.passing||mode()!=='boot'||!$('lgProgFill')){fn();return}
+    lg.pend=fn;
+    if(lg.leaving)return;
+    lg.leaving=true;
+    var f=$('lgProgFill'),pc=$('lgProgPct'),from=parseInt(pc.textContent,10)||0,t0=Date.now();
+    f.style.transition='width .35s ease-out';f.style.width='100%';
+    $('lgProgTxt').textContent='Hoàn tất';$('lgProg').setAttribute('aria-valuenow',100);
+    var ct=setInterval(function(){var k=Math.min(1,(Date.now()-t0)/350);pc.textContent=Math.round(from+(100-from)*k)+'%';if(k>=1)clearInterval(ct)},30);
+    setTimeout(function(){var g=lg.pend;lg.pend=null;lg.leaving=false;lg.passing=true;try{g&&g()}finally{lg.passing=false}},560);
+  }
   function viewBoot(){
     shell('boot',brand(true)+'<p class="lg-sub" style="margin:6px 0 4px">Đang kiểm tra phiên đăng nhập…</p>'+
       '<div class="lg-prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="lgProg">'+
@@ -11086,13 +11101,14 @@ try{if(typeof renderHomeExtras==='function')renderHomeExtras();window.ptHomeStri
     var t0=Date.now(),tk=setInterval(function(){
       var f=$('lgProgFill');
       if(!f||mode()!=='boot'){clearInterval(tk);return}
+      if(lg.leaving)return;
       var p=Math.min(94,94*(1-Math.exp(-(Date.now()-t0)/1300))),n=Math.floor(p);
       f.style.width=p.toFixed(1)+'%';
       $('lgProgPct').textContent=n+'%';
       $('lgProg').setAttribute('aria-valuenow',n);
       $('lgProgTxt').textContent=n<30?'Đang kết nối máy chủ…':n<70?'Xác thực phiên đăng nhập…':'Chuẩn bị dữ liệu…';
     },60);
-    setTimeout(function(){if(mode()==='boot'&&!curUser())viewLogin()},3500);
+    setTimeout(function(){if(mode()==='boot'&&!curUser())leaveBoot(function(){viewLogin()})},3500);
   }
 
   /* ══ MÀN HÌNH: đăng nhập ══ */
@@ -11320,12 +11336,13 @@ try{if(typeof renderHomeExtras==='function')renderHomeExtras();window.ptHomeStri
     if(m==='boot'){if(mode()==='login'||mode()==='forgot'||mode()==='sent'||mode()==='register')return;viewBoot();return}
     var cur=mode();
     if(cur==='login'||cur==='forgot'||cur==='sent'||cur==='register')return;   // đừng xóa chữ người dùng đang gõ
-    viewLogin();
+    leaveBoot(function(){viewLogin()});
   };
   window.loginOvGo=doLogin;
 
   /* ══ Màn hình chờ duyệt / bị khóa / chưa có Chủ trọ ══ */
   window.roleOverlay=function(show,msg,extra){
+    if(!lg.passing&&mode()==='boot'&&$('lgProgFill')){var A=arguments;return leaveBoot(function(){window.roleOverlay.apply(null,A)})}
     var o=ov();
     if(!show){if(o)o.remove();clearInterval(lg.tick);clearInterval(lg.cool);lg.tick=lg.cool=null;return}
     var locked=/khóa/i.test(msg||'');

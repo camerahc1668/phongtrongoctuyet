@@ -2913,6 +2913,7 @@ function renderRoomThumb(room){
 /* ══ VIEW 1: SƠ ĐỒ TẦNG (MAP) ════════ */
 /* ── Sửa chữa đang mở trong phòng ── */
 var FIX_ITEMS=[['Máy lạnh','❄️'],['Tủ lạnh','🧊'],['Tủ quần áo','🚪'],['Bếp','🍳'],['Đèn','💡'],['Quạt','🌀'],['Quạt treo tường','🌀'],['Giường','🛏️'],['Nệm','🛌'],['Bàn','🪑'],['Ghế','💺'],['Máy nước nóng','🚿'],['Rèm cửa','🎀'],['Lavabo','🚰'],['Bồn cầu','🚽'],['Kệ tivi','📺'],['Tivi','🖥️'],['Ghế sofa','🛋️'],['Cửa / ổ khóa','🔑'],['Điện / ổ cắm','🔌'],['Ống nước / vòi','💧'],['Khác','🔧']];
+function incItems(i){return Array.isArray(i&&i.items)&&i.items.length?i.items:(i&&i.item?[i.item]:[])}
 function fixItemOk(n){n=String(n||'');return FIX_ITEMS.some(x=>x[0]===n)?n:''}
 function fixEmoji(n){const f=FIX_ITEMS.find(x=>x[0]===n);return f?f[1]:'🔧'}
 function roomFixes(room){return(S.incidents||[]).filter(i=>i&&i.roomId===room.id&&i.status!=='done')}
@@ -2921,9 +2922,9 @@ var _fixSvgCache={};
 function fixSvg(room){
   try{
     if(!window.ptFMAP||!window.ptRoomUse)return'';
-    const act=roomFixes(room).filter(x=>x.item);if(!act.length)return'';
+    const act=roomFixes(room).filter(x=>incItems(x).length);if(!act.length)return'';
     const href=ptRoomUse(room),sym=href&&document.getElementById(String(href).replace(/^#/,''));if(!sym)return'';
-    const ids=new Set();act.forEach(x=>(ptFMAP[x.item]||[]).forEach(id=>ids.add(id)));
+    const ids=new Set();act.forEach(x=>incItems(x).forEach(nm=>(ptFMAP[nm]||[]).forEach(id=>ids.add(id))));
     const key=href+'|'+[...ids].sort().join(',');
     if(_fixSvgCache[key]!==undefined)return _fixSvgCache[key];
     let h='';
@@ -2950,13 +2951,13 @@ function showRoomFixes(rid){
   if(!list.length){refreshRoomsFix();return}
   const body=list.map(i=>{
     const pri=PRI[i.priority]||PRI.normal,st=INC_ST[i.status]||INC_ST.open;
-    const head=i.item?i.item:i.title;
+    const its=incItems(i),head=its.length?its.join(', '):i.title;
     return `<div style="display:flex;gap:12px;padding:12px;margin-bottom:10px;border:1px solid var(--border);border-left:4px solid ${pri[1]};border-radius:14px;background:var(--surface)">
-      <div style="font-size:30px;line-height:1;flex:none">${fixEmoji(i.item)}</div>
+      <div style="font-size:30px;line-height:1;flex:none">${its.length>1?'🛠️':fixEmoji(its[0])}</div>
       <div style="min-width:0;flex:1">
         <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div style="font-size:15px;font-weight:800">${esc(head)}</div>
           <span style="padding:2px 9px;border-radius:99px;background:${st[1]}18;color:${st[1]};font-size:11px;font-weight:700;white-space:nowrap">${st[0]}</span></div>
-        ${i.item&&i.title&&i.title!==i.item?`<div style="font-size:13px;margin-top:3px">${esc(i.title)}</div>`:''}
+        ${its.length&&i.title&&i.title!==head?`<div style="font-size:13px;margin-top:3px">${esc(i.title)}</div>`:''}
         ${i.desc?`<div style="font-size:12.5px;color:var(--text2);margin-top:4px;white-space:pre-wrap">${esc(i.desc)}</div>`:''}
         <div style="font-size:11.5px;color:var(--text3);margin-top:6px"><span style="color:${pri[1]};font-weight:700">${pri[0]}</span> · ${esc(fmtDate(i.date))}${i.fromPortal&&i.tenantName?' · Khách báo: '+esc(i.tenantName):''}</div>
       </div></div>`}).join('');
@@ -6358,7 +6359,7 @@ function renderMaint(){
     const room=S.rooms.find(r=>r.id===i.roomId),pri=PRI[i.priority]||PRI.normal,st=INC_ST[i.status]||INC_ST.open;
     return `<div class="card card-body" style="margin-bottom:10px;border-left:4px solid ${pri[1]}">
       <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
-        <div style="min-width:0"><div style="font-size:15px;font-weight:800">${i.item?`<span style="font-size:12px;padding:2px 8px;border-radius:99px;background:rgba(239,68,68,.12);color:#ef4444;margin-right:6px">${fixEmoji(i.item)} ${esc(i.item)}</span>`:''}${esc(i.title)}</div>
+        <div style="min-width:0"><div style="font-size:15px;font-weight:800">${incItems(i).map(nm=>`<span style="font-size:12px;padding:2px 8px;border-radius:99px;background:rgba(192,38,211,.12);color:#c026d3;margin-right:4px;white-space:nowrap">${fixEmoji(nm)} ${esc(nm)}</span>`).join('')}${esc(i.title)}</div>
           <div style="font-size:12px;color:var(--text3)">${room?'Phòng '+esc(room.name):'Khu vực chung'} · ${esc(fmtDate(i.date))} · <span style="color:${pri[1]};font-weight:700">${pri[0]}</span></div></div>
         <span style="padding:3px 10px;border-radius:99px;background:${st[1]}18;color:${st[1]};font-size:11px;font-weight:700;white-space:nowrap">${st[0]}</span></div>
       ${i.desc?`<div style="font-size:12.5px;color:var(--text2);margin-top:6px;white-space:pre-wrap">${esc(i.desc)}</div>`:''}
@@ -6382,7 +6383,7 @@ function editInc(id,over){
   const o={...(i||{status:'open',priority:'normal',paidBy:'owner',date:today(),cost:0}),...(over||{})};
   mkModal('mInc',i?'Sửa sự cố':'Báo sự cố',`
     <div class="fg"><label class="flbl">Phòng / khu vực</label><select class="fc" id="icRoom"><option value="">Khu vực chung</option>${S.rooms.map(r=>`<option value="${esc(r.id)}" ${r.id===o.roomId?'selected':''}>Phòng ${esc(r.name)}</option>`).join('')}</select></div>
-    <div class="fg"><label class="flbl">Hạng mục / nội thất hỏng</label><select class="fc" id="icItem"><option value="">— Không chọn —</option>${FIX_ITEMS.map(x=>`<option value="${esc(x[0])}" ${o.item===x[0]?'selected':''}>${x[1]} ${esc(x[0])}</option>`).join('')}</select></div>
+    <div class="fg"><label class="flbl">Hạng mục / nội thất hỏng <span style="font-weight:500;color:var(--text3)">(chọn được nhiều món)</span></label><div id="icItems" style="display:flex;flex-wrap:wrap;gap:6px">${FIX_ITEMS.map(x=>`<label style="display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1.5px solid var(--border);border-radius:99px;font-size:12.5px;font-weight:600;cursor:pointer"><input type="checkbox" value="${esc(x[0])}" ${incItems(o).includes(x[0])?'checked':''} style="width:auto;margin:0">${x[1]} ${esc(x[0])}</label>`).join('')}</div></div>
     <div class="fg"><label class="flbl">Tiêu đề <span>*</span></label><input class="fc" id="icTitle" value="${esc(o.title||'')}" placeholder="VD: Hỏng vòi nước, mất điện..."></div>
     <div class="fg"><label class="flbl">Mô tả</label><textarea class="fc" id="icDesc" rows="3">${esc(o.desc||'')}</textarea></div>
     <div class="frow"><div class="fg"><label class="flbl">Mức độ</label><select class="fc" id="icPri">${Object.entries(PRI).map(([k,v])=>`<option value="${k}" ${o.priority===k?'selected':''}>${v[0]}</option>`).join('')}</select></div>
@@ -6401,13 +6402,13 @@ function incPickPhoto(inp){
 function saveInc(){
   const title=valIn('icTitle');if(!title){toast('Nhập tiêu đề sự cố','error');return}
   const cost=numIn('icCost');if(cost<0){toast('Chi phí không được âm','error');return}
-  const rec={roomId:document.getElementById('icRoom').value,item:fixItemOk(document.getElementById('icItem').value),title,desc:valIn('icDesc'),priority:document.getElementById('icPri').value,status:document.getElementById('icSt').value,cost,paidBy:document.getElementById('icPay').value,date:valIn('icDate')||today(),photo:incPhoto||null};
+  const rec={roomId:document.getElementById('icRoom').value,items:[...document.querySelectorAll('#icItems input:checked')].map(x=>fixItemOk(x.value)).filter(Boolean),title,desc:valIn('icDesc'),priority:document.getElementById('icPri').value,status:document.getElementById('icSt').value,cost,paidBy:document.getElementById('icPay').value,date:valIn('icDate')||today(),photo:incPhoto||null};
   let i=incEditId?incs().find(x=>x.id===incEditId):null;
   if(!i){i={id:'INC'+uid(),createdAt:new Date().toISOString()};incs().push(i)}
   const was=i.status;Object.assign(i,rec);
   if(i.status==='done'&&was!=='done')i.doneAt=new Date().toISOString();
   if(i.status!=='done')delete i.doneAt;
-  save();closeM('mInc');renderMaint();renderExpenses();refreshRoomsFix();toast('✅ Đã lưu sự cố','success');
+  i.item=(i.items&&i.items[0])||'';save();closeM('mInc');renderMaint();renderExpenses();refreshRoomsFix();toast('✅ Đã lưu sự cố','success');
 }
 function setIncStatus(id,st){
   const i=incs().find(x=>x.id===id);if(!i)return;
@@ -7151,8 +7152,8 @@ const portalSeen=new Set(),portalHash={};let portalT=null,portalRef=null;
 function newPortalCode(){const a=new Uint8Array(24);(window.crypto||{getRandomValues:x=>x.forEach((_,i)=>x[i]=Math.floor(Math.random()*256))}).getRandomValues(a);const al='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';return Array.from(a,b=>al[b%al.length]).join('')}
 function portalSnap(t){
   const room=S.rooms.find(r=>r.id===t.roomId),b=getBank();
-  const keys=['id','month','total','paid','debt','status','roomFee','elecFee','waterFee','waterMode','waterPeople','elecOld','elecNew','waterOld','waterNew','internet','serviceFee','garbage','parking','extra','discount','lateFee','createdAt'];
-  const invoices=S.invoices.filter(i=>i.tenantId===t.id||(t.roomId&&i.roomId===t.roomId)).sort((x,y)=>String(y.month).localeCompare(String(x.month))).slice(0,12).map(i=>{const o={};keys.forEach(k=>{if(i[k]!==undefined&&i[k]!==null)o[k]=i[k]});return o});
+  const keys=['id','month','total','paid','debt','status','roomFee','elecFee','waterFee','waterMode','waterPeople','elecOld','elecNew','waterOld','waterNew','internet','serviceFee','garbage','parking','extra','discount','lateFee','createdAt','payMethod'];
+  const invoices=S.invoices.filter(i=>i.tenantId===t.id||(t.roomId&&i.roomId===t.roomId)).sort((x,y)=>String(y.month).localeCompare(String(x.month))).slice(0,12).map(i=>{const o={};keys.forEach(k=>{if(i[k]!==undefined&&i[k]!==null)o[k]=i[k]});const ps=(S.payments||[]).filter(p=>p&&p.invId===i.id&&p.method!=='debt'&&(+p.amount||0)>0);if(ps.length){const l=ps[ps.length-1];if(!o.payMethod)o.payMethod=l.method||'';if(l.date)o.payAt=String(l.date).slice(0,10)}if(o.payMethod==='debt')o.payMethod='';return o});
   return cleanRec({v:1,hotel:S.settings.hotelName||'',phone:S.settings.phone||'',tenant:t.name||'',room:room?room.name:'',av:clipImg(t.portalAv||''),me:{name:t.name||'',phone:t.phone||'',gender:t.gender||'',dob:t.dob||'',address:t.address||'',vehicle:t.vehicle||'',cccd:maskCccd(t.cccd),moveIn:t.moveIn||''},waterPerson:waterPerPerson(room)?1:0,waterPP:room&&room.waterPP||0,people:room?roomPeople(room):0,bank:bankReady()?{bin:b.bin,acc:b.acc,name:b.name||'',bankName:bankName(b)}:null,invoices,at:Date.now()});
 }
 const portalCanPublish=()=>!!(v2.on&&fbDb&&fbConnected&&(window.ptRole==='owner'||window.ptRole==='manager'));
@@ -7356,7 +7357,7 @@ function portalHandle(code,items){
     const it=items[id]||{},del=()=>{try{dbRef('portal_in/'+code+'/'+id).remove()}catch(e){}};
     if(!t){del();continue}
     if(it.type==='incident'&&clip(it.title,100)){
-      if(!incs().some(i=>i.srcId===id)){incs().push({id:'INC'+uid(),srcId:id,roomId:t.roomId,title:clip(it.title,100),item:fixItemOk(it.item),desc:clip(it.desc,500),priority:'normal',status:'open',cost:0,paidBy:'owner',date:today(),createdAt:new Date().toISOString(),fromPortal:true,tenantName:t.name,photo:clipImg(it.img)});changed++}
+      if(!incs().some(i=>i.srcId===id)){incs().push({id:'INC'+uid(),srcId:id,roomId:t.roomId,title:clip(it.title,100),items:String(it.items||it.item||'').split('|').map(fixItemOk).filter(Boolean).slice(0,12),item:fixItemOk(String(it.items||it.item||'').split('|')[0]),desc:clip(it.desc,500),priority:'normal',status:'open',cost:0,paidBy:'owner',date:today(),createdAt:new Date().toISOString(),fromPortal:true,tenantName:t.name,photo:clipImg(it.img)});changed++}
       del();
     }else if(it.type==='meter'){
       const e=+it.elec,w=+it.water;
@@ -9199,7 +9200,7 @@ var COMP=[['bed','🛏️ Giường'],['mattress','🛌 Nệm + chăn gối'],['
 var DEF={c:{available:'#22c55e',rented:'#3b82f6',debt:'#ef4444',due:'#f97316'},
   hide:{available:['bed','mattress','fridge','table','wardrobe','ac','desk','chair','fan','wallfan','heater','toilet','lavabo','bath','person','tvstand','tv','sofa'],rented:[],debt:[],due:[]}};
 window.ptFMAP=null;var FMAP={'Máy lạnh':['ac'],'Tủ lạnh':['fridge'],'Tủ quần áo':['wardrobe'],'Bếp':['table'],'Đèn':['light'],'Quạt':['fan'],'Quạt treo tường':['wallfan'],'Giường':['bed'],'Nệm':['mattress'],'Bàn':['desk'],'Ghế':['chair'],'Máy nước nóng':['heater'],'Rèm cửa':['curtain'],'Lavabo':['lavabo'],'Bồn cầu':['toilet'],'Kệ tivi':['tvstand'],'Tivi':['tv'],'Ghế sofa':['sofa']};window.ptFMAP=FMAP;
-window.ptFurnStyle=function(room){try{if(!room)return '';var css='--s-person:'+(['rented','debt','due'].indexOf(room.status)>=0?'inline':'none')+';',on={};(room.furniture||[]).forEach(function(x){if(x&&x.s)(FMAP[x.n]||[]).forEach(function(id){on[id]=1})});try{if(typeof S!=='undefined')(S.incidents||[]).forEach(function(i){if(i&&i.roomId===room.id&&i.status!=='done'&&i.item)(FMAP[i.item]||[]).forEach(function(id){on[id]=1})})}catch(e){}Object.keys(FMAP).forEach(function(n){FMAP[n].forEach(function(id){css+='--s-'+id+':'+(on[id]?'inline':'none')+';'})});css+='--s-bath:'+(on.toilet||on.lavabo?'inline':'none')+';';return css}catch(e){return ''}};
+window.ptFurnStyle=function(room){try{if(!room)return '';var css='--s-person:'+(['rented','debt','due'].indexOf(room.status)>=0?'inline':'none')+';',on={};(room.furniture||[]).forEach(function(x){if(x&&x.s)(FMAP[x.n]||[]).forEach(function(id){on[id]=1})});try{if(typeof S!=='undefined')(S.incidents||[]).forEach(function(i){if(i&&i.roomId===room.id&&i.status!=='done'){(Array.isArray(i.items)&&i.items.length?i.items:(i.item?[i.item]:[])).forEach(function(nm){(FMAP[nm]||[]).forEach(function(id){on[id]=1})})}})}catch(e){}Object.keys(FMAP).forEach(function(n){FMAP[n].forEach(function(id){css+='--s-'+id+':'+(on[id]?'inline':'none')+';'})});css+='--s-bath:'+(on.toilet||on.lavabo?'inline':'none')+';';return css}catch(e){return ''}};
 function clone(o){return JSON.parse(JSON.stringify(o))}
 function hex(c){return /^#[0-9a-f]{6}$/i.test(c||'')}
 function mix(a,b,t){var pa=parseInt(a.slice(1),16),pb=parseInt(b.slice(1),16),r=function(sh){var x=(pa>>sh)&255,y=(pb>>sh)&255;return Math.round(x+(y-x)*t)};return '#'+[16,8,0].map(function(sh){return ('0'+r(sh).toString(16)).slice(-2)}).join('')}
@@ -10206,7 +10207,7 @@ document.body.insertBefore(d.firstChild,document.body.firstChild);
 .rm-ghost.zone{transform:none;background:var(--surface,#16213a);border-radius:14px;padding:8px 12px;opacity:.95}
 </style>
 <script>
-window.APP_VERSION='5.54';
+window.APP_VERSION='5.55';
 (function(){
 'use strict';
 /* ── Phiên bản + kiểm tra cập nhật ── */

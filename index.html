@@ -3930,7 +3930,7 @@ p{margin:0 0 6pt 0}
   if(window.__ct01Cb){const cb=window.__ct01Cb;window.__ct01Cb=null;cb(html,tenantId);return}
   const printWin=window.open('','_blank','width=900,height=700');
   if(!printWin){toast('Vui lòng cho phép popup để xuất PDF!','error');return;}
-  printWin.document.write(html);
+  printWin.document.write(ptPrintDoc(html));
   printWin.document.close();
   // Tự động gọi print sau khi load xong
   printWin.onload=function(){
@@ -4778,7 +4778,7 @@ ${ct.extraTerms?`<p><b>5. Điều khoản bổ sung</b></p><p>${esc(ct.extraTerm
   // Xuất PDF qua print window
   const printWin=window.open('','_blank','width=900,height=700');
   if(!printWin){toast('Vui lòng cho phép popup để xuất PDF!','error');return;}
-  printWin.document.write(htmlContent);
+  printWin.document.write(ptPrintDoc(htmlContent));
   printWin.document.close();
   printWin.onload=function(){setTimeout(()=>{printWin.focus();printWin.print();},400);};
   toast('✅ Đang mở cửa sổ in hợp đồng — chọn "Save as PDF"!','success');
@@ -7177,6 +7177,14 @@ async function portalPublish(force){
 }
 /* ───── Gửi hợp đồng / CT01 cho khách ký trên cổng khách ───── */
 var signRef=null;
+/* ── Cửa sổ in/xem văn bản: thêm thanh Đóng + In (ẩn khi in) ── */
+function ptPrintDoc(html){
+  const css='<style>.pt-pbar{position:fixed;left:0;right:0;top:0;z-index:2147483647;display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 10px;padding-top:calc(8px + env(safe-area-inset-top,0px));background:#0f172a;box-shadow:0 2px 10px rgba(0,0,0,.35)}.pt-pbar button{border:0;border-radius:10px;padding:10px 16px;font:700 14px system-ui,sans-serif;cursor:pointer;color:#fff}.pt-pbar .x{background:#ef4444}.pt-pbar .p{background:#16a34a}@media screen{body{padding-top:68px!important}}@media print{.pt-pbar{display:none!important}}</style>';
+  const bar='<div class="pt-pbar"><button class="x" type="button" onclick="try{window.close()}catch(e){}setTimeout(function(){if(!window.closed){if(history.length>1)history.back();else location.replace(\'about:blank\')}},200)">✕ Đóng</button><button class="p" type="button" onclick="window.print()">🖨️ In / Lưu PDF</button></div>';
+  html=String(html);
+  html=/<\/head>/i.test(html)?html.replace(/<\/head>/i,css+'</head>'):css+html;
+  return /<body[^>]*>/i.test(html)?html.replace(/<body[^>]*>/i,m=>m+bar):bar+html;
+}
 function cleanHtml(h){const d=new DOMParser().parseFromString(h,'text/html');d.querySelectorAll('script,iframe,object,embed,link,form,base').forEach(n=>n.remove());d.querySelectorAll('*').forEach(n=>[...n.attributes].forEach(a=>{if(/^on/i.test(a.name)||/^\s*javascript:/i.test(a.value))n.removeAttribute(a.name)}));return '<!doctype html>'+d.documentElement.outerHTML}
 function contractDocHtml(ct){renderContractPreview(ct);return '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font:14px/1.55 "Times New Roman",serif;padding:10px;color:#111}table{border-collapse:collapse;width:100%}td,th{border:1px solid #888;padding:4px;font-size:12px}.sign-row{display:flex;justify-content:space-around;text-align:center}</style>'+document.getElementById('contractPreviewContent').innerHTML}
 async function signSend(type,tid,title,html,refId,quiet){
@@ -7223,7 +7231,7 @@ async function signView(id){
              .replace(/<div[^>]*data-s="A"[^>]*>[^<]*<\/div>/,d.ownerSig?signed(sigA,'Chủ nhà',d.ownerName||'',d.ownerSignedAt):wait);
   }
   const blk=d.status==='signed'?'<div style="margin:24px 0;padding:12px;border:1px solid #888;font:13px sans-serif"><b>XÁC NHẬN KÝ ĐIỆN TỬ</b><br>Người ký: '+esc(d.signer)+'<br>Thời gian: '+when(d.signedAt)+(d.ownerSig?'<br>Chủ nhà xác nhận: '+esc(d.ownerName||'')+' · '+when(d.ownerSignedAt):'')+'<br>Mã băm văn bản (SHA-256): <span style="word-break:break-all;font-size:11px">'+esc(d.hash||'')+'</span>'+(d.type==='furniture'?'':'<div style="display:flex;gap:28px;flex-wrap:wrap;margin-top:10px;color:#1d4ed8"><div style="text-align:center"><img src="'+sigB+'" style="height:90px"><div style="font-weight:800">✔ Khách đã xác nhận</div><div style="font-size:12px">'+esc(d.signer)+'</div></div>'+(d.ownerSig?'<div style="text-align:center"><img src="'+sigA+'" style="height:90px"><div style="font-weight:800">✔ Chủ nhà đã xác nhận</div><div style="font-size:12px">'+esc(d.ownerName||'')+'</div></div>':'')+'</div>')+'</div>':'';
-  w.document.open();w.document.write(html.replace('</body>',blk+'</body>'));w.document.close();
+  w.document.open();w.document.write(ptPrintDoc(html.replace('</body>',blk+'</body>')));w.document.close();
 }
 async function signDel(id){
   const d=(S.signDocs||[]).find(x=>x.id===id);if(!d||!await ptConfirm('Xóa "'+d.title+'"? Khách sẽ không thấy văn bản này nữa.'))return;
@@ -10207,7 +10215,7 @@ document.body.insertBefore(d.firstChild,document.body.firstChild);
 .rm-ghost.zone{transform:none;background:var(--surface,#16213a);border-radius:14px;padding:8px 12px;opacity:.95}
 </style>
 <script>
-window.APP_VERSION='5.55';
+window.APP_VERSION='5.56';
 (function(){
 'use strict';
 /* ── Phiên bản + kiểm tra cập nhật ── */

@@ -1254,10 +1254,10 @@ background:linear-gradient(90deg,var(--primary),var(--secondary,#0ea5e9));box-sh
 
 /* ── Phòng đang sửa chữa: hình mỏ lết + cưa chuyển động (không nền) giữa phòng, món hỏng chớp đỏ ── */
 .rc-fix{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;display:inline-flex;align-items:center;gap:3px;padding:6px;margin:0;border:0;background:none;box-shadow:none;cursor:pointer;-webkit-tap-highlight-color:transparent;overflow:visible;
-filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 7px rgba(239,68,68,.65));animation:fixFloat 2.2s ease-in-out infinite}
-.rc-fix svg{width:clamp(26px,3.2vw,40px);height:clamp(26px,3.2vw,40px);fill:none;stroke:#ef4444;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
-.rc-fix .w{transform-origin:70% 70%;animation:fixWrench 1s ease-in-out infinite}
-.rc-fix .s{animation:fixSaw .55s ease-in-out infinite}
+filter:drop-shadow(0 0 2px #fff) drop-shadow(0 3px 5px rgba(15,42,71,.45));animation:fixFloat 2.2s ease-in-out infinite}
+.rc-fix svg.rf{width:clamp(34px,4.4vw,54px);height:clamp(34px,4.4vw,54px);overflow:visible;display:block}
+.rc-fix .gr{transform-box:fill-box;transform-origin:center;animation:fixGear 7s linear infinite}
+.rc-fix .wr{transform-box:fill-box;transform-origin:50% 50%;animation:fixSwing 1.3s ease-in-out infinite alternate}
 .rc-fix i{position:absolute;right:-2px;top:-2px;min-width:17px;height:17px;padding:0 4px;border-radius:99px;background:#ef4444;color:#fff;font:800 10px/17px system-ui,sans-serif;text-align:center;font-style:normal;box-shadow:0 0 0 2px #fff}
 .rc-fix:active{transform:translate(-50%,-50%) scale(.92)}
 .rc3-thumb .rc-fix{display:none}
@@ -1265,9 +1265,9 @@ filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 7px rgba(239,68,68,.65));animat
 .rc-badg *{fill:#ef4444!important;stroke:#991b1b!important;stroke-opacity:.9}
 @keyframes fixBlinkSvg{0%,100%{opacity:0}50%{opacity:.88}}
 @keyframes fixFloat{0%,100%{margin-top:0}50%{margin-top:-4px}}
-@keyframes fixWrench{0%,100%{transform:rotate(-30deg)}50%{transform:rotate(30deg)}}
-@keyframes fixSaw{0%,100%{transform:translateX(-3px)}50%{transform:translateX(3px)}}
-@media(prefers-reduced-motion:reduce){.rc-fix,.rc-fix .w,.rc-fix .s{animation:none}.rc-badg{animation:none;opacity:.7}}
+@keyframes fixGear{to{transform:rotate(360deg)}}
+@keyframes fixSwing{from{transform:rotate(-16deg)}to{transform:rotate(16deg)}}
+@media(prefers-reduced-motion:reduce){.rc-fix,.rc-fix .gr,.rc-fix .wr{animation:none}.rc-badg{animation:none;opacity:.7}}
 </style>
 <style id="gdCss2">
 #pg-guide{max-width:760px;padding:0 0 96px!important}
@@ -2920,8 +2920,7 @@ function fixSvg(room){
 function fixBadge(room){
   const n=roomFixes(room).length;if(!n)return'';
   return '<button type="button" class="rc-fix" aria-label="Xem mục cần sửa chữa" title="Mục cần sửa chữa" onclick="event.stopPropagation();showRoomFixes(\''+esc(room.id)+'\')">'+
-    '<svg class="w" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>'+
-    '<svg class="s" viewBox="0 0 24 24"><path d="M2 9h14v4H2z"/><path d="M2 13l1.75 2.5L5.5 13l1.75 2.5L9 13l1.75 2.5 1.75-2.5 1.75 2.5L16 13"/><path d="M16 8.5h4.2a1.8 1.8 0 0 1 1.8 1.8v1.4a1.8 1.8 0 0 1-1.8 1.8H16"/></svg>'+
+    '<svg class="rf" viewBox="0 0 48 48" aria-hidden="true">'+'<g class="gr"><circle cx="24" cy="24" r="17.6" fill="none" stroke="#2f7bd0" stroke-width="6" stroke-dasharray="6.9 6.9"/>'+'<circle cx="24" cy="24" r="12" fill="none" stroke="#3b8be6" stroke-width="7"/></g>'+'<g class="wr"><path transform="translate(7 7) scale(1.42)" d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" fill="#0f2a47" stroke="#fff" stroke-width="1.1" stroke-linejoin="round" paint-order="stroke"/></g></svg>'+
     (n>1?'<i>'+n+'</i>':'')+'</button>';
 }
 function showRoomFixes(rid){
@@ -10187,7 +10186,7 @@ document.body.insertBefore(d.firstChild,document.body.firstChild);
 .rm-ghost.zone{transform:none;background:var(--surface,#16213a);border-radius:14px;padding:8px 12px;opacity:.95}
 </style>
 <script>
-window.APP_VERSION='5.51';
+window.APP_VERSION='5.52';
 (function(){
 'use strict';
 /* ── Phiên bản + kiểm tra cập nhật ── */

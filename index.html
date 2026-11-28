@@ -3890,7 +3890,7 @@ p{margin:0 0 6pt 0}
       <div class="sig-title">Ý KIẾN CỦA CHỦ SỞ HỮU<br>CHỖ Ở HỢP PHÁP<sup>(4)</sup></div>
       ${ownerName?`<div class="sig-sub"><sup>(7)</sup> Họ và tên: ${ownerName}</div>`:'<div class="sig-sub"><sup>(7)</sup> Họ và tên: ..................</div>'}
       ${ownerCccd?`<div class="sig-sub"><sup>(7)</sup> Số ĐDCN: ${ownerCccd}</div>`:'<div class="sig-sub"><sup>(7)</sup> Số ĐDCN: ..................</div>'}
-      <div class="sig-space"></div>
+      <div class="sig-space" data-s="A"></div>
       <div class="sig-name">${ownerName}</div>
     </td>
     <td>
@@ -3905,7 +3905,7 @@ p{margin:0 0 6pt 0}
       <div style="font-size:10pt">${diaDiem}, ngày ${signDay} tháng ${signMonth} năm ${signYear}</div>
       <div class="sig-title">NGƯỜI KÊ KHAI<sup>(6)</sup></div>
       <div class="sig-sub">(Ký, ghi rõ họ tên)</div>
-      <div class="sig-space"></div>
+      <div class="sig-space" data-s="B"></div>
       <div class="sig-name">${name}</div>
     </td>
   </tr>
@@ -4711,8 +4711,8 @@ function renderContractPreview(ct){
     <tr><td style="text-align:center">1</td><td></td><td></td><td></td><td></td><td></td></tr>
     <tr><td style="text-align:center">2</td><td></td><td></td><td></td><td></td><td></td></tr></table>
     <div class="sign-row" style="margin-top:24px">
-      <div><div style="font-weight:700">Bên B</div><div style="font-style:italic;font-size:11px">(Ký, ghi rõ họ tên)</div><div style="height:50px"></div><div style="font-weight:700">${esc(ct.tenantName)}</div></div>
-      <div><div style="font-weight:700">Bên A</div><div style="font-style:italic;font-size:11px">(Ký, ghi rõ họ tên)</div><div style="height:50px"></div><div style="font-weight:700">${esc(ct.ownerName)}</div></div>
+      <div><div style="font-weight:700">Bên B</div><div style="font-style:italic;font-size:11px">(Ký, ghi rõ họ tên)</div><div data-s="B" style="height:50px"></div><div style="font-weight:700">${esc(ct.tenantName)}</div></div>
+      <div><div style="font-weight:700">Bên A</div><div style="font-style:italic;font-size:11px">(Ký, ghi rõ họ tên)</div><div data-s="A" style="height:50px"></div><div style="font-weight:700">${esc(ct.ownerName)}</div></div>
     </div>
     <p style="text-align:center;font-size:11px;color:#999;margin-top:16px;font-style:italic">* Hợp đồng được lập thành 02 bản, mỗi bên giữ 01 bản có giá trị pháp lý như nhau.</p>`;
 }
@@ -4769,8 +4769,8 @@ ${ct.extraTerms?`<p><b>5. Điều khoản bổ sung</b></p><p>${esc(ct.extraTerm
 </table>
 <table style="margin-top:40px;border:none">
 <tr>
-<td style="width:50%;text-align:center;border:none;padding:10px 20px"><b>Bên B</b><br><i>(Ký, ghi rõ họ tên)</i><br><br><br><br><b>${esc(ct.tenantName)}</b></td>
-<td style="width:50%;text-align:center;border:none;padding:10px 20px"><b>Bên A</b><br><i>(Ký, ghi rõ họ tên)</i><br><br><br><br><b>${esc(ct.ownerName)}</b></td>
+<td style="width:50%;text-align:center;border:none;padding:10px 20px"><b>Bên B</b><br><i>(Ký, ghi rõ họ tên)</i><div data-s="B" style="height:60px"></div><b>${esc(ct.tenantName)}</b></td>
+<td style="width:50%;text-align:center;border:none;padding:10px 20px"><b>Bên A</b><br><i>(Ký, ghi rõ họ tên)</i><div data-s="A" style="height:60px"></div><b>${esc(ct.ownerName)}</b></td>
 </tr>
 </table>
 <p style="text-align:center;font-size:10pt;color:#666;font-style:italic;margin-top:20px">*(Hợp đồng này được lập thành 02 bản, mỗi bên giữ 01 bản có giá trị pháp lý như nhau)*</p>
@@ -4810,8 +4810,8 @@ function exportContractPDF(){
       <tr><td style="border:1px solid #000;padding:5px;text-align:center">2</td><td style="border:1px solid #000;padding:10px"></td><td style="border:1px solid #000;padding:10px"></td><td style="border:1px solid #000;padding:10px"></td><td style="border:1px solid #000;padding:10px"></td><td style="border:1px solid #000;padding:10px"></td></tr>
     </table>
     <table style="width:100%;margin-top:40px;border-collapse:collapse">
-      <tr><td style="width:50%;text-align:center;padding:10px;border:none"><b>Bên B</b><br><i>(Ký, ghi rõ họ tên)</i><br><br><br><br><b>${esc(ct.tenantName)}</b></td>
-          <td style="width:50%;text-align:center;padding:10px;border:none"><b>Bên A</b><br><i>(Ký, ghi rõ họ tên)</i><br><br><br><br><b>${esc(ct.ownerName)}</b></td></tr>
+      <tr><td style="width:50%;text-align:center;padding:10px;border:none"><b>Bên B</b><br><i>(Ký, ghi rõ họ tên)</i><div data-s="B" style="height:60px"></div><b>${esc(ct.tenantName)}</b></td>
+          <td style="width:50%;text-align:center;padding:10px;border:none"><b>Bên A</b><br><i>(Ký, ghi rõ họ tên)</i><div data-s="A" style="height:60px"></div><b>${esc(ct.ownerName)}</b></td></tr>
     </table>
     <p style="text-align:center;font-size:10pt;color:#666;font-style:italic;margin-top:20px">* Hợp đồng được lập thành 02 bản, mỗi bên giữ 01 bản có giá trị pháp lý như nhau.</p>
   </div>`;
@@ -7224,13 +7224,17 @@ async function signView(id){
   const sigB=d.sig?await sigToBlue(d.sig):'',sigA=d.ownerSig?await sigToBlue(d.ownerSig):'';
   let html=cleanHtml(d.html);
   const when=t=>esc(new Date(t).toLocaleString('vi-VN'));
-  if(d.type==='furniture'){
-    const BLUE='color:#1d4ed8',signed=(img,who,nm,at)=>'<div style="text-align:center;'+BLUE+'"><img src="'+img+'" style="height:80px;max-width:100%"><div style="font-weight:800;margin-top:2px">✔ '+who+' đã xác nhận</div><div style="font-size:12px">'+esc(nm)+' · '+when(at)+'</div></div>';
-    const wait='<div style="text-align:center;color:#888"><div style="height:70px;border-bottom:1px dashed #999"></div><div style="font-size:12px;margin-top:4px">(chờ ký)</div></div>';
+  const BLUE='color:#1d4ed8',placed=/data-s="[AB]"/.test(html);
+  if(placed){
+    const full=d.type==='furniture';
+    const signed=(img,who,nm,at)=>full
+      ?'<div style="text-align:center;'+BLUE+'"><img src="'+img+'" style="height:80px;max-width:100%"><div style="font-weight:800;margin-top:2px">✔ '+who+' đã xác nhận</div><div style="font-size:12px">'+esc(nm)+' · '+when(at)+'</div></div>'
+      :'<div style="text-align:center;'+BLUE+'"><img src="'+img+'" style="height:58px;max-width:100%;display:block;margin:0 auto"><div style="font:700 10px sans-serif;margin-top:1px">✔ Đã ký điện tử · '+esc(new Date(at).toLocaleDateString('vi-VN'))+'</div></div>';
+    const wait=full?'<div style="text-align:center;color:#888"><div style="height:70px;border-bottom:1px dashed #999"></div><div style="font-size:12px;margin-top:4px">(chờ ký)</div></div>':'<div style="height:58px"></div>';
     html=html.replace(/<div[^>]*data-s="B"[^>]*>[^<]*<\/div>/,d.status==='signed'?signed(sigB,'Khách',d.signer,d.signedAt):wait)
              .replace(/<div[^>]*data-s="A"[^>]*>[^<]*<\/div>/,d.ownerSig?signed(sigA,'Chủ nhà',d.ownerName||'',d.ownerSignedAt):wait);
   }
-  const blk=d.status==='signed'?'<div style="margin:24px 0;padding:12px;border:1px solid #888;font:13px sans-serif"><b>XÁC NHẬN KÝ ĐIỆN TỬ</b><br>Người ký: '+esc(d.signer)+'<br>Thời gian: '+when(d.signedAt)+(d.ownerSig?'<br>Chủ nhà xác nhận: '+esc(d.ownerName||'')+' · '+when(d.ownerSignedAt):'')+'<br>Mã băm văn bản (SHA-256): <span style="word-break:break-all;font-size:11px">'+esc(d.hash||'')+'</span>'+(d.type==='furniture'?'':'<div style="display:flex;gap:28px;flex-wrap:wrap;margin-top:10px;color:#1d4ed8"><div style="text-align:center"><img src="'+sigB+'" style="height:90px"><div style="font-weight:800">✔ Khách đã xác nhận</div><div style="font-size:12px">'+esc(d.signer)+'</div></div>'+(d.ownerSig?'<div style="text-align:center"><img src="'+sigA+'" style="height:90px"><div style="font-weight:800">✔ Chủ nhà đã xác nhận</div><div style="font-size:12px">'+esc(d.ownerName||'')+'</div></div>':'')+'</div>')+'</div>':'';
+  const blk=d.status==='signed'?'<div style="margin:24px 0;padding:12px;border:1px solid #888;font:13px sans-serif"><b>XÁC NHẬN KÝ ĐIỆN TỬ</b><br>Người ký: '+esc(d.signer)+'<br>Thời gian: '+when(d.signedAt)+(d.ownerSig?'<br>Chủ nhà xác nhận: '+esc(d.ownerName||'')+' · '+when(d.ownerSignedAt):'')+'<br>Mã băm văn bản (SHA-256): <span style="word-break:break-all;font-size:11px">'+esc(d.hash||'')+'</span>'+(placed?'':'<div style="display:flex;gap:28px;flex-wrap:wrap;margin-top:10px;color:#1d4ed8"><div style="text-align:center"><img src="'+sigB+'" style="height:90px"><div style="font-weight:800">✔ Khách đã xác nhận</div><div style="font-size:12px">'+esc(d.signer)+'</div></div>'+(d.ownerSig?'<div style="text-align:center"><img src="'+sigA+'" style="height:90px"><div style="font-weight:800">✔ Chủ nhà đã xác nhận</div><div style="font-size:12px">'+esc(d.ownerName||'')+'</div></div>':'')+'</div>')+'</div>':'';
   w.document.open();w.document.write(ptPrintDoc(html.replace('</body>',blk+'</body>')));w.document.close();
 }
 async function signDel(id){
@@ -9177,6 +9181,7 @@ async function signOwnerSave(id){
   d.ownerSig=img;d.ownerName=nm.slice(0,100);d.ownerSignedAt=Date.now();d._u=Date.now();
   if(document.getElementById('soSave').checked&&S.settings)S.settings.ownerSig=img;
   save();closeM('mSignOwner');signList();
+  try{if(fbDb&&d.code)dbRef('sign/'+d.code+'/'+d.id+'/ownerSignedAt').set(d.ownerSignedAt)}catch(e){}
   toast('✅ Chủ nhà đã xác nhận ký','success');
 }
 async function joinDownload(roomId){
@@ -10215,7 +10220,7 @@ document.body.insertBefore(d.firstChild,document.body.firstChild);
 .rm-ghost.zone{transform:none;background:var(--surface,#16213a);border-radius:14px;padding:8px 12px;opacity:.95}
 </style>
 <script>
-window.APP_VERSION='5.56';
+window.APP_VERSION='5.57';
 (function(){
 'use strict';
 /* ── Phiên bản + kiểm tra cập nhật ── */

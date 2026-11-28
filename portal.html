@@ -214,6 +214,16 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
 
   /* ───── Ký giấy tờ (hợp đồng, CT01) ───── */
   let docs={};
+  function sigBlue(src){return new Promise(function(res){try{var im=new Image();im.onload=function(){var c=document.createElement('canvas');c.width=im.width;c.height=im.height;var x=c.getContext('2d');x.drawImage(im,0,0);var d=x.getImageData(0,0,c.width,c.height),a=d.data;for(var i=0;i<a.length;i+=4){a[i]=29;a[i+1]=78;a[i+2]=216}x.putImageData(d,0,0);res(c.toDataURL('image/png'))};im.onerror=function(){res('')};im.src=src}catch(e){res('')}})}
+  async function signFill(d,id){
+    var html=String(d.html||''),done=signedMap()[id]||d.signedAt;
+    var B='color:#1d4ed8;text-align:center',dt=function(t){return new Date(t).toLocaleDateString('vi-VN')};
+    var raw='';try{raw=localStorage.getItem('psi_'+code+'_'+id)||''}catch(e){}
+    var img=raw?await sigBlue(raw):'';
+    if(done)html=html.replace(/<div[^>]*data-s="B"[^>]*>[^<]*<\/div>/,'<div style="'+B+'">'+(img?'<img src="'+img+'" style="height:58px;max-width:100%;display:block;margin:0 auto">':'<div style="height:30px"></div>')+'<div style="font:700 10px sans-serif;margin-top:1px">✔ Đã ký điện tử · '+esc(dt(d.signedAt||Date.now()))+'</div></div>');
+    if(d.ownerSignedAt)html=html.replace(/<div[^>]*data-s="A"[^>]*>[^<]*<\/div>/,'<div style="'+B+'"><div style="height:30px"></div><div style="font:700 10px sans-serif;margin-top:1px">✔ Chủ nhà đã ký điện tử · '+esc(dt(d.ownerSignedAt))+'</div></div>');
+    return html;
+  }
   function signedMap(){try{return JSON.parse(localStorage.getItem('ps_'+code)||'{}')}catch(e){return{}}}
   function signBadge(){const m=signedMap(),n=Object.keys(docs).filter(k=>!m[k]&&!docs[k].signedAt).length;return n?' ('+n+')':''}
   function signTab(){
@@ -221,7 +231,7 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
     if(!ks.length)return '<div class="center">Chưa có giấy tờ nào cần ký</div>';
     const m=signedMap();
     return ks.map(k=>{const d=docs[k],done=m[k]||d.signedAt;
-      return '<div class="card"><b>'+esc(d.title)+'</b><div class="muted">Gửi lúc '+esc(new Date(d.at).toLocaleString('vi-VN'))+'</div><div style="margin:6px 0;font-weight:700;color:'+(done?'var(--pri)':'var(--danger)')+'">'+(done?'✅ Đã ký':'✍️ Chờ bạn ký')+'</div><button class="'+(done?'sec':'pri')+'" type="button" data-a="sgn" data-id="'+esc(k)+'">'+(done?'Xem lại':'Đọc và ký')+'</button></div>'}).join('');
+      return '<div class="card"><b>'+esc(d.title)+'</b><div class="muted">Gửi lúc '+esc(new Date(d.at).toLocaleString('vi-VN'))+'</div><div style="margin:6px 0;font-weight:700;color:'+(done?'#1d4ed8':'var(--danger)')+'">'+(done?'✅ Đã ký':'✍️ Chờ bạn ký')+'</div>'+(d.ownerSignedAt?'<div style="margin-bottom:6px;font-weight:700;color:#1d4ed8">✔ Chủ nhà đã ký</div>':'')+'<button class="'+(done?'sec':'pri')+'" type="button" data-a="sgn" data-id="'+esc(k)+'">'+(done?'Xem lại':'Đọc và ký')+'</button></div>'}).join('');
   }
   function signOpen(id){
     const d=docs[id];if(!d)return;const done=signedMap()[id]||d.signedAt;
@@ -230,6 +240,7 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
       +(done?'<div class="ok" style="margin-top:10px">✅ Bạn đã ký văn bản này.</div>'
       :'<div class="card" style="margin-top:10px"><label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="sgA" style="width:auto;margin-top:3px"> <span>Tôi đã đọc toàn bộ nội dung và đồng ý</span></label><label>Họ tên người ký</label><input id="sgN" maxlength="100" value="'+esc((data&&data.tenant)||'')+'"><label>Chữ ký (dùng ngón tay ký vào khung)</label><canvas id="sgC" width="600" height="220" style="width:100%;height:150px;border:1.5px dashed var(--border);border-radius:12px;background:#fff;touch-action:none"></canvas><div class="two" style="margin-top:8px"><button class="sec" type="button" id="sgR">Xóa, ký lại</button><button class="pri" type="button" id="sgS">Gửi chữ ký</button></div><div id="sgM" style="margin-top:6px"></div></div>')+'</div>';
     document.body.appendChild(ov);document.getElementById('sgF').srcdoc=d.html;
+    if(done||d.ownerSignedAt)signFill(d,id).then(function(h){var f=document.getElementById('sgF');if(f)f.srcdoc=h});
     const close=()=>ov.remove();document.getElementById('sgX').onclick=close;
     if(done)return;
     const c=document.getElementById('sgC'),x=c.getContext('2d'),msg=document.getElementById('sgM');x.lineWidth=3.5;x.lineCap='round';x.lineJoin='round';x.strokeStyle='#111';let dr=false,n=0;
@@ -246,7 +257,7 @@ input,textarea,select{width:100%;max-width:100%;min-width:0;padding:11px;border-
       const img=c.toDataURL('image/png');if(img.length>115000){msg.innerHTML='<div class="err">Chữ ký quá phức tạp, hãy ký lại đơn giản hơn.</div>';return}
       document.getElementById('sgS').disabled=true;
       db.ref('sign_in/'+code+'/'+id).set({img,name:nm.slice(0,100),at:Date.now()})
-        .then(()=>{try{const m=signedMap();m[id]=1;localStorage.setItem('ps_'+code,JSON.stringify(m))}catch(e){}close();render()})
+        .then(()=>{try{const m=signedMap();m[id]=1;localStorage.setItem('ps_'+code,JSON.stringify(m));localStorage.setItem('psi_'+code+'_'+id,img)}catch(e){}close();render()})
         .catch(()=>{document.getElementById('sgS').disabled=false;msg.innerHTML='<div class="err">Không gửi được (có thể đã ký rồi). Vui lòng thử lại sau.</div>'});
     };
   }
